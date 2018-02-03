@@ -1,6 +1,5 @@
 use libc::size_t;
 extern crate bcc_sys;
-extern crate regex;
 use failure::Error;
 use self::bcc_sys::bccapi::*;
 use std::ffi::CStr;

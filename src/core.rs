@@ -5,7 +5,6 @@ use failure::Error;
 use bcc_sys::bccapi::*;
 use std::collections::HashMap;
 use std::collections::hash_map::Entry;
-use regex::Regex;
 use symbol;
 use table::Table;
 
@@ -17,6 +16,12 @@ pub struct BPF {
     uprobes: HashMap<String, MutPointer>,
     kprobes: HashMap<String, MutPointer>,
     funcs: HashMap<String, fd_t>,
+}
+
+fn make_alphanumeric(s: String) -> String {
+    s.replace(|c| {
+        !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
+    }, "_")
 }
 
 impl BPF {
@@ -112,11 +117,9 @@ impl BPF {
         fd: fd_t,
         pid: pid_t,
     ) -> Result<(), Error> {
-        lazy_static! {
-            static ref RE: Regex = Regex::new("[^a-zA-Z0-9]").unwrap();
-        }
         let (path, addr) = symbol::resolve_symbol_path(name, symbol, 0x0, pid)?;
-        let ev_name = format!("r_{}_0x{:x}", RE.replace_all(&path, "_"), addr);
+        let alpha_path = make_alphanumeric(path.clone());
+        let ev_name = format!("r_{}_0x{:x}", &alpha_path, addr);
         self.attach_uprobe_inner(
             &ev_name,
             bpf_probe_attach_type_BPF_PROBE_RETURN,
@@ -133,11 +136,9 @@ impl BPF {
         fd: fd_t,
         pid: pid_t,
     ) -> Result<(), Error> {
-        lazy_static! {
-            static ref RE: Regex = Regex::new("[^a-zA-Z0-9]").unwrap();
-        }
         let (path, addr) = symbol::resolve_symbol_path(name, symbol, 0x0, pid)?;
-        let ev_name = format!("r_{}_0x{:x}", RE.replace_all(&path, "_"), addr);
+        let alpha_path = make_alphanumeric(path.clone());
+        let ev_name = format!("r_{}_0x{:x}", &alpha_path, addr);
         self.attach_uprobe_inner(
             &ev_name,
             bpf_probe_attach_type_BPF_PROBE_ENTRY,
