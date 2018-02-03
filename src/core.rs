@@ -4,20 +4,43 @@ use std::ffi::CString;
 use failure::Error;
 use bcc_sys::bccapi::*;
 use std::collections::HashMap;
-use std::collections::hash_map::Entry;
+use std::fs::File;
+use std::os::unix::prelude::*;
 use symbol;
 use table::Table;
 
 use types::*;
 
 // TODO: implement `Drop` for this type
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct BPF {
     p: MutPointer,
-    uprobes: HashMap<String, MutPointer>,
-    kprobes: HashMap<String, MutPointer>,
-    // TODO: this should be a HashMap<String, File> so that the file gets closed properly
-    funcs: HashMap<String, fd_t>,
+    uprobes: HashMap<String, Uprobe>,
+    kprobes: HashMap<String, Kprobe>,
+}
+
+#[derive(Debug)]
+pub struct Uprobe {
+    code_fd: File,
+    p: MutPointer,
+}
+
+impl Drop for Uprobe {
+    fn drop(&mut self) {
+        // TODO
+    }
+}
+
+#[derive(Debug)]
+pub struct Kprobe {
+    code_fd: File,
+    p: MutPointer,
+}
+
+impl Drop for Kprobe {
+    fn drop(&mut self) {
+        // TODO
+    }
 }
 
 fn make_alphanumeric(s: String) -> String {
@@ -37,7 +60,6 @@ impl BPF {
             p: ptr,
             uprobes: HashMap::new(),
             kprobes: HashMap::new(),
-            funcs: HashMap::new(),
         })
     }
 
@@ -48,15 +70,15 @@ impl BPF {
         Table::new(id, self.p)
     }
 
-    pub fn load_net(&mut self, name: &str) -> Result<fd_t, Error> {
+    pub fn load_net(&mut self, name: &str) -> Result<File, Error> {
         return self.load(name, bpf_prog_type_BPF_PROG_TYPE_SCHED_ACT, 0, 0);
     }
 
-    pub fn load_kprobe(&mut self, name: &str) -> Result<fd_t, Error> {
+    pub fn load_kprobe(&mut self, name: &str) -> Result<File, Error> {
         return self.load(name, bpf_prog_type_BPF_PROG_TYPE_KPROBE, 0, 0);
     }
 
-    pub fn load_uprobe(&mut self, name: &str) -> Result<fd_t, Error> {
+    pub fn load_uprobe(&mut self, name: &str) -> Result<File, Error> {
         // it's BPF_PROG_TYPE_KPROBE even though it's a uprobe, it's weird
         return self.load(name, bpf_prog_type_BPF_PROG_TYPE_KPROBE, 0, 0);
     }
@@ -67,26 +89,7 @@ impl BPF {
         prog_type: u32,
         log_level: i32,
         log_size: u32,
-    ) -> Result<fd_t, Error> {
-        let name_string = name.to_string();
-        match self.funcs.entry(name_string.clone()) {
-            Entry::Occupied(o) => {
-                return Ok(o.into_mut().clone());
-            }
-            _ => {}
-        };
-        let fd = self.load_inner(name, prog_type, log_level, log_size)?;
-        self.funcs.insert(name_string, fd);
-        Ok(fd)
-    }
-
-    fn load_inner(
-        &mut self,
-        name: &str,
-        prog_type: u32,
-        log_level: i32,
-        log_size: u32,
-    ) -> Result<fd_t, Error> {
+    ) -> Result<File, Error> {
         let cname = CString::new(name).unwrap();
         unsafe {
             let start: *mut bpf_insn = bpf_function_start(self.p, cname.as_ptr()) as *mut bpf_insn;
@@ -111,7 +114,7 @@ impl BPF {
             if fd < 0 {
                 return Err(format_err!("error loading BPF program: {}", name));
             }
-            Ok(fd)
+            Ok(File::from_raw_fd(fd))
         }
     }
 
@@ -119,7 +122,7 @@ impl BPF {
         &mut self,
         name: &str,
         symbol: &str,
-        fd: fd_t,
+        file: File,
         pid: pid_t,
     ) -> Result<(), Error> {
         let (path, addr) = symbol::resolve_symbol_path(name, symbol, 0x0, pid)?;
@@ -130,18 +133,18 @@ impl BPF {
             bpf_probe_attach_type_BPF_PROBE_RETURN,
             &path,
             addr,
-            fd,
+            file,
             pid,
         )
     }
     pub fn attach_uprobe(
         &mut self,
-        name: &str,
+        binary_path: &str,
         symbol: &str,
-        fd: fd_t,
+        file: File,
         pid: pid_t,
     ) -> Result<(), Error> {
-        let (path, addr) = symbol::resolve_symbol_path(name, symbol, 0x0, pid)?;
+        let (path, addr) = symbol::resolve_symbol_path(binary_path, symbol, 0x0, pid)?;
         let alpha_path = make_alphanumeric(path.clone());
         let ev_name = format!("r_{}_0x{:x}", &alpha_path, addr);
         self.attach_uprobe_inner(
@@ -149,7 +152,7 @@ impl BPF {
             bpf_probe_attach_type_BPF_PROBE_ENTRY,
             &path,
             addr,
-            fd,
+            file,
             pid,
         )
     }
@@ -160,15 +163,15 @@ impl BPF {
         attach_type: u32,
         path: &str,
         addr: u64,
-        fd: i32,
+        file: File,
         pid: pid_t,
     ) -> Result<(), Error> {
         let cname = CString::new(name).unwrap();
         let cpath = CString::new(path).unwrap();
         let group_fd = (-1 as i32) as MutPointer; // something is wrong with the type of this but it's a groupfd
-        let uprobe = unsafe {
+        let uprobe_ptr = unsafe {
             bpf_attach_uprobe(
-                fd,
+                file.as_raw_fd(),
                 attach_type,
                 cname.as_ptr(),
                 cpath.as_ptr(),
@@ -178,10 +181,10 @@ impl BPF {
                 group_fd,
             )
         };
-        if uprobe == 0 as MutPointer {
+        if uprobe_ptr == 0 as MutPointer {
             return Err(format_err!("Failed to attach uprobe"));
         }
-        self.uprobes.insert(name.to_string(), uprobe);
+        self.uprobes.insert(name.to_string(), Uprobe{p: uprobe_ptr, code_fd: file});
         Ok(())
     }
 }
