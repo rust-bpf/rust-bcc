@@ -2,7 +2,7 @@ pub mod core;
 pub mod symbol;
 pub mod perf;
 pub mod table;
-pub mod types;
+mod types;
 
 #[macro_use]
 extern crate failure;

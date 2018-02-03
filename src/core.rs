@@ -10,11 +10,13 @@ use table::Table;
 
 use types::*;
 
+// TODO: implement `Drop` for this type
 #[derive(Debug, Clone)]
 pub struct BPF {
-    pub p: MutPointer,
+    p: MutPointer,
     uprobes: HashMap<String, MutPointer>,
     kprobes: HashMap<String, MutPointer>,
+    // TODO: this should be a HashMap<String, File> so that the file gets closed properly
     funcs: HashMap<String, fd_t>,
 }
 
@@ -25,6 +27,7 @@ fn make_alphanumeric(s: String) -> String {
 }
 
 impl BPF {
+    /// `code` is a string containing C code. See https://github.com/iovisor/bcc for examples
     pub fn new(code: &str) -> Result<BPF, Error> {
         let cs = CString::new(code)?;
         let ptr =
@@ -39,6 +42,7 @@ impl BPF {
     }
 
     pub fn table(&self, name: &str) -> Table {
+        // TODO: clean up this unwrap (and all the rest in this file)
         let cname = CString::new(name).unwrap();
         let id = unsafe { bpf_table_id(self.p as MutPointer, cname.as_ptr()) };
         Table::new(id, self.p)
@@ -53,6 +57,7 @@ impl BPF {
     }
 
     pub fn load_uprobe(&mut self, name: &str) -> Result<fd_t, Error> {
+        // it's BPF_PROG_TYPE_KPROBE even though it's a uprobe, it's weird
         return self.load(name, bpf_prog_type_BPF_PROG_TYPE_KPROBE, 0, 0);
     }
 
@@ -75,7 +80,7 @@ impl BPF {
         Ok(fd)
     }
 
-    pub fn load_inner(
+    fn load_inner(
         &mut self,
         name: &str,
         prog_type: u32,
