@@ -42,8 +42,8 @@ int count(struct pt_regs *ctx) {
 };
     ";
     let mut module = BPF::new(code)?;
-    let uprobe = module.load_uprobe("count")?;
-    module.attach_uprobe("/lib/x86_64-linux-gnu/libc.so.6", "strlen", uprobe, -1 /* all PIDs */)?;
+    let uprobe_code = module.load_uprobe("count")?;
+    module.attach_uprobe("/lib/x86_64-linux-gnu/libc.so.6", "strlen", uprobe_code, -1 /* all PIDs */)?;
     let table = module.table("counts");
     loop {
         std::thread::sleep(std::time::Duration::from_millis(1000));
