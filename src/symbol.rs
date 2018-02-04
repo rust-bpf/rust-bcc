@@ -1,8 +1,8 @@
-use std::ffi::CString;
-extern crate bcc_sys;
 use failure::Error;
-use self::bcc_sys::bccapi::*;
+use bcc_sys::bccapi::*;
+
 use std::mem;
+use std::ffi::CString;
 
 pub fn resolve_symbol_path(
     module: &str,

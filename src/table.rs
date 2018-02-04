@@ -1,11 +1,12 @@
 use libc::size_t;
-extern crate bcc_sys;
 use failure::Error;
-use self::bcc_sys::bccapi::*;
+use bcc_sys::bccapi::*;
+
+use types::{MutPointer, fd_t};
+
 use std::ffi::CStr;
 use std;
 
-use types::*;
 
 #[derive(Clone, Debug)]
 pub struct Table {
