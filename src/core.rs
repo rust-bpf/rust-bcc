@@ -1,15 +1,15 @@
-//use libc::*;
-use std::ffi::CString;
 
 use failure::Error;
 use bcc_sys::bccapi::*;
+
+use symbol;
+use table::Table;
+use types::MutPointer;
+
+use std::ffi::CString;
 use std::collections::HashMap;
 use std::fs::File;
 use std::os::unix::prelude::*;
-use symbol;
-use table::Table;
-
-use types::*;
 
 // TODO: implement `Drop` for this type
 #[derive(Debug)]
