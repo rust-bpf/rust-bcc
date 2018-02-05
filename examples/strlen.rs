@@ -8,17 +8,6 @@ use bcc::core::BPF;
 use failure::Error;
 use std::io::Cursor;
 
-fn main() {
-    match do_main() {
-        Err(x) => {
-            eprintln!("Error: {}", x);
-            eprintln!("{}", x.backtrace());
-            std::process::exit(1);
-        }
-        _ => {}
-    }
-}
-
 fn do_main() -> Result<(), Error> {
     let code = "
 #include <uapi/linux/ptrace.h>
@@ -51,10 +40,7 @@ int count(struct pt_regs *ctx) {
         for e in iter {
             // key and value are each a Vec<u8> so we need to transform them into a string and 
             // a u64 respectively
-            let key = match e.key.iter().position(|&r| r == 0) {
-                Some(zero_pos) => String::from_utf8_lossy(&e.key[0..zero_pos]),
-                None => String::from_utf8_lossy(&e.key),
-            };
+            let key = get_string(&e.key);
             let value = Cursor::new(e.value).read_u64::<NativeEndian>().unwrap();
             if value > 10 {
                 println!("{:?} {:?}", key, value);
@@ -63,3 +49,20 @@ int count(struct pt_regs *ctx) {
     }
 }
 
+fn get_string(x: &[u8]) -> String {
+    match x.iter().position(|&r| r == 0) {
+        Some(zero_pos) => String::from_utf8_lossy(&x[0..zero_pos]).to_string(),
+        None => String::from_utf8_lossy(x).to_string(),
+    }
+}
+
+fn main() {
+    match do_main() {
+        Err(x) => {
+            eprintln!("Error: {}", x);
+            eprintln!("{}", x.backtrace());
+            std::process::exit(1);
+        }
+        _ => {}
+    }
+}
