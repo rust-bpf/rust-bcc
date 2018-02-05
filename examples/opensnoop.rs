@@ -71,7 +71,6 @@ fn get_string(x: &[u8]) -> String {
     }
 }
 
-
 fn main() {
     match do_main() {
         Err(x) => {
