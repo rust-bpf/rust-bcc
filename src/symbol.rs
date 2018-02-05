@@ -47,7 +47,9 @@ pub fn resolve_symname(
         ))
     } else {
         let module = unsafe {
-            CString::from_raw(symbol.module as *mut i8).to_str()?.to_string()
+            CString::from_raw(symbol.module as *mut i8)
+                .to_str()?
+                .to_string()
         };
         Ok((module, symbol.offset))
     }

@@ -40,7 +40,7 @@ impl Table {
 
     pub fn delete(&mut self, key: &mut [u8]) -> Result<(), Error> {
         let fd = self.fd();
-        let res = unsafe {bpf_delete_elem(fd, key.as_mut_ptr() as MutPointer)};
+        let res = unsafe { bpf_delete_elem(fd, key.as_mut_ptr() as MutPointer) };
         match res {
             0 => Ok(()),
             _ => Err(format_err!("unable to delete element ({:?})", key)),
@@ -54,21 +54,38 @@ impl Table {
         Ok(())
     }
 
-    pub fn get(&mut self, key: &mut[u8]) -> Result<Vec<u8>, Error> {
+    pub fn get(&mut self, key: &mut [u8]) -> Result<Vec<u8>, Error> {
         let mut leaf = zero_vec(self.leaf_size());
-        let res = unsafe {bpf_lookup_elem(self.fd(), key.as_mut_ptr() as MutPointer, leaf.as_mut_ptr() as MutPointer)};
+        let res = unsafe {
+            bpf_lookup_elem(
+                self.fd(),
+                key.as_mut_ptr() as MutPointer,
+                leaf.as_mut_ptr() as MutPointer,
+            )
+        };
         match res {
             0 => Ok(leaf),
             _ => Err(format_err!("unable to get element ({:?})", leaf)),
         }
     }
 
-    pub fn set(&mut self, key: &mut[u8], leaf: &mut[u8]) -> Result<(), Error> {
-        let res = unsafe {bpf_update_elem(self.fd(), key.as_mut_ptr() as MutPointer, leaf.as_mut_ptr() as MutPointer, 0)};
+    pub fn set(&mut self, key: &mut [u8], leaf: &mut [u8]) -> Result<(), Error> {
+        let res = unsafe {
+            bpf_update_elem(
+                self.fd(),
+                key.as_mut_ptr() as MutPointer,
+                leaf.as_mut_ptr() as MutPointer,
+                0,
+            )
+        };
         // TODO: maybe we can get an errno here to enhance the error message with?
         match res {
             0 => Ok(()),
-            _ => Err(format_err!("unable to update element ({:?}={:?})", key, leaf)),
+            _ => Err(format_err!(
+                "unable to update element ({:?}={:?})",
+                key,
+                leaf
+            )),
         }
     }
 

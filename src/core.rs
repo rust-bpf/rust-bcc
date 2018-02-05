@@ -137,6 +137,28 @@ impl BPF {
             pid,
         )
     }
+    pub fn attach_kprobe(&mut self, function: &str, file: File) -> Result<(), Error> {
+        let alpha_path = make_alphanumeric(function.to_string());
+        let ev_name = format!("p_{}", &alpha_path);
+        self.attach_kprobe_inner(
+            &ev_name,
+            bpf_probe_attach_type_BPF_PROBE_ENTRY,
+            function,
+            file,
+        )
+    }
+
+    pub fn attach_kretprobe(&mut self, function: &str, file: File) -> Result<(), Error> {
+        let alpha_path = make_alphanumeric(function.to_string());
+        let ev_name = format!("r_{}", &alpha_path);
+        self.attach_kprobe_inner(
+            &ev_name,
+            bpf_probe_attach_type_BPF_PROBE_RETURN,
+            function,
+            file,
+        )
+    }
+
     pub fn attach_uprobe(
         &mut self,
         binary_path: &str,
@@ -157,6 +179,43 @@ impl BPF {
         )
     }
 
+    fn attach_kprobe_inner(
+        &mut self,
+        name: &str,
+        attach_type: u32,
+        function: &str,
+        file: File,
+    ) -> Result<(), Error> {
+        let cname = CString::new(name).unwrap();
+        let cfunction = CString::new(function).unwrap();
+        // println!("{}, {}", cname.as_ptr() as u64, cfunction.as_ptr() as u64);
+        let (pid, cpu, group_fd) = (-1, 0, -1);
+        let kprobe_ptr = unsafe {
+            bpf_attach_kprobe(
+                file.as_raw_fd(),
+                0,
+                cname.as_ptr(),
+                cfunction.as_ptr(),
+                pid,
+                cpu,
+                group_fd,
+                None,
+                0 as MutPointer,
+            )
+        };
+        if kprobe_ptr == 0 as MutPointer {
+            return Err(format_err!("Failed to attach kprobe"));
+        }
+        self.kprobes.insert(
+            name.to_string(),
+            Kprobe {
+                p: kprobe_ptr,
+                code_fd: file,
+            },
+        );
+        Ok(())
+    }
+
     fn attach_uprobe_inner(
         &mut self,
         name: &str,
@@ -169,6 +228,7 @@ impl BPF {
         let cname = CString::new(name).unwrap();
         let cpath = CString::new(path).unwrap();
         let group_fd = (-1 as i32) as MutPointer; // something is wrong with the type of this but it's a groupfd
+        let (pid, cpu, group_fd) = (-1, 0, -1);
         let uprobe_ptr = unsafe {
             bpf_attach_uprobe(
                 file.as_raw_fd(),
@@ -177,14 +237,22 @@ impl BPF {
                 cpath.as_ptr(),
                 addr,
                 pid,
-                None, /* cpu */
+                cpu,
                 group_fd,
+                None,
+                0 as MutPointer,
             )
         };
         if uprobe_ptr == 0 as MutPointer {
             return Err(format_err!("Failed to attach uprobe"));
         }
-        self.uprobes.insert(name.to_string(), Uprobe{p: uprobe_ptr, code_fd: file});
+        self.uprobes.insert(
+            name.to_string(),
+            Uprobe {
+                p: uprobe_ptr,
+                code_fd: file,
+            },
+        );
         Ok(())
     }
 }
