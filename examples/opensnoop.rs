@@ -9,6 +9,9 @@ use failure::Error;
 
 /*
  * Rust clone of `opensnoop`, from the iovisor tools.
+ *
+ * Current status: quite buggy, seems to get all the `open` events but half the time prints a
+ * corrupted filename.
  */
 
 // Define the struct the BPF code writes in Rust
@@ -85,7 +88,6 @@ int trace_return(struct pt_regs *ctx)
     let return_probe = module.load_kprobe("trace_return")?;
     let entry_probe = module.load_kprobe("trace_entry")?;
     module.attach_kprobe("do_sys_open", entry_probe)?;
-    std::thread::sleep(std::time::Duration::from_millis(100));
     module.attach_kretprobe("do_sys_open", return_probe)?;
     let table = module.table("events");
     let mut map = init_perf_map(table, closure)?;
