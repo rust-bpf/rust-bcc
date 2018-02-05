@@ -1,8 +1,3 @@
-/* 
- * BPF code here copied from
- * https://github.com/iovisor/bcc/blob/master/tools/opensnoop.py
- */
-
 #include <uapi/linux/ptrace.h>
 #include <uapi/linux/limits.h>
 #include <linux/sched.h>
@@ -10,15 +5,14 @@ struct val_t {
     u64 id;
     u64 ts;
     char comm[TASK_COMM_LEN];
-    char fname[255];
+    const char *fname;
 };
 struct data_t {
     u64 id;
     u64 ts;
-    int cpu;
     int ret;
     char comm[TASK_COMM_LEN];
-    char fname[255];
+    char fname[NAME_MAX];
 };
 BPF_HASH(infotmp, u64, struct val_t);
 BPF_PERF_OUTPUT(events);
@@ -31,7 +25,7 @@ int trace_entry(struct pt_regs *ctx, int dfd, const char __user *filename)
     if (bpf_get_current_comm(&val.comm, sizeof(val.comm)) == 0) {
         val.id = id;
         val.ts = bpf_ktime_get_ns();
-        bpf_probe_read(&val.fname, sizeof(val.fname), filename);
+        val.fname = filename;
         infotmp.update(&id, &val);
     }
     return 0;
@@ -52,9 +46,7 @@ int trace_return(struct pt_regs *ctx)
     data.id = valp->id;
     data.ts = tsp / 1000;
     data.ret = PT_REGS_RC(ctx);
-    data.cpu = bpf_get_smp_processor_id();
     events.perf_submit(ctx, &data, sizeof(data));
     infotmp.delete(&id);
     return 0;
 }
-

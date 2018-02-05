@@ -24,7 +24,6 @@ use failure::Error;
 struct data_t {
     id: u64,
     ts: u64,
-    cpu: libc::c_int,
     ret: libc::c_int,
     comm: [u8; 16], // TASK_COMM_LEN
     fname: [u8; 255], // NAME_MAX
@@ -44,7 +43,7 @@ fn do_main() -> Result<(), Error> {
     // install a callback to print out file open events when they happen
     let mut perf_map = init_perf_map(table, perf_data_callback)?;
     // print a header
-    println!("{:-5} {:-7} {:-16} {}", "CPU", "PID", "COMM", "FILENAME");
+    println!("{:-7} {:-16} {}", "PID", "COMM", "FILENAME");
     // this `.poll()` loop is what makes our callback get called
     loop {
         perf_map.poll(200);
@@ -55,7 +54,7 @@ fn perf_data_callback() -> Box<Fn(Vec<u8>)> {
     Box::new(|x| {
         // This callback
         let data = parse_struct(&x);
-        println!("{:-5} {:-7} {:-16} {}", data.cpu, data.id >> 32, get_string(&data.comm), get_string(&data.fname));
+        println!("{:-7} {:-16} {}", data.id >> 32, get_string(&data.comm), get_string(&data.fname));
     })
 }
 
