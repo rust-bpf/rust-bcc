@@ -1,11 +1,13 @@
 # rust-bcc
 
-Crate with user-friendly rust bindings for the bpf compiler collection. The goal is to more or less
-mimic the Python bindings in https://github.com/iovisor/bcc in a way that's idiomatic for Rust.
+Idiomatic Rust bindings for the BPF compiler collection. The goal is to mimic the
+Python BCC bindings in https://github.com/iovisor/bcc in a Rusty way.
 
-This is currently a partial port of gobpf: https://github.com/iovisor/gobpf/.
+The C bcc API (as exposed in `bcc-sys`) is very powerful, but it's fairly nontrivial to try to use
+it by itself and manage all the resources it allocates safely.
 
-This crate is currently experimental. Pull requests very much appreciated.
+This crate is currently experimental and has several things in it which are either unsafe or not
+particularly idiomatic for Rust. Pull requests very much appreciated.
 
 ### Examples
 
