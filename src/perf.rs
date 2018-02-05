@@ -41,6 +41,8 @@ impl Drop for PerfReader {
 }
 
 pub struct PerfMap {
+    // table and callbacks are just in here to make sure the data stays owned/alive
+    // TODO: improve this API
     table: Table,
     readers: Vec<PerfReader>,
     callbacks: Vec<Box<PerfCallback>>,
@@ -62,7 +64,7 @@ where
     let key_size = table.key_size();
     let leaf_size = table.leaf_size();
     let mut key = zero_vec(key_size);
-    let mut leaf = zero_vec(leaf_size);
+    let leaf = zero_vec(leaf_size);
 
     if key_size != 4 || leaf_size != 4 {
         return Err(format_err!("passed table has wrong size"));
@@ -80,7 +82,7 @@ where
             readers.push(reader);
             callbacks.push(callback);
 
-            cur.write_u32::<NativeEndian>(perf_fd);
+            cur.write_u32::<NativeEndian>(perf_fd)?;
             table.set(&mut key, &mut cur.get_mut()).context(
                 "Unable to initialize perf map",
             )?;

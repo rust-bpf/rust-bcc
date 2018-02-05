@@ -193,7 +193,7 @@ impl BPF {
         let kprobe_ptr = unsafe {
             bpf_attach_kprobe(
                 file.as_raw_fd(),
-                0,
+                attach_type,
                 cname.as_ptr(),
                 cfunction.as_ptr(),
                 pid,
@@ -227,8 +227,8 @@ impl BPF {
     ) -> Result<(), Error> {
         let cname = CString::new(name).unwrap();
         let cpath = CString::new(path).unwrap();
-        let group_fd = (-1 as i32) as MutPointer; // something is wrong with the type of this but it's a groupfd
-        let (pid, cpu, group_fd) = (-1, 0, -1);
+        // TODO: maybe pass in the CPU & PID instead of
+        let (cpu, group_fd) = (0, -1);
         let uprobe_ptr = unsafe {
             bpf_attach_uprobe(
                 file.as_raw_fd(),
