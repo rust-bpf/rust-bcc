@@ -8,3 +8,4 @@ mod types;
 extern crate failure;
 extern crate libc;
 extern crate bcc_sys;
+extern crate byteorder;
