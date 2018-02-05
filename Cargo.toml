@@ -5,8 +5,6 @@ authors = ["Julia Evans <julia@jvns.ca>"]
 
 [dependencies]
 libc = "0.2.36"
-bcc-sys = "0.5.0"
+bcc-sys = { path = "bcc-sys" }
 failure = "0.1.1"
-
-[dev-dependencies]
 byteorder = "1"
