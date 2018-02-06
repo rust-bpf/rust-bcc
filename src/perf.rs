@@ -1,12 +1,13 @@
 extern crate libc;
-use types::*;
 use failure::Error;
 use failure::ResultExt;
+use byteorder::{NativeEndian, WriteBytesExt};
 use bcc_sys::bccapi::*;
+
 use std;
 use std::io::Cursor;
-use byteorder::{NativeEndian, WriteBytesExt};
 
+use types::*;
 use table::Table;
 
 struct PerfCallback {
@@ -47,14 +48,6 @@ pub struct PerfMap {
     callbacks: Vec<Box<PerfCallback>>,
 }
 
-fn zero_vec(size: usize) -> Vec<u8> {
-    let mut vec = Vec::with_capacity(size);
-    for _ in 0..size {
-        vec.push(0);
-    }
-    vec
-}
-
 pub fn init_perf_map<F: 'static>(mut table: Table, cb: F) -> Result<PerfMap, Error>
 where
     F: Fn() -> Box<Fn(&[u8])>,
@@ -62,8 +55,8 @@ where
     let fd = table.fd();
     let key_size = table.key_size();
     let leaf_size = table.leaf_size();
-    let mut key = zero_vec(key_size);
-    let leaf = zero_vec(leaf_size);
+    let mut key = vec![0; key_size];
+    let leaf = vec![0; leaf_size];
 
     if key_size != 4 || leaf_size != 4 {
         return Err(format_err!("passed table has wrong size"));
@@ -133,7 +126,7 @@ fn open_perf_buffer(
             BPF_PERF_READER_PAGE_CNT,
         )
     };
-    if reader == 0 as MutPointer {
+    if reader.is_null() {
         return Err(format_err!("failed to open perf buffer"));
     }
     Ok((PerfReader { ptr: reader as *mut perf_reader }, callback))

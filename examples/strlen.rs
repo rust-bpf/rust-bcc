@@ -36,8 +36,7 @@ int count(struct pt_regs *ctx) {
     let table = module.table("counts");
     loop {
         std::thread::sleep(std::time::Duration::from_millis(1000));
-        let iter = table.into_iter();
-        for e in iter {
+        for e in &table {
             // key and value are each a Vec<u8> so we need to transform them into a string and 
             // a u64 respectively
             let key = get_string(&e.key);

@@ -10,6 +10,7 @@ use std::ffi::CString;
 use std::collections::HashMap;
 use std::fs::File;
 use std::os::unix::prelude::*;
+use std::ptr;
 
 // TODO: implement `Drop` for this type
 #[derive(Debug)]
@@ -43,7 +44,7 @@ impl Drop for Kprobe {
     }
 }
 
-fn make_alphanumeric(s: String) -> String {
+fn make_alphanumeric(s: &str) -> String {
     s.replace(|c| {
         !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
     }, "_")
@@ -54,7 +55,7 @@ impl BPF {
     pub fn new(code: &str) -> Result<BPF, Error> {
         let cs = CString::new(code)?;
         let ptr =
-            unsafe { bpf_module_create_c_from_string(cs.as_ptr(), 2, 0 as *mut *const i8, 0) };
+            unsafe { bpf_module_create_c_from_string(cs.as_ptr(), 2, ptr::null_mut(), 0) };
 
         Ok(BPF {
             p: ptr,
@@ -96,10 +97,13 @@ impl BPF {
             let size = bpf_function_size(self.p, cname.as_ptr()) as i32;
             let license = bpf_module_license(self.p);
             let version = bpf_module_kern_version(self.p);
-            if start == 0 as *mut bpf_insn {
+            if start.is_null() {
                 return Err(format_err!("Error in bpf_function_start for {}", name));
             }
-            let log_buf: Vec<u8> = Vec::with_capacity(log_size as usize);
+            let mut log_buf: Vec<u8> = Vec::with_capacity(log_size as usize);
+            // TODO: we're ignoring any changes bpf_prog_load made to log_buf right now
+            // We should instead do something with this log buffer (I'm not clear on what it's for
+            // yet though)
             let fd = bpf_prog_load(
                 prog_type,
                 cname.as_ptr(),
@@ -108,7 +112,7 @@ impl BPF {
                 license,
                 version,
                 log_level,
-                log_buf.as_ptr() as *mut i8,
+                log_buf.as_mut_ptr() as *mut i8,
                 log_buf.capacity() as u32,
             );
             if fd < 0 {
@@ -126,7 +130,7 @@ impl BPF {
         pid: pid_t,
     ) -> Result<(), Error> {
         let (path, addr) = symbol::resolve_symbol_path(name, symbol, 0x0, pid)?;
-        let alpha_path = make_alphanumeric(path.clone());
+        let alpha_path = make_alphanumeric(&path);
         let ev_name = format!("r_{}_0x{:x}", &alpha_path, addr);
         self.attach_uprobe_inner(
             &ev_name,
@@ -138,7 +142,7 @@ impl BPF {
         )
     }
     pub fn attach_kprobe(&mut self, function: &str, file: File) -> Result<(), Error> {
-        let alpha_path = make_alphanumeric(function.to_string());
+        let alpha_path = make_alphanumeric(function);
         let ev_name = format!("p_{}", &alpha_path);
         self.attach_kprobe_inner(
             &ev_name,
@@ -149,7 +153,7 @@ impl BPF {
     }
 
     pub fn attach_kretprobe(&mut self, function: &str, file: File) -> Result<(), Error> {
-        let alpha_path = make_alphanumeric(function.to_string());
+        let alpha_path = make_alphanumeric(function);
         let ev_name = format!("r_{}", &alpha_path);
         self.attach_kprobe_inner(
             &ev_name,
@@ -167,7 +171,7 @@ impl BPF {
         pid: pid_t,
     ) -> Result<(), Error> {
         let (path, addr) = symbol::resolve_symbol_path(binary_path, symbol, 0x0, pid)?;
-        let alpha_path = make_alphanumeric(path.clone());
+        let alpha_path = make_alphanumeric(&path);
         let ev_name = format!("r_{}_0x{:x}", &alpha_path, addr);
         self.attach_uprobe_inner(
             &ev_name,
@@ -200,10 +204,10 @@ impl BPF {
                 cpu,
                 group_fd,
                 None,
-                0 as MutPointer,
+                ptr::null_mut(),
             )
         };
-        if kprobe_ptr == 0 as MutPointer {
+        if kprobe_ptr.is_null() {
             return Err(format_err!("Failed to attach kprobe"));
         }
         self.kprobes.insert(
@@ -240,10 +244,10 @@ impl BPF {
                 cpu,
                 group_fd,
                 None,
-                0 as MutPointer,
+                ptr::null_mut(),
             )
         };
-        if uprobe_ptr == 0 as MutPointer {
+        if uprobe_ptr.is_null() {
             return Err(format_err!("Failed to attach uprobe"));
         }
         self.uprobes.insert(
