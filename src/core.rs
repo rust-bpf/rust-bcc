@@ -56,6 +56,9 @@ impl BPF {
         let cs = CString::new(code)?;
         let ptr =
             unsafe { bpf_module_create_c_from_string(cs.as_ptr(), 2, ptr::null_mut(), 0) };
+        if ptr.is_null() {
+            return Err(format_err!("couldn't create BPF program"));
+        }
 
         Ok(BPF {
             p: ptr,
