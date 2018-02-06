@@ -52,7 +52,7 @@ fn do_main() -> Result<(), Error> {
     }
 }
 
-fn perf_data_callback() -> Box<Fn(&[u8])> {
+fn perf_data_callback() -> Box<FnMut(&[u8])> {
     Box::new(|x| {
         // This callback
         let data = parse_struct(x);
