@@ -5,7 +5,6 @@ use byteorder::{NativeEndian, WriteBytesExt};
 use bcc_sys::bccapi::*;
 
 use std;
-use std::ptr;
 use std::io::Cursor;
 
 use types::*;

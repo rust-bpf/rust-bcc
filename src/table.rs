@@ -1,8 +1,8 @@
-use libc::size_t;
+use libc::{size_t, c_int};
 use failure::Error;
 use bcc_sys::bccapi::*;
 
-use types::{MutPointer, fd_t};
+use types::MutPointer;
 
 use std::ffi::CStr;
 use std;
@@ -23,7 +23,7 @@ impl Table {
         unsafe { bpf_table_key_size_id(self.p, self.id) }
     }
 
-    pub fn fd(&mut self) -> fd_t {
+    pub fn fd(&mut self) -> c_int {
         unsafe { bpf_table_fd_id(self.p, self.id) }
     }
 
@@ -127,7 +127,7 @@ pub struct Entry {
 
 pub struct EntryIter {
     current: Option<Entry>,
-    fd: Option<fd_t>,
+    fd: Option<c_int>,
     table: Table,
 }
 
