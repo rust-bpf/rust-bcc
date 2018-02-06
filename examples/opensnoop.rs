@@ -3,6 +3,8 @@ extern crate byteorder;
 extern crate libc;
 extern crate failure;
 
+use std::ptr;
+
 use bcc::core::BPF;
 use bcc::perf::init_perf_map;
 use failure::Error;
@@ -59,9 +61,7 @@ fn perf_data_callback() -> Box<Fn(Vec<u8>)> {
 }
 
 fn parse_struct(x: &[u8]) -> data_t {
-    let mut data = unsafe {std::mem::uninitialized::<data_t>()};
-    unsafe {libc::memcpy(&mut data as *mut data_t as *mut libc::c_void, x.as_ptr() as *const u8 as *const libc::c_void, std::mem::size_of::<data_t>())};
-    data
+    unsafe { ptr::read(x.as_ptr() as *const data_t) }
 }
 
 fn get_string(x: &[u8]) -> String {
