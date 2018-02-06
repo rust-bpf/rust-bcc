@@ -44,7 +44,7 @@ impl Drop for Kprobe {
     }
 }
 
-fn make_alphanumeric(s: String) -> String {
+fn make_alphanumeric(s: &str) -> String {
     s.replace(|c| {
         !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
     }, "_")
@@ -130,7 +130,7 @@ impl BPF {
         pid: pid_t,
     ) -> Result<(), Error> {
         let (path, addr) = symbol::resolve_symbol_path(name, symbol, 0x0, pid)?;
-        let alpha_path = make_alphanumeric(path.clone());
+        let alpha_path = make_alphanumeric(&path);
         let ev_name = format!("r_{}_0x{:x}", &alpha_path, addr);
         self.attach_uprobe_inner(
             &ev_name,
@@ -142,7 +142,7 @@ impl BPF {
         )
     }
     pub fn attach_kprobe(&mut self, function: &str, file: File) -> Result<(), Error> {
-        let alpha_path = make_alphanumeric(function.to_string());
+        let alpha_path = make_alphanumeric(function);
         let ev_name = format!("p_{}", &alpha_path);
         self.attach_kprobe_inner(
             &ev_name,
@@ -153,7 +153,7 @@ impl BPF {
     }
 
     pub fn attach_kretprobe(&mut self, function: &str, file: File) -> Result<(), Error> {
-        let alpha_path = make_alphanumeric(function.to_string());
+        let alpha_path = make_alphanumeric(function);
         let ev_name = format!("r_{}", &alpha_path);
         self.attach_kprobe_inner(
             &ev_name,
@@ -171,7 +171,7 @@ impl BPF {
         pid: pid_t,
     ) -> Result<(), Error> {
         let (path, addr) = symbol::resolve_symbol_path(binary_path, symbol, 0x0, pid)?;
-        let alpha_path = make_alphanumeric(path.clone());
+        let alpha_path = make_alphanumeric(&path);
         let ev_name = format!("r_{}_0x{:x}", &alpha_path, addr);
         self.attach_uprobe_inner(
             &ev_name,
