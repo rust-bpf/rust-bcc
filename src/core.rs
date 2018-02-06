@@ -100,7 +100,10 @@ impl BPF {
             if start.is_null() {
                 return Err(format_err!("Error in bpf_function_start for {}", name));
             }
-            let log_buf: Vec<u8> = Vec::with_capacity(log_size as usize);
+            let mut log_buf: Vec<u8> = Vec::with_capacity(log_size as usize);
+            // TODO: we're ignoring any changes bpf_prog_load made to log_buf right now
+            // We should instead do something with this log buffer (I'm not clear on what it's for
+            // yet though)
             let fd = bpf_prog_load(
                 prog_type,
                 cname.as_ptr(),
@@ -109,7 +112,7 @@ impl BPF {
                 license,
                 version,
                 log_level,
-                log_buf.as_ptr() as *mut i8,
+                log_buf.as_mut_ptr() as *mut i8,
                 log_buf.capacity() as u32,
             );
             if fd < 0 {
