@@ -55,7 +55,7 @@ impl Table {
     }
 
     pub fn get(&mut self, key: &mut [u8]) -> Result<Vec<u8>, Error> {
-        let mut leaf = zero_vec(self.leaf_size());
+        let mut leaf = vec![0; self.leaf_size()];
         let res = unsafe {
             bpf_lookup_elem(
                 self.fd(),
@@ -112,14 +112,6 @@ pub struct EntryIter {
     table: Table,
 }
 
-fn zero_vec(size: usize) -> Vec<u8> {
-    let mut vec = Vec::with_capacity(size);
-    for _ in 0..size {
-        vec.push(0);
-    }
-    vec
-}
-
 impl EntryIter {
     pub fn key_ptr(&mut self) -> Option<(*mut std::os::raw::c_void, *mut std::os::raw::c_void)> {
         match self.key.as_mut() {
@@ -136,8 +128,8 @@ impl EntryIter {
         self.fd = Some(self.table.fd());
         let key_size = self.table.key_size();
         let leaf_size = self.table.leaf_size();
-        self.key = Some(zero_vec(key_size));
-        self.leaf = Some(zero_vec(leaf_size));
+        self.key = Some(vec![0; key_size]);
+        self.leaf = Some(vec![0; leaf_size]);
         unsafe {
             let (k, _) = self.key_ptr().unwrap();
             bpf_get_first_key(self.fd.unwrap(), k, key_size);

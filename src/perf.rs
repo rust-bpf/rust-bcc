@@ -48,14 +48,6 @@ pub struct PerfMap {
     callbacks: Vec<Box<PerfCallback>>,
 }
 
-fn zero_vec(size: usize) -> Vec<u8> {
-    let mut vec = Vec::with_capacity(size);
-    for _ in 0..size {
-        vec.push(0);
-    }
-    vec
-}
-
 pub fn init_perf_map<F: 'static>(mut table: Table, cb: F) -> Result<PerfMap, Error>
 where
     F: Fn() -> Box<Fn(Vec<u8>)>,
@@ -63,8 +55,8 @@ where
     let fd = table.fd();
     let key_size = table.key_size();
     let leaf_size = table.leaf_size();
-    let mut key = zero_vec(key_size);
-    let leaf = zero_vec(leaf_size);
+    let mut key = vec![0; key_size];
+    let leaf = vec![0; key_size];
 
     if key_size != 4 || leaf_size != 4 {
         return Err(format_err!("passed table has wrong size"));
