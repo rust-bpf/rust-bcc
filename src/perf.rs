@@ -57,7 +57,7 @@ where
     let key_size = table.key_size();
     let leaf_size = table.leaf_size();
     let mut key = vec![0; key_size];
-    let leaf = vec![0; key_size];
+    let leaf = vec![0; leaf_size];
 
     if key_size != 4 || leaf_size != 4 {
         return Err(format_err!("passed table has wrong size"));
