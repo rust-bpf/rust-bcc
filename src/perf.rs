@@ -128,7 +128,7 @@ fn open_perf_buffer(
             BPF_PERF_READER_PAGE_CNT,
         )
     };
-    if reader == ptr::null_mut() {
+    if reader.is_null() {
         return Err(format_err!("failed to open perf buffer"));
     }
     Ok((PerfReader { ptr: reader as *mut perf_reader }, callback))

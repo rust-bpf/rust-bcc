@@ -2,6 +2,7 @@ use failure::Error;
 use bcc_sys::bccapi::*;
 
 use std::mem;
+use std::ptr;
 use std::ffi::CString;
 use std::ffi::CStr;
 

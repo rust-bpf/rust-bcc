@@ -97,7 +97,7 @@ impl BPF {
             let size = bpf_function_size(self.p, cname.as_ptr()) as i32;
             let license = bpf_module_license(self.p);
             let version = bpf_module_kern_version(self.p);
-            if start == ptr::null_mut() {
+            if start.is_null() {
                 return Err(format_err!("Error in bpf_function_start for {}", name));
             }
             let log_buf: Vec<u8> = Vec::with_capacity(log_size as usize);
@@ -204,7 +204,7 @@ impl BPF {
                 ptr::null_mut(),
             )
         };
-        if kprobe_ptr == ptr::null_mut() {
+        if kprobe_ptr.is_null() {
             return Err(format_err!("Failed to attach kprobe"));
         }
         self.kprobes.insert(
@@ -244,7 +244,7 @@ impl BPF {
                 ptr::null_mut(),
             )
         };
-        if uprobe_ptr == ptr::null_mut() {
+        if uprobe_ptr.is_null() {
             return Err(format_err!("Failed to attach uprobe"));
         }
         self.uprobes.insert(
