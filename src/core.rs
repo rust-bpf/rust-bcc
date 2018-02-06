@@ -10,6 +10,7 @@ use std::ffi::CString;
 use std::collections::HashMap;
 use std::fs::File;
 use std::os::unix::prelude::*;
+use std::ptr;
 
 // TODO: implement `Drop` for this type
 #[derive(Debug)]
@@ -54,7 +55,7 @@ impl BPF {
     pub fn new(code: &str) -> Result<BPF, Error> {
         let cs = CString::new(code)?;
         let ptr =
-            unsafe { bpf_module_create_c_from_string(cs.as_ptr(), 2, 0 as *mut *const i8, 0) };
+            unsafe { bpf_module_create_c_from_string(cs.as_ptr(), 2, ptr::null_mut(), 0) };
 
         Ok(BPF {
             p: ptr,
@@ -96,7 +97,7 @@ impl BPF {
             let size = bpf_function_size(self.p, cname.as_ptr()) as i32;
             let license = bpf_module_license(self.p);
             let version = bpf_module_kern_version(self.p);
-            if start == 0 as *mut bpf_insn {
+            if start == ptr::null_mut() {
                 return Err(format_err!("Error in bpf_function_start for {}", name));
             }
             let log_buf: Vec<u8> = Vec::with_capacity(log_size as usize);
@@ -200,10 +201,10 @@ impl BPF {
                 cpu,
                 group_fd,
                 None,
-                0 as MutPointer,
+                ptr::null_mut(),
             )
         };
-        if kprobe_ptr == 0 as MutPointer {
+        if kprobe_ptr == ptr::null_mut() {
             return Err(format_err!("Failed to attach kprobe"));
         }
         self.kprobes.insert(
@@ -240,10 +241,10 @@ impl BPF {
                 cpu,
                 group_fd,
                 None,
-                0 as MutPointer,
+                ptr::null_mut(),
             )
         };
-        if uprobe_ptr == 0 as MutPointer {
+        if uprobe_ptr == ptr::null_mut() {
             return Err(format_err!("Failed to attach uprobe"));
         }
         self.uprobes.insert(

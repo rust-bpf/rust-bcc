@@ -1,12 +1,14 @@
 extern crate libc;
-use types::*;
 use failure::Error;
 use failure::ResultExt;
-use bcc_sys::bccapi::*;
-use std;
-use std::io::Cursor;
 use byteorder::{NativeEndian, WriteBytesExt};
+use bcc_sys::bccapi::*;
 
+use std;
+use std::ptr;
+use std::io::Cursor;
+
+use types::*;
 use table::Table;
 
 struct PerfCallback {
@@ -126,7 +128,7 @@ fn open_perf_buffer(
             BPF_PERF_READER_PAGE_CNT,
         )
     };
-    if reader == 0 as MutPointer {
+    if reader == ptr::null_mut() {
         return Err(format_err!("failed to open perf buffer"));
     }
     Ok((PerfReader { ptr: reader as *mut perf_reader }, callback))

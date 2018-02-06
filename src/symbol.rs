@@ -37,7 +37,7 @@ pub fn resolve_symname(
             csymname.as_ptr(),
             addr,
             pid,
-            0 as *mut bcc_symbol_option,
+            ptr::null_mut(),
             &mut symbol as *mut bcc_symbol,
         )
     };
