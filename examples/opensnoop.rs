@@ -50,10 +50,10 @@ fn do_main() -> Result<(), Error> {
     }
 }
 
-fn perf_data_callback() -> Box<Fn(Vec<u8>)> {
+fn perf_data_callback() -> Box<Fn(&[u8])> {
     Box::new(|x| {
         // This callback
-        let data = parse_struct(&x);
+        let data = parse_struct(x);
         println!("{:-7} {:-16} {}", data.id >> 32, get_string(&data.comm), get_string(&data.fname));
     })
 }
