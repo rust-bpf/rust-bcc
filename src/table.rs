@@ -91,8 +91,7 @@ impl Table {
 
     pub fn iter(&self) -> EntryIter {
         EntryIter {
-            key: None,
-            leaf: None,
+            current: None,
             table: self.clone(),
             fd: None,
         }
@@ -127,19 +126,17 @@ pub struct Entry {
 
 
 pub struct EntryIter {
-    key: Option<Vec<u8>>,
-    leaf: Option<Vec<u8>>,
+    current: Option<Entry>,
     fd: Option<fd_t>,
     table: Table,
 }
 
 impl EntryIter {
-    pub fn key_ptr(&mut self) -> Option<(*mut std::os::raw::c_void, *mut std::os::raw::c_void)> {
-        match self.key.as_mut() {
-            Some(k) => Some((
-                k.as_mut_ptr() as *mut u8 as *mut std::os::raw::c_void,
-                self.leaf.as_mut().unwrap().as_mut_ptr() as *mut u8 as
-                    *mut std::os::raw::c_void,
+    pub fn entry_ptrs(&mut self) -> Option<(*mut std::os::raw::c_void, *mut std::os::raw::c_void)> {
+        match self.current.as_mut() {
+            Some(&mut Entry{ref mut key, ref mut value}) => Some((
+                key.as_mut_ptr() as *mut u8 as *mut std::os::raw::c_void,
+                value.as_mut_ptr() as *mut u8 as *mut std::os::raw::c_void,
             )),
             None => None,
         }
@@ -149,23 +146,13 @@ impl EntryIter {
         self.fd = Some(self.table.fd());
         let key_size = self.table.key_size();
         let leaf_size = self.table.leaf_size();
-        self.key = Some(vec![0; key_size]);
-        self.leaf = Some(vec![0; leaf_size]);
+        let entry = Entry{key: vec![0; key_size], value: vec![0; leaf_size]};
+        self.current = Some(entry);
         unsafe {
-            let (k, _) = self.key_ptr().unwrap();
+            let (k, _) = self.entry_ptrs().unwrap();
             bpf_get_first_key(self.fd.unwrap(), k, key_size);
-            self.entry().unwrap()
         }
-    }
-
-    pub fn entry(&self) -> Option<Entry> {
-        match self.key.as_ref() {
-            None => None,
-            Some(k) => Some(Entry {
-                key: k.clone(),
-                value: self.leaf.as_ref().unwrap().clone(),
-            }),
-        }
+        self.current.clone().unwrap()
     }
 }
 
@@ -173,15 +160,14 @@ impl Iterator for EntryIter {
     type Item = Entry;
 
     fn next(&mut self) -> Option<Entry> {
-        if let Some((k, l)) = self.key_ptr() {
+        if let Some((k, l)) = self.entry_ptrs() {
             let fd = self.fd.expect("oh no");
             match unsafe { bpf_get_next_key(fd, k, k) } {
                 -1 => None,
                 _ => {
                     unsafe { bpf_lookup_elem(fd, k, l) };
-                    self.entry()
+                    self.current.clone()
                 }
-
             }
         } else {
             Some(self.start())
