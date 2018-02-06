@@ -48,7 +48,7 @@ impl Table {
     }
 
     pub fn delete_all(&mut self) -> Result<(), Error> {
-        for mut e in self.into_iter() {
+        for mut e in self.iter() {
             self.delete(&mut e.key)?;
         }
         Ok(())
@@ -89,7 +89,7 @@ impl Table {
         }
     }
 
-    pub fn into_iter(&self) -> EntryIter {
+    pub fn iter(&self) -> EntryIter {
         EntryIter {
             key: None,
             leaf: None,
@@ -99,6 +99,27 @@ impl Table {
     }
 }
 
+impl IntoIterator for Table {
+    type Item = Entry;
+    type IntoIter = EntryIter;
+    fn into_iter(self) -> Self::IntoIter {
+        EntryIter{
+            current: None,
+            table: self,
+            fd: None
+        }
+    }
+}
+
+impl<'a> IntoIterator for &'a Table {
+    type Item = Entry;
+    type IntoIter = EntryIter;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
+#[derive(Clone)]
 pub struct Entry {
     pub key: Vec<u8>,
     pub value: Vec<u8>,
