@@ -10,15 +10,14 @@ use byteorder::{NativeEndian, WriteBytesExt};
 use table::Table;
 
 struct PerfCallback {
-    raw_cb: Box<Fn(Vec<u8>)>,
+    raw_cb: Box<Fn(&[u8])>,
 }
 
 const BPF_PERF_READER_PAGE_CNT: i32 = 64;
 
 unsafe extern "C" fn raw_callback(pc: MutPointer, ptr: MutPointer, size: i32) {
     let slice = std::slice::from_raw_parts(ptr as *const u8, size as usize);
-    let vec: Vec<u8> = slice.to_vec();
-    (*(*(pc as *const PerfCallback)).raw_cb)(vec)
+    (*(*(pc as *const PerfCallback)).raw_cb)(slice)
 }
 
 // need this to be represented in memory as just a pointer!!
@@ -58,7 +57,7 @@ fn zero_vec(size: usize) -> Vec<u8> {
 
 pub fn init_perf_map<F: 'static>(mut table: Table, cb: F) -> Result<PerfMap, Error>
 where
-    F: Fn() -> Box<Fn(Vec<u8>)>,
+    F: Fn() -> Box<Fn(&[u8])>,
 {
     let fd = table.fd();
     let key_size = table.key_size();
@@ -118,7 +117,7 @@ impl PerfMap {
 
 fn open_perf_buffer(
     cpu: i32,
-    raw_cb: Box<Fn(Vec<u8>)>,
+    raw_cb: Box<Fn(&[u8])>,
 ) -> Result<(PerfReader, Box<PerfCallback>), Error> {
     let mut callback = Box::new(PerfCallback { raw_cb: raw_cb });
     let reader = unsafe {
