@@ -1,13 +1,13 @@
 [package]
 name = "bcc"
-version = "0.0.1"
+version = "0.0.2"
 authors = ["Julia Evans <julia@jvns.ca>"]
 description = "Idiomatic Rust bindings for BPF Compiler Collection (BCC)"
 keywords = ["bpf", "bindings", "bcc"]
 license = "MIT"
 repository = "https://github.com/jvns/rust-bcc"
 readme = "README.md"
-documentation = "https://docs.rs/bcc/0.0.1/bcc/"
+documentation = "https://docs.rs/bcc/0.0.2/bcc/"
 homepage = "https://github.com/jvns/rust-bcc"
 
 [dependencies]
