@@ -119,10 +119,7 @@ fn open_perf_buffer(
     let mut callback = Box::new(PerfCallback { raw_cb: raw_cb });
     let reader = unsafe {
         bpf_open_perf_buffer(
-            Some(
-                (raw_callback) as
-                    unsafe extern "C" fn(*mut std::os::raw::c_void, *mut std::os::raw::c_void, i32),
-            ),
+            Some(raw_callback),
             None,
             callback.as_mut() as *mut _ as MutPointer,
             -1, /* pid */
