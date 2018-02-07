@@ -11,7 +11,7 @@ use types::*;
 use table::Table;
 
 struct PerfCallback {
-    raw_cb: Box<FnMut(&[u8])>,
+    raw_cb: Box<FnMut(&[u8]) + Send>,
 }
 
 const BPF_PERF_READER_PAGE_CNT: i32 = 64;
@@ -50,7 +50,7 @@ pub struct PerfMap {
 
 pub fn init_perf_map<F>(mut table: Table, cb: F) -> Result<PerfMap, Error>
 where
-    F: Fn() -> Box<FnMut(&[u8])>,
+    F: Fn() -> Box<FnMut(&[u8]) + Send>,
 {
     let fd = table.fd();
     let key_size = table.key_size();
@@ -110,7 +110,7 @@ impl PerfMap {
 
 fn open_perf_buffer(
     cpu: i32,
-    raw_cb: Box<FnMut(&[u8])>,
+    raw_cb: Box<FnMut(&[u8]) + Send>,
 ) -> Result<(PerfReader, Box<PerfCallback>), Error> {
     let mut callback = Box::new(PerfCallback { raw_cb: raw_cb });
     let reader = unsafe {
