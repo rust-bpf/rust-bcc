@@ -11,14 +11,18 @@ use types::*;
 use table::Table;
 
 struct PerfCallback {
-    raw_cb: Box<Fn(&[u8])>,
+    raw_cb: Box<FnMut(&[u8]) + Send>,
 }
 
 const BPF_PERF_READER_PAGE_CNT: i32 = 64;
 
 unsafe extern "C" fn raw_callback(pc: MutPointer, ptr: MutPointer, size: i32) {
     let slice = std::slice::from_raw_parts(ptr as *const u8, size as usize);
-    (*(*(pc as *const PerfCallback)).raw_cb)(slice)
+    // prevent unwinding into C code
+    // no custom panic hook set, panic will be printed as is
+    let _ = std::panic::catch_unwind(|| {
+        (*(*(pc as *mut PerfCallback)).raw_cb)(slice)
+    });
 }
 
 // need this to be represented in memory as just a pointer!!
@@ -48,9 +52,9 @@ pub struct PerfMap {
     callbacks: Vec<Box<PerfCallback>>,
 }
 
-pub fn init_perf_map<F: 'static>(mut table: Table, cb: F) -> Result<PerfMap, Error>
+pub fn init_perf_map<F>(mut table: Table, cb: F) -> Result<PerfMap, Error>
 where
-    F: Fn() -> Box<Fn(&[u8])>,
+    F: Fn() -> Box<FnMut(&[u8]) + Send>,
 {
     let fd = table.fd();
     let key_size = table.key_size();
@@ -110,15 +114,12 @@ impl PerfMap {
 
 fn open_perf_buffer(
     cpu: i32,
-    raw_cb: Box<Fn(&[u8])>,
+    raw_cb: Box<FnMut(&[u8]) + Send>,
 ) -> Result<(PerfReader, Box<PerfCallback>), Error> {
     let mut callback = Box::new(PerfCallback { raw_cb: raw_cb });
     let reader = unsafe {
         bpf_open_perf_buffer(
-            Some(
-                (raw_callback) as
-                    unsafe extern "C" fn(*mut std::os::raw::c_void, *mut std::os::raw::c_void, i32),
-            ),
+            Some(raw_callback),
             None,
             callback.as_mut() as *mut _ as MutPointer,
             -1, /* pid */
