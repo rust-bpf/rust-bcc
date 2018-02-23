@@ -211,7 +211,7 @@ impl BPF {
             )
         };
         if kprobe_ptr.is_null() {
-            return Err(format_err!("Failed to attach kprobe"));
+            return Err(format_err!("Failed to attach kprobe: {}", name));
         }
         self.kprobes.insert(
             name.to_string(),
@@ -251,7 +251,7 @@ impl BPF {
             )
         };
         if uprobe_ptr.is_null() {
-            return Err(format_err!("Failed to attach uprobe"));
+            return Err(format_err!("Failed to attach uprobe: {}", name));
         }
         self.uprobes.insert(
             name.to_string(),
