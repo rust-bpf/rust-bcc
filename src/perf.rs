@@ -3,6 +3,7 @@ use failure::Error;
 use failure::ResultExt;
 use byteorder::{NativeEndian, WriteBytesExt};
 use bcc_sys::bccapi::*;
+use num_cpus;
 
 use std;
 use std::io::Cursor;
@@ -70,8 +71,7 @@ where
     let mut callbacks = vec![];
     let mut cur = Cursor::new(leaf);
 
-    for cpu in 0..4 {
-        // TODO: don't hardcode the CPU ids
+    for cpu in 0..num_cpus::get() {
         unsafe {
             let (mut reader, callback) = open_perf_buffer(cpu, cb())?;
             let perf_fd = reader.fd() as u32;
@@ -113,7 +113,7 @@ impl PerfMap {
 }
 
 fn open_perf_buffer(
-    cpu: i32,
+    cpu: usize,
     raw_cb: Box<FnMut(&[u8]) + Send>,
 ) -> Result<(PerfReader, Box<PerfCallback>), Error> {
     let mut callback = Box::new(PerfCallback { raw_cb: raw_cb });
@@ -123,7 +123,7 @@ fn open_perf_buffer(
             None,
             callback.as_mut() as *mut _ as MutPointer,
             -1, /* pid */
-            cpu,
+            cpu as i32,
             BPF_PERF_READER_PAGE_CNT,
         )
     };
