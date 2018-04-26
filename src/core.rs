@@ -6,23 +6,35 @@ use symbol;
 use table::Table;
 use types::MutPointer;
 
+use std::collections::HashSet;
 use std::ffi::CString;
-use std::collections::HashMap;
 use std::fs::File;
+use std::hash::{Hash, Hasher};
 use std::os::unix::prelude::*;
 use std::ptr;
 
-// TODO: implement `Drop` for this type
 #[derive(Debug)]
 pub struct BPF {
     p: MutPointer,
-    uprobes: HashMap<String, Uprobe>,
-    kprobes: HashMap<String, Kprobe>,
+    kprobes: HashSet<Kprobe>,
+    uprobes: HashSet<Uprobe>,
+}
+
+impl Drop for BPF {
+    fn drop(&mut self) {
+        for kprobe in &self.kprobes {
+            self.detach_kprobe_inner(&kprobe);
+        }
+        for uprobe in &self.uprobes {
+            self.detach_uprobe_inner(&uprobe);
+        }
+    }
 }
 
 #[derive(Debug)]
 pub struct Uprobe {
     code_fd: File,
+    name: String,
     p: MutPointer,
 }
 
@@ -32,15 +44,44 @@ impl Drop for Uprobe {
     }
 }
 
+impl Eq for Uprobe {}
+
+impl Hash for Uprobe {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.name.hash(state);
+    }
+}
+
+impl PartialEq for Uprobe {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name
+    }
+}
+
 #[derive(Debug)]
 pub struct Kprobe {
     code_fd: File,
+    name: String,
     p: MutPointer,
 }
 
 impl Drop for Kprobe {
     fn drop(&mut self) {
         // TODO
+    }
+}
+
+impl Eq for Kprobe {}
+
+impl Hash for Kprobe {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.name.hash(state);
+    }
+}
+
+impl PartialEq for Kprobe {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name
     }
 }
 
@@ -62,8 +103,8 @@ impl BPF {
 
         Ok(BPF {
             p: ptr,
-            uprobes: HashMap::new(),
-            kprobes: HashMap::new(),
+            uprobes: HashSet::new(),
+            kprobes: HashSet::new(),
         })
     }
 
@@ -214,9 +255,9 @@ impl BPF {
             return Err(format_err!("Failed to attach kprobe: {}", name));
         }
         self.kprobes.insert(
-            name.to_string(),
             Kprobe {
                 p: kprobe_ptr,
+                name: name.to_string(),
                 code_fd: file,
             },
         );
@@ -254,12 +295,32 @@ impl BPF {
             return Err(format_err!("Failed to attach uprobe: {}", name));
         }
         self.uprobes.insert(
-            name.to_string(),
             Uprobe {
                 p: uprobe_ptr,
+                name: name.to_string(),
                 code_fd: file,
             },
         );
         Ok(())
+    }
+
+    fn detach_kprobe_inner(
+        &self,
+        kprobe: &Kprobe,
+    ) {
+        let cname = CString::new(kprobe.name.clone()).unwrap();
+        unsafe {
+            bpf_detach_kprobe(cname.as_ptr());
+        }
+    }
+
+    fn detach_uprobe_inner(
+        &self,
+        uprobe: &Uprobe,
+    ) {
+        let cname = CString::new(uprobe.name.clone()).unwrap();
+        unsafe {
+            bpf_detach_uprobe(cname.as_ptr());
+        }
     }
 }
