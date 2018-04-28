@@ -3,7 +3,7 @@ use failure::Error;
 use failure::ResultExt;
 use byteorder::{NativeEndian, WriteBytesExt};
 use bcc_sys::bccapi::*;
-use num_cpus;
+use cpuonline;
 
 use std;
 use std::io::Cursor;
@@ -71,9 +71,10 @@ where
     let mut callbacks = vec![];
     let mut cur = Cursor::new(leaf);
 
-    for cpu in 0..num_cpus::get() {
+    let cpus = cpuonline::get()?;
+    for cpu in cpus.iter() {
         unsafe {
-            let (mut reader, callback) = open_perf_buffer(cpu, cb())?;
+            let (mut reader, callback) = open_perf_buffer(*cpu, cb())?;
             let perf_fd = reader.fd() as u32;
             readers.push(reader);
             callbacks.push(callback);
