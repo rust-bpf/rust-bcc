@@ -18,6 +18,7 @@ pub struct BPF {
     p: MutPointer,
     kprobes: HashSet<Kprobe>,
     uprobes: HashSet<Uprobe>,
+    tracepoints: HashSet<Tracepoint>,
 }
 
 impl Drop for BPF {
@@ -27,6 +28,9 @@ impl Drop for BPF {
         }
         for uprobe in &self.uprobes {
             self.detach_uprobe_inner(&uprobe);
+        }
+        for tracepoint in &self.tracepoints {
+            self.detach_tracepoint_inner(&tracepoint);
         }
     }
 }
@@ -85,6 +89,35 @@ impl PartialEq for Kprobe {
     }
 }
 
+#[derive(Debug)]
+pub struct Tracepoint {
+    subsys: String,
+    name: String,
+    code_fd: File,
+    p: MutPointer,
+}
+
+impl PartialEq for Tracepoint {
+    fn eq(&self, other: &Tracepoint) -> bool {
+        self.subsys == other.subsys && self.name == other.name
+    }
+}
+
+impl Eq for Tracepoint {}
+
+impl Hash for Tracepoint {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.subsys.hash(state);
+        self.name.hash(state);
+    }
+}
+
+impl Drop for Tracepoint {
+    fn drop(&mut self) {
+        // TODO
+    }
+}
+
 fn make_alphanumeric(s: &str) -> String {
     s.replace(|c| {
         !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
@@ -105,6 +138,7 @@ impl BPF {
             p: ptr,
             uprobes: HashSet::new(),
             kprobes: HashSet::new(),
+            tracepoints: HashSet::new(),
         })
     }
 
@@ -126,6 +160,10 @@ impl BPF {
     pub fn load_uprobe(&mut self, name: &str) -> Result<File, Error> {
         // it's BPF_PROG_TYPE_KPROBE even though it's a uprobe, it's weird
         return self.load(name, bpf_prog_type_BPF_PROG_TYPE_KPROBE, 0, 0);
+    }
+
+    pub fn load_tracepoint(&mut self, name: &str) -> Result<File, Error> {
+        return self.load(name, bpf_prog_type_BPF_PROG_TYPE_TRACEPOINT, 0, 0);
     }
 
     pub fn load(
@@ -227,6 +265,14 @@ impl BPF {
         )
     }
 
+    pub fn attach_tracepoint(&mut self, category: &str, name: &str, file: File) -> Result<(), Error> {
+        self.attach_tracepoint_inner(
+            &make_alphanumeric(category),
+            &make_alphanumeric(name),
+            file,
+        )
+    }
+
     fn attach_kprobe_inner(
         &mut self,
         name: &str,
@@ -304,6 +350,43 @@ impl BPF {
         Ok(())
     }
 
+    fn attach_tracepoint_inner(
+        &mut self,
+        subsys: &str,
+        name: &str,
+        file: File,
+    ) -> Result<(), Error> {
+        let cname = CString::new(name).unwrap();
+        let csubsys = CString::new(subsys).unwrap();
+        // NOTE: BPF events are system-wide and do not support CPU filter
+        let (pid, cpu, group_fd) = (-1, 0, -1);
+        let ptr = unsafe {
+            bpf_attach_tracepoint(
+                file.as_raw_fd(),
+                csubsys.as_ptr(),
+                cname.as_ptr(),
+                pid,
+                cpu,
+                group_fd,
+                None,
+                ptr::null_mut(),
+            )
+        };
+        if ptr.is_null() {
+            return Err(format_err!("Failed to attach tracepoint: {}:{}", subsys, name));
+        }
+
+        self.tracepoints.insert(
+            Tracepoint {
+                subsys: subsys.to_string(),
+                name: name.to_string(),
+                p: ptr,
+                code_fd: file,
+            },
+        );
+        Ok(())
+    }
+
     fn detach_kprobe_inner(
         &self,
         kprobe: &Kprobe,
@@ -321,6 +404,17 @@ impl BPF {
         let cname = CString::new(uprobe.name.clone()).unwrap();
         unsafe {
             bpf_detach_uprobe(cname.as_ptr());
+        }
+    }
+
+    fn detach_tracepoint_inner(
+        &self,
+        tracepoint: &Tracepoint,
+    ) {
+        let csubsys = CString::new(tracepoint.subsys.clone()).unwrap();
+        let cname = CString::new(tracepoint.name.clone()).unwrap();
+        unsafe {
+            bpf_detach_tracepoint(csubsys.as_ptr(), cname.as_ptr());
         }
     }
 }
