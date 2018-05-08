@@ -18,3 +18,5 @@ data structure in Rust than it is in Python.
 
 * [examples/strlen.rs](https://github.com/jvns/rust-bcc/blob/master/examples/strlen.rs) uses a BPF hashmap to count frequencies of every string that `strlen` is run on. Port of [strlen_count.py](https://github.com/iovisor/bcc/blob/master/examples/tracing/strlen_count.py) to Rust.
 * [examples/opensnoop.rs](https://github.com/jvns/rust-bcc/blob/master/examples/opensnoop.rs) uses perf events to track every time a file is opened on the system. Port of [opensnoop.py](https://github.com/iovisor/bcc/blob/master/examples/tracing/opensnoop.py) to Rust.
+* [examples/softirq.rs](https://github.com/jvns/rust-bcc/blob/master/examples/softirqs.rs) uses
+  kernel tracepoints to report time spent in softirq handlers. Port of [softirqs.py](https://github.com/iovisor/bcc/blob/master/tools/softirqs.py) to Rust.
