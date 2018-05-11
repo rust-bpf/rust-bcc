@@ -1,9 +1,10 @@
 pub mod core;
-pub mod symbol;
+mod cpuonline;
 pub mod perf;
+pub mod symbol;
 pub mod table;
 mod types;
-mod cpuonline;
+mod util;
 
 #[macro_use]
 extern crate failure;
