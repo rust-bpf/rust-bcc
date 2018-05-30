@@ -1,6 +1,8 @@
 
 use failure::Error;
 use bcc_sys::bccapi::*;
+use bcc_sys::bccapi::bpf_probe_attach_type_BPF_PROBE_ENTRY as BPF_PROBE_ENTRY;
+use bcc_sys::bccapi::bpf_probe_attach_type_BPF_PROBE_RETURN as BPF_PROBE_RETURN;
 
 use symbol;
 use table::Table;
@@ -23,9 +25,6 @@ pub struct BPF {
 
 impl Drop for BPF {
     fn drop(&mut self) {
-        for kprobe in &self.kprobes {
-            self.detach_kprobe_inner(&kprobe);
-        }
         for uprobe in &self.uprobes {
             self.detach_uprobe_inner(&uprobe);
         }
@@ -65,13 +64,61 @@ impl PartialEq for Uprobe {
 #[derive(Debug)]
 pub struct Kprobe {
     code_fd: File,
-    name: String,
+    name: CString,
     p: MutPointer,
+}
+
+impl Kprobe {
+    fn new(name: &str, attach_type: u32, function: &str, code: File) -> Result<Self, Error> {
+        let cname = CString::new(name).map_err(|_| {
+            format_err!("Nul byte in Kprobe name: {}", name)
+        })?;
+        let cfunction = CString::new(function).map_err(|_| {
+            format_err!("Nul byte in Kprobe function: {}", function)
+        })?;
+        let (pid, cpu, group_fd) = (-1, 0, -1);
+        let ptr = unsafe {
+            bpf_attach_kprobe(
+                code.as_raw_fd(),
+                attach_type,
+                cname.as_ptr(),
+                cfunction.as_ptr(),
+                pid,
+                cpu,
+                group_fd,
+                None,
+                ptr::null_mut(),
+            )
+        };
+        if ptr.is_null() {
+            Err(format_err!("Failed to attach Kprobe: {}", name))
+        } else {
+            Ok(Self {
+                p: ptr,
+                name: cname,
+                code_fd: code,
+            })
+        }
+    }
+
+    pub fn attach_kprobe(function: &str, code: File) -> Result<Self, Error> {
+        let name = format!("p_{}", &make_alphanumeric(function));
+        Kprobe::new(&name, BPF_PROBE_ENTRY, function, code)
+            .map_err(|_| format_err!("Failed to attach Kprobe: {}", name))
+    }
+
+    pub fn attach_kretprobe(function: &str, code: File) -> Result<Self, Error> {
+        let name = format!("r_{}", &make_alphanumeric(function));
+        Kprobe::new(&name, BPF_PROBE_RETURN, function, code)
+            .map_err(|_| format_err!("Failed to attach Kretprobe: {}", name))
+    }
 }
 
 impl Drop for Kprobe {
     fn drop(&mut self) {
-        // TODO
+        unsafe {
+            bpf_detach_kprobe(self.name.as_ptr());
+        }
     }
 }
 
@@ -224,25 +271,15 @@ impl BPF {
         )
     }
     pub fn attach_kprobe(&mut self, function: &str, file: File) -> Result<(), Error> {
-        let alpha_path = make_alphanumeric(function);
-        let ev_name = format!("p_{}", &alpha_path);
-        self.attach_kprobe_inner(
-            &ev_name,
-            bpf_probe_attach_type_BPF_PROBE_ENTRY,
-            function,
-            file,
-        )
+        let kprobe = Kprobe::attach_kprobe(function, file)?;
+        self.kprobes.insert(kprobe);
+        Ok(())
     }
 
     pub fn attach_kretprobe(&mut self, function: &str, file: File) -> Result<(), Error> {
-        let alpha_path = make_alphanumeric(function);
-        let ev_name = format!("r_{}", &alpha_path);
-        self.attach_kprobe_inner(
-            &ev_name,
-            bpf_probe_attach_type_BPF_PROBE_RETURN,
-            function,
-            file,
-        )
+        let kretprobe = Kprobe::attach_kretprobe(function, file)?;
+        self.kprobes.insert(kretprobe);
+        Ok(())
     }
 
     pub fn attach_uprobe(
@@ -271,43 +308,6 @@ impl BPF {
             &make_alphanumeric(name),
             file,
         )
-    }
-
-    fn attach_kprobe_inner(
-        &mut self,
-        name: &str,
-        attach_type: u32,
-        function: &str,
-        file: File,
-    ) -> Result<(), Error> {
-        let cname = CString::new(name).unwrap();
-        let cfunction = CString::new(function).unwrap();
-        // println!("{}, {}", cname.as_ptr() as u64, cfunction.as_ptr() as u64);
-        let (pid, cpu, group_fd) = (-1, 0, -1);
-        let kprobe_ptr = unsafe {
-            bpf_attach_kprobe(
-                file.as_raw_fd(),
-                attach_type,
-                cname.as_ptr(),
-                cfunction.as_ptr(),
-                pid,
-                cpu,
-                group_fd,
-                None,
-                ptr::null_mut(),
-            )
-        };
-        if kprobe_ptr.is_null() {
-            return Err(format_err!("Failed to attach kprobe: {}", name));
-        }
-        self.kprobes.insert(
-            Kprobe {
-                p: kprobe_ptr,
-                name: name.to_string(),
-                code_fd: file,
-            },
-        );
-        Ok(())
     }
 
     fn attach_uprobe_inner(
