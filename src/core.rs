@@ -25,9 +25,6 @@ pub struct BPF {
 
 impl Drop for BPF {
     fn drop(&mut self) {
-        for uprobe in &self.uprobes {
-            self.detach_uprobe_inner(&uprobe);
-        }
         for tracepoint in &self.tracepoints {
             self.detach_tracepoint_inner(&tracepoint);
         }
@@ -37,13 +34,74 @@ impl Drop for BPF {
 #[derive(Debug)]
 pub struct Uprobe {
     code_fd: File,
-    name: String,
+    name: CString,
     p: MutPointer,
+}
+
+impl Uprobe {
+    fn new(
+        name: &str,
+        attach_type: u32,
+        path: &str,
+        addr: u64,
+        file: File,
+        pid: pid_t,
+    ) -> Result<Self, Error> {
+        let cname = CString::new(name).map_err(|_| {
+            format_err!("Nul byte in Uprobe name: {}", name)
+        })?;
+        let cpath = CString::new(path).map_err(|_| {
+            format_err!("Nul byte in Uprobe path: {}", name)
+        })?;
+        // TODO: maybe pass in the CPU & PID instead of
+        let (cpu, group_fd) = (0, -1);
+        let uprobe_ptr = unsafe {
+            bpf_attach_uprobe(
+                file.as_raw_fd(),
+                attach_type,
+                cname.as_ptr(),
+                cpath.as_ptr(),
+                addr,
+                pid,
+                cpu,
+                group_fd,
+                None,
+                ptr::null_mut(),
+            )
+        };
+        if uprobe_ptr.is_null() {
+            return Err(format_err!("Failed to attach Uprobe: {}", name));
+        } else {
+            Ok(Self{
+                code_fd: file,
+                name: cname,
+                p: uprobe_ptr,
+            })
+        }
+    }
+
+    pub fn attach_uprobe(binary_path: &str, symbol: &str, code: File, pid: pid_t) -> Result<Self, Error> {
+        let (path, addr) = symbol::resolve_symbol_path(binary_path, symbol, 0x0, pid)?;
+        let alpha_path = make_alphanumeric(&path);
+        let ev_name = format!("r_{}_0x{:x}", &alpha_path, addr);
+        Uprobe::new(&ev_name, BPF_PROBE_ENTRY, &path, addr, code, pid)
+            .map_err(|_| format_err!("Failed to attach Uprobe to binary: {}", binary_path))
+    }
+
+    pub fn attach_uretprobe(binary_path: &str, symbol: &str, code: File, pid: pid_t) -> Result<Self, Error> {
+        let (path, addr) = symbol::resolve_symbol_path(binary_path, symbol, 0x0, pid)?;
+        let alpha_path = make_alphanumeric(&path);
+        let ev_name = format!("r_{}_0x{:x}", &alpha_path, addr);
+        Uprobe::new(&ev_name, BPF_PROBE_RETURN, &path, addr, code, pid)
+            .map_err(|_| format_err!("Failed to attach Uretprobe to binary: {}", binary_path))
+    }
 }
 
 impl Drop for Uprobe {
     fn drop(&mut self) {
-        // TODO
+        unsafe {
+            bpf_detach_uprobe(self.name.as_ptr());
+        }
     }
 }
 
@@ -253,23 +311,16 @@ impl BPF {
 
     pub fn attach_uretprobe(
         &mut self,
-        name: &str,
+        binary_path: &str,
         symbol: &str,
         file: File,
         pid: pid_t,
     ) -> Result<(), Error> {
-        let (path, addr) = symbol::resolve_symbol_path(name, symbol, 0x0, pid)?;
-        let alpha_path = make_alphanumeric(&path);
-        let ev_name = format!("r_{}_0x{:x}", &alpha_path, addr);
-        self.attach_uprobe_inner(
-            &ev_name,
-            bpf_probe_attach_type_BPF_PROBE_RETURN,
-            &path,
-            addr,
-            file,
-            pid,
-        )
+        let uprobe = Uprobe::attach_uretprobe(binary_path, symbol, file, pid)?;
+        self.uprobes.insert(uprobe);
+        Ok(())
     }
+
     pub fn attach_kprobe(&mut self, function: &str, file: File) -> Result<(), Error> {
         let kprobe = Kprobe::attach_kprobe(function, file)?;
         self.kprobes.insert(kprobe);
@@ -289,17 +340,9 @@ impl BPF {
         file: File,
         pid: pid_t,
     ) -> Result<(), Error> {
-        let (path, addr) = symbol::resolve_symbol_path(binary_path, symbol, 0x0, pid)?;
-        let alpha_path = make_alphanumeric(&path);
-        let ev_name = format!("r_{}_0x{:x}", &alpha_path, addr);
-        self.attach_uprobe_inner(
-            &ev_name,
-            bpf_probe_attach_type_BPF_PROBE_ENTRY,
-            &path,
-            addr,
-            file,
-            pid,
-        )
+        let uprobe = Uprobe::attach_uprobe(binary_path, symbol, file, pid)?;
+        self.uprobes.insert(uprobe);
+        Ok(())
     }
 
     pub fn attach_tracepoint(&mut self, category: &str, name: &str, file: File) -> Result<(), Error> {
@@ -308,46 +351,6 @@ impl BPF {
             &make_alphanumeric(name),
             file,
         )
-    }
-
-    fn attach_uprobe_inner(
-        &mut self,
-        name: &str,
-        attach_type: u32,
-        path: &str,
-        addr: u64,
-        file: File,
-        pid: pid_t,
-    ) -> Result<(), Error> {
-        let cname = CString::new(name).unwrap();
-        let cpath = CString::new(path).unwrap();
-        // TODO: maybe pass in the CPU & PID instead of
-        let (cpu, group_fd) = (0, -1);
-        let uprobe_ptr = unsafe {
-            bpf_attach_uprobe(
-                file.as_raw_fd(),
-                attach_type,
-                cname.as_ptr(),
-                cpath.as_ptr(),
-                addr,
-                pid,
-                cpu,
-                group_fd,
-                None,
-                ptr::null_mut(),
-            )
-        };
-        if uprobe_ptr.is_null() {
-            return Err(format_err!("Failed to attach uprobe: {}", name));
-        }
-        self.uprobes.insert(
-            Uprobe {
-                p: uprobe_ptr,
-                name: name.to_string(),
-                code_fd: file,
-            },
-        );
-        Ok(())
     }
 
     fn attach_tracepoint_inner(
@@ -385,26 +388,6 @@ impl BPF {
             },
         );
         Ok(())
-    }
-
-    fn detach_kprobe_inner(
-        &self,
-        kprobe: &Kprobe,
-    ) {
-        let cname = CString::new(kprobe.name.clone()).unwrap();
-        unsafe {
-            bpf_detach_kprobe(cname.as_ptr());
-        }
-    }
-
-    fn detach_uprobe_inner(
-        &self,
-        uprobe: &Uprobe,
-    ) {
-        let cname = CString::new(uprobe.name.clone()).unwrap();
-        unsafe {
-            bpf_detach_uprobe(cname.as_ptr());
-        }
     }
 
     fn detach_tracepoint_inner(
