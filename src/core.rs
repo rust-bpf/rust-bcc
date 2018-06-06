@@ -23,14 +23,6 @@ pub struct BPF {
     tracepoints: HashSet<Tracepoint>,
 }
 
-impl Drop for BPF {
-    fn drop(&mut self) {
-        for tracepoint in &self.tracepoints {
-            self.detach_tracepoint_inner(&tracepoint);
-        }
-    }
-}
-
 #[derive(Debug)]
 pub struct Uprobe {
     code_fd: File,
@@ -196,10 +188,49 @@ impl PartialEq for Kprobe {
 
 #[derive(Debug)]
 pub struct Tracepoint {
-    subsys: String,
-    name: String,
+    subsys: CString,
+    name: CString,
     code_fd: File,
     p: MutPointer,
+}
+
+impl Tracepoint {
+    fn attach(
+        subsys: &str,
+        name: &str,
+        file: File,
+    ) -> Result<Self, Error> {
+        let cname = CString::new(name).map_err(|_| {
+            format_err!("Nul byte in Tracepoint name: {}", name)
+        })?;
+        let csubsys = CString::new(subsys).map_err(|_| {
+            format_err!("Nul byte in Tracepoint subsys: {}", subsys)
+        })?;
+        // NOTE: BPF events are system-wide and do not support CPU filter
+        let (pid, cpu, group_fd) = (-1, 0, -1);
+        let ptr = unsafe {
+            bpf_attach_tracepoint(
+                file.as_raw_fd(),
+                csubsys.as_ptr(),
+                cname.as_ptr(),
+                pid,
+                cpu,
+                group_fd,
+                None,
+                ptr::null_mut(),
+            )
+        };
+        if ptr.is_null() {
+            return Err(format_err!("Failed to attach tracepoint: {}:{}", subsys, name));
+        } else {
+            Ok(Self{
+                subsys: csubsys,
+                name: cname,
+                code_fd: file,
+                p: ptr,
+            })
+        }
+    }
 }
 
 impl PartialEq for Tracepoint {
@@ -219,7 +250,9 @@ impl Hash for Tracepoint {
 
 impl Drop for Tracepoint {
     fn drop(&mut self) {
-        // TODO
+        unsafe {
+            bpf_detach_tracepoint(self.subsys.as_ptr(), self.name.as_ptr());
+        }
     }
 }
 
@@ -345,59 +378,9 @@ impl BPF {
         Ok(())
     }
 
-    pub fn attach_tracepoint(&mut self, category: &str, name: &str, file: File) -> Result<(), Error> {
-        self.attach_tracepoint_inner(
-            &make_alphanumeric(category),
-            &make_alphanumeric(name),
-            file,
-        )
-    }
-
-    fn attach_tracepoint_inner(
-        &mut self,
-        subsys: &str,
-        name: &str,
-        file: File,
-    ) -> Result<(), Error> {
-        let cname = CString::new(name).unwrap();
-        let csubsys = CString::new(subsys).unwrap();
-        // NOTE: BPF events are system-wide and do not support CPU filter
-        let (pid, cpu, group_fd) = (-1, 0, -1);
-        let ptr = unsafe {
-            bpf_attach_tracepoint(
-                file.as_raw_fd(),
-                csubsys.as_ptr(),
-                cname.as_ptr(),
-                pid,
-                cpu,
-                group_fd,
-                None,
-                ptr::null_mut(),
-            )
-        };
-        if ptr.is_null() {
-            return Err(format_err!("Failed to attach tracepoint: {}:{}", subsys, name));
-        }
-
-        self.tracepoints.insert(
-            Tracepoint {
-                subsys: subsys.to_string(),
-                name: name.to_string(),
-                p: ptr,
-                code_fd: file,
-            },
-        );
+    pub fn attach_tracepoint(&mut self, subsys: &str, name: &str, file: File) -> Result<(), Error> {
+        let tracepoint = Tracepoint::attach(subsys, name, file)?;
+        self.tracepoints.insert(tracepoint);
         Ok(())
-    }
-
-    fn detach_tracepoint_inner(
-        &self,
-        tracepoint: &Tracepoint,
-    ) {
-        let csubsys = CString::new(tracepoint.subsys.clone()).unwrap();
-        let cname = CString::new(tracepoint.name.clone()).unwrap();
-        unsafe {
-            bpf_detach_tracepoint(csubsys.as_ptr(), cname.as_ptr());
-        }
     }
 }
