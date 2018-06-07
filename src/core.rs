@@ -379,7 +379,7 @@ impl BPF {
     }
 
     pub fn attach_tracepoint(&mut self, subsys: &str, name: &str, file: File) -> Result<(), Error> {
-        let tracepoint = Tracepoint::attach(subsys, name, file)?;
+        let tracepoint = Tracepoint::attach_tracepoint(subsys, name, file)?;
         self.tracepoints.insert(tracepoint);
         Ok(())
     }
