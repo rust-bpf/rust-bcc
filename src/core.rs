@@ -195,7 +195,7 @@ pub struct Tracepoint {
 }
 
 impl Tracepoint {
-    fn attach(
+    pub fn attach_tracepoint(
         subsys: &str,
         name: &str,
         file: File,
