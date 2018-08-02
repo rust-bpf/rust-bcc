@@ -7,7 +7,7 @@ keywords = ["bpf", "bindings", "bcc"]
 license = "MIT"
 repository = "https://github.com/jvns/rust-bcc"
 readme = "README.md"
-documentation = "https://docs.rs/bcc/0.0.2/bcc/"
+documentation = "https://docs.rs/bcc"
 homepage = "https://github.com/jvns/rust-bcc"
 
 [dependencies]
