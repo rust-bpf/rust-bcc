@@ -14,6 +14,7 @@ use types::MutPointer;
 use std::collections::HashSet;
 use std::ffi::CString;
 use std::fs::File;
+use std::ops::Drop;
 use std::os::unix::prelude::*;
 use std::ptr;
 
@@ -151,5 +152,13 @@ impl BPF {
         let tracepoint = Tracepoint::attach_tracepoint(subsys, name, file)?;
         self.tracepoints.insert(tracepoint);
         Ok(())
+    }
+}
+
+impl Drop for BPF {
+    fn drop(&mut self) {
+        unsafe {
+            bpf_module_destroy(self.p);
+        };
     }
 }
