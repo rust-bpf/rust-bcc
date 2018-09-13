@@ -45,6 +45,7 @@ impl Drop for PerfReader {
     }
 }
 
+#[allow(dead_code)]
 pub struct PerfMap {
     // table and callbacks are just in here to make sure the data stays owned/alive
     // TODO: improve this API
