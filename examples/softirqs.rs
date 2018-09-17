@@ -1,7 +1,7 @@
 extern crate bcc;
 extern crate byteorder;
-extern crate libc;
 extern crate failure;
+extern crate libc;
 
 use bcc::core::BPF;
 use failure::Error;
@@ -11,7 +11,6 @@ use std::{fmt, mem, ptr, thread, time};
 // A simple tool for reporting on time spent in softirq handlers
 //
 // Based on: https://github.com/iovisor/bcc/blob/master/tools/softirqs.py
-
 
 #[repr(C)]
 struct irq_key_t {
@@ -107,7 +106,6 @@ fn do_main() -> Result<(), Error> {
                 let softirq = SoftIRQ::from(id);
                 println!("softirq: {} time (ns): {}", softirq, time);
             }
-            
         }
     }
 }

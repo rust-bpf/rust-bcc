@@ -1,10 +1,10 @@
-use failure::Error;
 use bcc_sys::bccapi::*;
+use failure::Error;
 
+use std::ffi::CStr;
+use std::ffi::CString;
 use std::mem;
 use std::ptr;
-use std::ffi::CString;
-use std::ffi::CStr;
 
 use libc::{c_void, free};
 
@@ -51,11 +51,13 @@ pub fn resolve_symname(
         ))
     } else {
         let module = unsafe {
-            CStr::from_ptr(symbol.module as *mut i8).to_str()?.to_string()
+            CStr::from_ptr(symbol.module as *mut i8)
+                .to_str()?
+                .to_string()
         };
         // symbol.module was allocated somewhere inside `bcc_resolve_symname`
         // so we need to free it manually
-        unsafe {free(symbol.module as *mut c_void)};
+        unsafe { free(symbol.module as *mut c_void) };
         Ok((module, symbol.offset))
     }
 }

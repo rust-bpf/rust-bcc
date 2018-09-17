@@ -1,7 +1,7 @@
 extern crate bcc;
 extern crate byteorder;
-extern crate libc;
 extern crate failure;
+extern crate libc;
 
 use std::ptr;
 
@@ -16,7 +16,7 @@ use failure::Error;
  * Prints out the filename + PID every time a file is opened
  */
 
-/* 
+/*
  * Define the struct the BPF code writes in Rust
  * This must match the struct in `opensnoop.c` exactly.
  * The important thing to understand about the code in `opensnoop.c` is that it creates structs of
@@ -27,7 +27,7 @@ struct data_t {
     id: u64,
     ts: u64,
     ret: libc::c_int,
-    comm: [u8; 16], // TASK_COMM_LEN
+    comm: [u8; 16],   // TASK_COMM_LEN
     fname: [u8; 255], // NAME_MAX
 }
 
@@ -56,7 +56,12 @@ fn perf_data_callback() -> Box<FnMut(&[u8]) + Send> {
     Box::new(|x| {
         // This callback
         let data = parse_struct(x);
-        println!("{:-7} {:-16} {}", data.id >> 32, get_string(&data.comm), get_string(&data.fname));
+        println!(
+            "{:-7} {:-16} {}",
+            data.id >> 32,
+            get_string(&data.comm),
+            get_string(&data.fname)
+        );
     })
 }
 

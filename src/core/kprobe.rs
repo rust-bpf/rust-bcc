@@ -1,7 +1,7 @@
-use failure::Error;
-use bcc_sys::bccapi::*;
 use bcc_sys::bccapi::bpf_probe_attach_type_BPF_PROBE_ENTRY as BPF_PROBE_ENTRY;
 use bcc_sys::bccapi::bpf_probe_attach_type_BPF_PROBE_RETURN as BPF_PROBE_RETURN;
+use bcc_sys::bccapi::*;
+use failure::Error;
 
 use core::make_alphanumeric;
 use types::MutPointer;
@@ -21,12 +21,10 @@ pub struct Kprobe {
 
 impl Kprobe {
     fn new(name: &str, attach_type: u32, function: &str, code: File) -> Result<Self, Error> {
-        let cname = CString::new(name).map_err(|_| {
-            format_err!("Nul byte in Kprobe name: {}", name)
-        })?;
-        let cfunction = CString::new(function).map_err(|_| {
-            format_err!("Nul byte in Kprobe function: {}", function)
-        })?;
+        let cname =
+            CString::new(name).map_err(|_| format_err!("Nul byte in Kprobe name: {}", name))?;
+        let cfunction = CString::new(function)
+            .map_err(|_| format_err!("Nul byte in Kprobe function: {}", function))?;
         let (pid, cpu, group_fd) = (-1, 0, -1);
         let ptr = unsafe {
             bpf_attach_kprobe(

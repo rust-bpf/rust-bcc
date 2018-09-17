@@ -1,7 +1,7 @@
-use std::fs::File;
-use std::str::FromStr;
-use std::io::Read;
 use failure::Error;
+use std::fs::File;
+use std::io::Read;
+use std::str::FromStr;
 
 const CPUONLINE: &'static str = "/sys/devices/system/cpu/online";
 
@@ -48,51 +48,51 @@ mod tests {
 
     lazy_static! {
         static ref TEST: Vec<TestData<'static>> = vec![
-                TestData {
-                      data: "",
-                      expected: Vec::new(),
-                      valid:    false,
-                },
-                TestData {
-                      data: "0-3\n",
-                      expected: vec!{0, 1, 2, 3},
-                      valid:    true,
-                },
-                TestData {
-                      data: "   0-2,5",
-                      expected: vec!{0, 1, 2, 5},
-                      valid:   true,
-                },
-                TestData {
-                      data: "0,2,4-5,7-9",
-                      expected: vec!{0, 2, 4, 5, 7, 8, 9},
-                      valid:   true,
-                },
-                TestData {
-                      data: "0,2",
-                      expected: vec!{0, 2},
-                      valid:   true,
-                },
-                TestData {
-                      data: "0",
-                      expected: vec!{0},
-                      valid:   true,
-                },
-                TestData {
-                      data: "-2,5",
-                      expected: Vec::new(),
-                      valid:   false,
-                },
-                TestData {
-                      data: "2-@,5",
-                      expected: Vec::new(),
-                      valid:   false,
-                },
-                TestData {
-                      data: "-",
-                      expected: Vec::new(),
-                      valid:   false,
-                },
+            TestData {
+                data: "",
+                expected: Vec::new(),
+                valid: false,
+            },
+            TestData {
+                data: "0-3\n",
+                expected: vec!{0, 1, 2, 3},
+                valid: true,
+            },
+            TestData {
+                data: "   0-2,5",
+                expected: vec!{0, 1, 2, 5},
+                valid: true,
+            },
+            TestData {
+                data: "0,2,4-5,7-9",
+                expected: vec!{0, 2, 4, 5, 7, 8, 9},
+                valid: true,
+            },
+            TestData {
+                data: "0,2",
+                expected: vec!{0, 2},
+                valid: true,
+            },
+            TestData {
+                data: "0",
+                expected: vec!{0},
+                valid: true,
+            },
+            TestData {
+                data: "-2,5",
+                expected: Vec::new(),
+                valid: false,
+            },
+            TestData {
+                data: "2-@,5",
+                expected: Vec::new(),
+                valid: false,
+            },
+            TestData {
+                data: "-",
+                expected: Vec::new(),
+                valid: false,
+            },
         ];
     }
     #[test]

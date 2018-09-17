@@ -1,10 +1,10 @@
 extern crate bcc;
 extern crate byteorder;
-extern crate libc;
 extern crate failure;
+extern crate libc;
 
-use byteorder::{NativeEndian, ReadBytesExt};
 use bcc::core::BPF;
+use byteorder::{NativeEndian, ReadBytesExt};
 use failure::Error;
 use std::io::Cursor;
 
@@ -32,12 +32,17 @@ int count(struct pt_regs *ctx) {
     ";
     let mut module = BPF::new(code)?;
     let uprobe_code = module.load_uprobe("count")?;
-    module.attach_uprobe("/lib/x86_64-linux-gnu/libc.so.6", "strlen", uprobe_code, -1 /* all PIDs */)?;
+    module.attach_uprobe(
+        "/lib/x86_64-linux-gnu/libc.so.6",
+        "strlen",
+        uprobe_code,
+        -1, /* all PIDs */
+    )?;
     let table = module.table("counts");
     loop {
         std::thread::sleep(std::time::Duration::from_millis(1000));
         for e in &table {
-            // key and value are each a Vec<u8> so we need to transform them into a string and 
+            // key and value are each a Vec<u8> so we need to transform them into a string and
             // a u64 respectively
             let key = get_string(&e.key);
             let value = Cursor::new(e.value).read_u64::<NativeEndian>().unwrap();

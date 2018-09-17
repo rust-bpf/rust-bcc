@@ -2,8 +2,8 @@ mod kprobe;
 mod tracepoint;
 mod uprobe;
 
-use failure::Error;
 use bcc_sys::bccapi::*;
+use failure::Error;
 
 use self::kprobe::Kprobe;
 use self::tracepoint::Tracepoint;
@@ -27,17 +27,17 @@ pub struct BPF {
 }
 
 fn make_alphanumeric(s: &str) -> String {
-    s.replace(|c| {
-        !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
-    }, "_")
+    s.replace(
+        |c| !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')),
+        "_",
+    )
 }
 
 impl BPF {
     /// `code` is a string containing C code. See https://github.com/iovisor/bcc for examples
     pub fn new(code: &str) -> Result<BPF, Error> {
         let cs = CString::new(code)?;
-        let ptr =
-            unsafe { bpf_module_create_c_from_string(cs.as_ptr(), 2, ptr::null_mut(), 0) };
+        let ptr = unsafe { bpf_module_create_c_from_string(cs.as_ptr(), 2, ptr::null_mut(), 0) };
         if ptr.is_null() {
             return Err(format_err!("couldn't create BPF program"));
         }
