@@ -1,15 +1,15 @@
 extern crate libc;
+use bcc_sys::bccapi::*;
+use byteorder::{NativeEndian, WriteBytesExt};
+use cpuonline;
 use failure::Error;
 use failure::ResultExt;
-use byteorder::{NativeEndian, WriteBytesExt};
-use bcc_sys::bccapi::*;
-use cpuonline;
 
 use std;
 use std::io::Cursor;
 
-use types::*;
 use table::Table;
+use types::*;
 
 struct PerfCallback {
     raw_cb: Box<FnMut(&[u8]) + Send>,
@@ -21,9 +21,7 @@ unsafe extern "C" fn raw_callback(pc: MutPointer, ptr: MutPointer, size: i32) {
     let slice = std::slice::from_raw_parts(ptr as *const u8, size as usize);
     // prevent unwinding into C code
     // no custom panic hook set, panic will be printed as is
-    let _ = std::panic::catch_unwind(|| {
-        (*(*(pc as *mut PerfCallback)).raw_cb)(slice)
-    });
+    let _ = std::panic::catch_unwind(|| (*(*(pc as *mut PerfCallback)).raw_cb)(slice));
 }
 
 // need this to be represented in memory as just a pointer!!
@@ -81,9 +79,9 @@ where
             callbacks.push(callback);
 
             cur.write_u32::<NativeEndian>(perf_fd)?;
-            table.set(&mut key, &mut cur.get_mut()).context(
-                "Unable to initialize perf map",
-            )?;
+            table
+                .set(&mut key, &mut cur.get_mut())
+                .context("Unable to initialize perf map")?;
             let r = bpf_get_next_key(
                 fd,
                 key.as_mut_ptr() as MutPointer,
@@ -118,7 +116,7 @@ fn open_perf_buffer(
     cpu: usize,
     raw_cb: Box<FnMut(&[u8]) + Send>,
 ) -> Result<(PerfReader, Box<PerfCallback>), Error> {
-    let mut callback = Box::new(PerfCallback { raw_cb: raw_cb });
+    let mut callback = Box::new(PerfCallback { raw_cb });
     let reader = unsafe {
         bpf_open_perf_buffer(
             Some(raw_callback),
@@ -132,5 +130,10 @@ fn open_perf_buffer(
     if reader.is_null() {
         return Err(format_err!("failed to open perf buffer"));
     }
-    Ok((PerfReader { ptr: reader as *mut perf_reader }, callback))
+    Ok((
+        PerfReader {
+            ptr: reader as *mut perf_reader,
+        },
+        callback,
+    ))
 }

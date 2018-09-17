@@ -1,12 +1,11 @@
-use libc::{size_t, c_int};
-use failure::Error;
 use bcc_sys::bccapi::*;
+use failure::Error;
+use libc::{c_int, size_t};
 
 use types::MutPointer;
 
-use std::ffi::CStr;
 use std;
-
+use std::ffi::CStr;
 
 #[derive(Clone, Debug)]
 pub struct Table {
@@ -102,10 +101,10 @@ impl IntoIterator for Table {
     type Item = Entry;
     type IntoIter = EntryIter;
     fn into_iter(self) -> Self::IntoIter {
-        EntryIter{
+        EntryIter {
             current: None,
             table: self,
-            fd: None
+            fd: None,
         }
     }
 }
@@ -124,7 +123,6 @@ pub struct Entry {
     pub value: Vec<u8>,
 }
 
-
 pub struct EntryIter {
     current: Option<Entry>,
     fd: Option<c_int>,
@@ -134,7 +132,10 @@ pub struct EntryIter {
 impl EntryIter {
     pub fn entry_ptrs(&mut self) -> Option<(*mut std::os::raw::c_void, *mut std::os::raw::c_void)> {
         match self.current.as_mut() {
-            Some(&mut Entry{ref mut key, ref mut value}) => Some((
+            Some(&mut Entry {
+                ref mut key,
+                ref mut value,
+            }) => Some((
                 key.as_mut_ptr() as *mut u8 as *mut std::os::raw::c_void,
                 value.as_mut_ptr() as *mut u8 as *mut std::os::raw::c_void,
             )),
@@ -146,7 +147,10 @@ impl EntryIter {
         self.fd = Some(self.table.fd());
         let key_size = self.table.key_size();
         let leaf_size = self.table.leaf_size();
-        let entry = Entry{key: vec![0; key_size], value: vec![0; leaf_size]};
+        let entry = Entry {
+            key: vec![0; key_size],
+            value: vec![0; leaf_size],
+        };
         self.current = Some(entry);
         unsafe {
             let (k, _) = self.entry_ptrs().unwrap();
