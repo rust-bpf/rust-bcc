@@ -1,8 +1,8 @@
 use bcc_sys::bccapi::*;
-use failure::Error;
+use failure::*;
 use libc::{c_int, size_t};
 
-use types::MutPointer;
+use crate::types::MutPointer;
 
 use std;
 use std::ffi::CStr;

@@ -1,11 +1,11 @@
 use bcc_sys::bccapi::bpf_probe_attach_type_BPF_PROBE_ENTRY as BPF_PROBE_ENTRY;
 use bcc_sys::bccapi::bpf_probe_attach_type_BPF_PROBE_RETURN as BPF_PROBE_RETURN;
 use bcc_sys::bccapi::*;
-use failure::Error;
+use failure::*;
 
-use core::make_alphanumeric;
-use symbol;
-use types::MutPointer;
+use crate::core::make_alphanumeric;
+use crate::symbol;
+use crate::types::MutPointer;
 
 use std::ffi::CString;
 use std::fs::File;

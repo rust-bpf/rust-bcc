@@ -13,12 +13,3 @@ pub mod perf;
 pub mod symbol;
 pub mod table;
 mod types;
-
-#[macro_use]
-extern crate failure;
-extern crate bcc_sys;
-extern crate byteorder;
-extern crate libc;
-#[cfg(test)]
-#[macro_use]
-extern crate lazy_static;

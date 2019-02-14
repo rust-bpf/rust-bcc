@@ -1,12 +1,11 @@
 use bcc_sys::bccapi::*;
-use failure::Error;
+use failure::*;
+use libc::{c_void, free};
 
 use std::ffi::CStr;
 use std::ffi::CString;
 use std::mem;
 use std::ptr;
-
-use libc::{c_void, free};
 
 pub fn resolve_symbol_path(
     module: &str,
