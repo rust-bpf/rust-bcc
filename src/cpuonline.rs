@@ -1,4 +1,5 @@
-use failure::Error;
+use failure::*;
+
 use std::fs::File;
 use std::io::Read;
 use std::str::FromStr;
@@ -40,6 +41,8 @@ pub fn get() -> Result<Vec<usize>, Error> {
 mod tests {
     use super::read_cpu_range;
 
+    use lazy_static::*;
+
     struct TestData<'a> {
         data: &'a str,
         expected: Vec<usize>,
@@ -55,27 +58,27 @@ mod tests {
             },
             TestData {
                 data: "0-3\n",
-                expected: vec!{0, 1, 2, 3},
+                expected: vec![0, 1, 2, 3],
                 valid: true,
             },
             TestData {
                 data: "   0-2,5",
-                expected: vec!{0, 1, 2, 5},
+                expected: vec![0, 1, 2, 5],
                 valid: true,
             },
             TestData {
                 data: "0,2,4-5,7-9",
-                expected: vec!{0, 2, 4, 5, 7, 8, 9},
+                expected: vec![0, 2, 4, 5, 7, 8, 9],
                 valid: true,
             },
             TestData {
                 data: "0,2",
-                expected: vec!{0, 2},
+                expected: vec![0, 2],
                 valid: true,
             },
             TestData {
                 data: "0",
-                expected: vec!{0},
+                expected: vec![0],
                 valid: true,
             },
             TestData {

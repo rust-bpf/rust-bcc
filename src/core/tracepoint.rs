@@ -1,7 +1,7 @@
 use bcc_sys::bccapi::*;
-use failure::Error;
+use failure::*;
 
-use types::MutPointer;
+use crate::types::MutPointer;
 
 use std::ffi::CString;
 use std::fs::File;

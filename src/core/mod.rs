@@ -3,13 +3,13 @@ mod tracepoint;
 mod uprobe;
 
 use bcc_sys::bccapi::*;
-use failure::Error;
+use failure::*;
 
 use self::kprobe::Kprobe;
 use self::tracepoint::Tracepoint;
 use self::uprobe::Uprobe;
-use table::Table;
-use types::MutPointer;
+use crate::table::Table;
+use crate::types::MutPointer;
 
 use std::collections::HashSet;
 use std::ffi::CString;

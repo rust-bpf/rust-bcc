@@ -1,15 +1,13 @@
-extern crate libc;
 use bcc_sys::bccapi::*;
 use byteorder::{NativeEndian, WriteBytesExt};
-use cpuonline;
-use failure::Error;
-use failure::ResultExt;
+use failure::*;
 
 use std;
 use std::io::Cursor;
 
-use table::Table;
-use types::*;
+use crate::cpuonline;
+use crate::table::Table;
+use crate::types::*;
 
 struct PerfCallback {
     raw_cb: Box<FnMut(&[u8]) + Send>,
