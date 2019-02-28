@@ -1,26 +1,211 @@
 language: rust
+dist: xenial
 rust:
   - stable
   - beta
   - nightly
+script:
+  - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+  - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main" | sudo tee -a /etc/apt/sources.list
+  - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
+  - sudo apt-get update
+  - sudo apt-get install linux-headers-`uname -r`
+  - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-5.0-dev libelf-dev libllvm5.0 libz-dev lldb-5.0 llvm-5.0 llvm-5.0-dev llvm-5.0-runtime
+  - git clone https://github.com/iovisor/bcc || true
+  - cd bcc
+  - git checkout master
+  - git pull
+  - git checkout remotes/origin/tag_v0.8.0
+  - mkdir -p _build
+  - cd _build
+  - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+  - make
+  - sudo make install
+  - cd ../..
+  - cargo build
+  - cargo test
+  - cargo build --release
+  - cargo test --release
+  - cargo build --release --examples
+  - ls /lib/modules/*/build
+  - sudo target/release/examples/softirqs --interval 1 --windows 5
 matrix:
   allow_failures:
     - rust: nightly
   fast_finish: true
+  include:
+    - os: linux
+      dist: trusty
+      rust: stable
+      env: BCC=v0_4_0 RUST_BACKTRACE=1
+      script:
+        - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+        - echo "deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-5.0 main" | sudo tee -a /etc/apt/sources.list
+        - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
+        - sudo apt-get update
+        - sudo apt-get install linux-headers-`uname -r`
+        - sudo apt-get --yes install bison build-essential cmake3 flex git libclang-common-5.0-dev libelf-dev libllvm5.0 libz-dev lldb-5.0 llvm-5.0 llvm-5.0-dev llvm-5.0-runtime
+        - git clone https://github.com/iovisor/bcc || true
+        - cd bcc
+        - git checkout master
+        - git pull
+        - git checkout remotes/origin/tag_v0.4.0
+        - mkdir -p _build
+        - cd _build
+        - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+        - make
+        - sudo make install
+        - cd ../..
+        - cargo build --features $BCC
+        - cargo test --features $BCC
+        - cargo build --release --features $BCC
+        - cargo test --release --features $BCC
+        - cargo build --release --examples --features $BCC
+    - os: linux
+      dist: trusty
+      rust: stable
+      env: BCC=v0_5_0 RUST_BACKTRACE=1
+      script:
+        - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+        - echo "deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-5.0 main" | sudo tee -a /etc/apt/sources.list
+        - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
+        - sudo apt-get update
+        - sudo apt-get install linux-headers-`uname -r`
+        - sudo apt-get --yes install bison build-essential cmake3 flex git libclang-common-5.0-dev libelf-dev libllvm5.0 libz-dev lldb-5.0 llvm-5.0 llvm-5.0-dev llvm-5.0-runtime
+        - git clone https://github.com/iovisor/bcc || true
+        - cd bcc
+        - git checkout master
+        - git pull
+        - git checkout remotes/origin/tag_v0.5.0
+        - mkdir -p _build
+        - cd _build
+        - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+        - make
+        - sudo make install
+        - cd ../..
+        - cargo build --features $BCC
+        - cargo test --features $BCC
+        - cargo build --release --features $BCC
+        - cargo test --release --features $BCC
+        - cargo build --release --examples --features $BCC
+    - os: linux
+      dist: xenial
+      rust: stable
+      env: BCC=v0_6_0 RUST_BACKTRACE=1
+      script:
+        - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+        - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main" | sudo tee -a /etc/apt/sources.list
+        - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
+        - sudo apt-get update
+        - sudo apt-get install linux-headers-`uname -r`
+        - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-5.0-dev libelf-dev libllvm5.0 libz-dev lldb-5.0 llvm-5.0 llvm-5.0-dev llvm-5.0-runtime
+        - git clone https://github.com/iovisor/bcc || true
+        - cd bcc
+        - git checkout master
+        - git pull
+        - git checkout remotes/origin/tag_v0.6.0
+        - mkdir -p _build
+        - cd _build
+        - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+        - make
+        - sudo make install
+        - cd ../..
+        - cargo build --features $BCC
+        - cargo test --features $BCC
+        - cargo build --release --features $BCC
+        - cargo test --release --features $BCC
+        - cargo build --release --examples --features $BCC
+        - ls /lib/modules/*/build
+        - sudo target/release/examples/softirqs --interval 1 --windows 5
+    - os: linux
+      dist: xenial
+      rust: stable
+      env: BCC=v0_6_1 RUST_BACKTRACE=1
+      script:
+        - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+        - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main" | sudo tee -a /etc/apt/sources.list
+        - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
+        - sudo apt-get update
+        - sudo apt-get install linux-headers-`uname -r`
+        - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-5.0-dev libelf-dev libllvm5.0 libz-dev lldb-5.0 llvm-5.0 llvm-5.0-dev llvm-5.0-runtime
+        - git clone https://github.com/iovisor/bcc || true
+        - cd bcc
+        - git checkout master
+        - git pull
+        - git checkout remotes/origin/tag_v0.6.1
+        - mkdir -p _build
+        - cd _build
+        - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+        - make
+        - sudo make install
+        - cd ../..
+        - cargo build --features $BCC
+        - cargo test --features $BCC
+        - cargo build --release --features $BCC
+        - cargo test --release --features $BCC
+        - cargo build --release --examples --features $BCC
+        - ls /lib/modules/*/build
+        - sudo target/release/examples/softirqs --interval 1 --windows 5
+    - os: linux
+      dist: xenial
+      rust: stable
+      env: BCC=v0_7_0 RUST_BACKTRACE=1
+      script:
+        - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+        - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main" | sudo tee -a /etc/apt/sources.list
+        - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
+        - sudo apt-get update
+        - sudo apt-get install linux-headers-`uname -r`
+        - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-5.0-dev libelf-dev libllvm5.0 libz-dev lldb-5.0 llvm-5.0 llvm-5.0-dev llvm-5.0-runtime
+        - git clone https://github.com/iovisor/bcc || true
+        - cd bcc
+        - git checkout master
+        - git pull
+        - git checkout remotes/origin/tag_v0.7.0
+        - mkdir -p _build
+        - cd _build
+        - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+        - make
+        - sudo make install
+        - cd ../..
+        - cargo build --features $BCC
+        - cargo test --features $BCC
+        - cargo build --release --features $BCC
+        - cargo test --release --features $BCC
+        - cargo build --release --examples --features $BCC
+        - ls /lib/modules/*/build
+        - sudo target/release/examples/softirqs --interval 1 --windows 5
+    - os: linux
+      dist: xenial
+      rust: stable
+      env: BCC=v0_8_0 RUST_BACKTRACE=1
+      script:
+        - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+        - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main" | sudo tee -a /etc/apt/sources.list
+        - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
+        - sudo apt-get update
+        - sudo apt-get install linux-headers-`uname -r`
+        - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-5.0-dev libelf-dev libllvm5.0 libz-dev lldb-5.0 llvm-5.0 llvm-5.0-dev llvm-5.0-runtime
+        - git clone https://github.com/iovisor/bcc || true
+        - cd bcc
+        - git checkout master
+        - git pull
+        - git checkout remotes/origin/tag_v0.8.0
+        - mkdir -p _build
+        - cd _build
+        - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+        - make
+        - sudo make install
+        - cd ../..
+        - cargo build --features $BCC
+        - cargo test --features $BCC
+        - cargo build --release --features $BCC
+        - cargo test --release --features $BCC
+        - cargo build --release --examples --features $BCC
+        - ls /lib/modules/*/build
+        - sudo target/release/examples/softirqs --interval 1 --windows 5
 cache:
   directories:
     - $HOME/.cargo
     - $TRAVIS_BUILD_DIR/target
     - bcc
-before_install:
-  - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-  - echo "deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-5.0 main" | sudo tee -a /etc/apt/sources.list
-  - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
-  - sudo apt-get update
-  - sudo apt-get --yes install bison build-essential cmake3 flex git libclang-common-5.0-dev libelf-dev libllvm5.0 libz-dev lldb-5.0 llvm-5.0 llvm-5.0-dev llvm-5.0-runtime
-  - git clone https://github.com/iovisor/bcc || true
-  - mkdir -p bcc/_build
-  - cd bcc/_build
-  - if [ ! -e Makefile ]; then cmake ..; fi
-  - make && sudo make install
-  - cd ../..

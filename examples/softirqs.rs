@@ -1,9 +1,5 @@
-extern crate bcc;
-extern crate byteorder;
-extern crate failure;
-extern crate libc;
-
 use bcc::core::BPF;
+use clap::{App, Arg, ArgMatches};
 use failure::Error;
 
 use std::{fmt, mem, ptr, thread, time};
@@ -76,6 +72,26 @@ impl fmt::Display for SoftIRQ {
 }
 
 fn do_main() -> Result<(), Error> {
+    let matches = App::new("softirqs")
+        .about("Reports time spent in IRQ Handlers")
+        .arg(
+            Arg::with_name("interval")
+                .long("interval")
+                .value_name("Seconds")
+                .help("Integration window duration and period for stats output")
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("windows")
+                .long("windows")
+                .value_name("Count")
+                .help("The number of intervals before exit")
+                .takes_value(true),
+        ).get_matches();
+
+    let interval: usize = matches.value_of("interval").unwrap_or("1").parse().expect("Invalid argument for interval");
+    let windows: Option<usize> = matches.value_of("windows").map(|v| { v.parse().expect("Invalid argument for windows") });
+
     let code = include_str!("softirqs.c");
     // compile the above BPF code!
     let mut module = BPF::new(code)?;
@@ -87,9 +103,10 @@ fn do_main() -> Result<(), Error> {
     module.attach_tracepoint("irq", "softirq_exit", softirq_exit)?;
 
     let table = module.table("dist");
+    let mut window = 0;
 
     loop {
-        thread::sleep(time::Duration::new(1, 0));
+        thread::sleep(time::Duration::new(interval as u64, 0));
         println!("======");
         for entry in table.iter() {
             let data = parse_struct(&entry.key);
@@ -105,6 +122,12 @@ fn do_main() -> Result<(), Error> {
             if time > 0 {
                 let softirq = SoftIRQ::from(id);
                 println!("softirq: {} time (ns): {}", softirq, time);
+            }
+        }
+        if let Some(windows) = windows {
+            window += 1;
+            if window >= windows {
+                return Ok(());
             }
         }
     }
