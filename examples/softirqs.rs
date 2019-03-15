@@ -1,5 +1,5 @@
 use bcc::core::BPF;
-use clap::{App, Arg, ArgMatches};
+use clap::{App, Arg};
 use failure::Error;
 
 use std::{fmt, mem, ptr, thread, time};
