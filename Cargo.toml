@@ -1,6 +1,6 @@
 [package]
 name = "bcc"
-version = "0.0.5"
+version = "0.0.6-pre"
 authors = ["Julia Evans <julia@jvns.ca>", "Brian Martin <brayniac@gmail.com>"]
 description = "Idiomatic Rust bindings for BPF Compiler Collection (BCC)"
 keywords = ["bpf", "bindings", "bcc"]
@@ -13,9 +13,19 @@ edition = '2018'
 
 [dependencies]
 libc = "0.2.36"
-bcc-sys = "0.4.0"
+bcc-sys = "0.8.0"
 failure = "0.1.1"
 byteorder = "1"
 
 [dev-dependencies]
 lazy_static = "1.0"
+clap = "2.32.0"
+
+[features]
+static = ["bcc-sys/static"]
+v0_4_0 = ["bcc-sys/v0_4_0"]
+v0_5_0 = ["bcc-sys/v0_5_0"]
+v0_6_0 = ["bcc-sys/v0_6_0"]
+v0_6_1 = ["bcc-sys/v0_6_1"]
+v0_7_0 = ["bcc-sys/v0_7_0"]
+v0_8_0 = ["bcc-sys/v0_8_0"]
