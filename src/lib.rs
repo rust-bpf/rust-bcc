@@ -5,7 +5,7 @@
 //! * Mimic the Python BCC bindings <https://github.com/iovisor/bcc>
 //!
 //! # Examples
-//! * see <https://github.com/jvns/rust-bcc/examples>
+//! * see <https://github.com/rust-bpf/rust-bcc/tree/master/examples>
 
 pub mod core;
 mod cpuonline;
