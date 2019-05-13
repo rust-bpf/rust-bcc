@@ -208,4 +208,3 @@ cache:
   directories:
     - $HOME/.cargo
     - $TRAVIS_BUILD_DIR/target
-    - bcc
