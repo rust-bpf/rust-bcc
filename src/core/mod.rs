@@ -35,7 +35,14 @@ fn make_alphanumeric(s: &str) -> String {
 
 impl BPF {
     /// `code` is a string containing C code. See https://github.com/iovisor/bcc for examples
-    #[cfg(any(feature = "v0_4_0", feature = "v0_5_0", feature = "v0_6_0", feature = "v0_6_1", feature = "v0_7_0", feature = "v0_8_0"))]
+    #[cfg(any(
+        feature = "v0_4_0",
+        feature = "v0_5_0",
+        feature = "v0_6_0",
+        feature = "v0_6_1",
+        feature = "v0_7_0",
+        feature = "v0_8_0",
+    ))]
     pub fn new(code: &str) -> Result<BPF, Error> {
         let cs = CString::new(code)?;
         let ptr = unsafe { bpf_module_create_c_from_string(cs.as_ptr(), 2, ptr::null_mut(), 0) };
@@ -51,10 +58,12 @@ impl BPF {
         })
     }
 
+    // 0.9.0 changes the API for bpf_module_create_c_from_string()
     #[cfg(feature = "v0_9_0")]
     pub fn new(code: &str) -> Result<BPF, Error> {
         let cs = CString::new(code)?;
-        let ptr = unsafe { bpf_module_create_c_from_string(cs.as_ptr(), 2, ptr::null_mut(), 0, false) };
+        let ptr =
+            unsafe { bpf_module_create_c_from_string(cs.as_ptr(), 2, ptr::null_mut(), 0, false) };
         if ptr.is_null() {
             return Err(format_err!("couldn't create BPF program"));
         }
@@ -67,10 +76,19 @@ impl BPF {
         })
     }
 
-    #[cfg(not(any(feature = "v0_4_0", feature = "v0_5_0", feature = "v0_6_0", feature = "v0_6_1", feature = "v0_7_0", feature = "v0_8_0", feature = "v0_9_0")))]
+    #[cfg(not(any(
+        feature = "v0_4_0",
+        feature = "v0_5_0",
+        feature = "v0_6_0",
+        feature = "v0_6_1",
+        feature = "v0_7_0",
+        feature = "v0_8_0",
+        feature = "v0_9_0",
+    )))]
     pub fn new(code: &str) -> Result<BPF, Error> {
         let cs = CString::new(code)?;
-        let ptr = unsafe { bpf_module_create_c_from_string(cs.as_ptr(), 2, ptr::null_mut(), 0, false) };
+        let ptr =
+            unsafe { bpf_module_create_c_from_string(cs.as_ptr(), 2, ptr::null_mut(), 0, false) };
         if ptr.is_null() {
             return Err(format_err!("couldn't create BPF program"));
         }
@@ -144,7 +162,13 @@ impl BPF {
         }
     }
 
-    #[cfg(any(feature = "v0_5_0", feature = "v0_6_0", feature = "v0_6_1", feature = "v0_7_0", feature = "v0_8_0"))]
+    #[cfg(any(
+        feature = "v0_5_0",
+        feature = "v0_6_0",
+        feature = "v0_6_1",
+        feature = "v0_7_0",
+        feature = "v0_8_0"
+    ))]
     pub fn load(
         &mut self,
         name: &str,
@@ -222,7 +246,15 @@ impl BPF {
         }
     }
 
-    #[cfg(not(any(feature = "v0_4_0", feature = "v0_5_0", feature = "v0_6_0", feature = "v0_6_1", feature = "v0_7_0", feature = "v0_8_0", feature = "v0_9_0")))]
+    #[cfg(not(any(
+        feature = "v0_4_0",
+        feature = "v0_5_0",
+        feature = "v0_6_0",
+        feature = "v0_6_1",
+        feature = "v0_7_0",
+        feature = "v0_8_0",
+        featyre = "v0_9_0",
+    )))]
     pub fn load(
         &mut self,
         name: &str,

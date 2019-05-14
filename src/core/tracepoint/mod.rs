@@ -1,13 +1,7 @@
-#[cfg(any(
-    feature = "v0_4_0",
-    feature = "v0_5_0",
-))]
+#[cfg(any(feature = "v0_4_0", feature = "v0_5_0",))]
 mod v0_4_0;
 
-#[cfg(any(
-    feature = "v0_4_0",
-    feature = "v0_5_0",
-))]
+#[cfg(any(feature = "v0_4_0", feature = "v0_5_0",))]
 pub use v0_4_0::*;
 
 #[cfg(any(

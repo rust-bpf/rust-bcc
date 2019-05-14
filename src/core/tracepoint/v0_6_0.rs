@@ -20,13 +20,8 @@ impl Tracepoint {
             CString::new(name).map_err(|_| format_err!("Nul byte in Tracepoint name: {}", name))?;
         let csubsys = CString::new(subsys)
             .map_err(|_| format_err!("Nul byte in Tracepoint subsys: {}", subsys))?;
-        let ptr = unsafe {
-            bpf_attach_tracepoint(
-                file.as_raw_fd(),
-                csubsys.as_ptr(),
-                cname.as_ptr(),
-            )
-        };
+        let ptr =
+            unsafe { bpf_attach_tracepoint(file.as_raw_fd(), csubsys.as_ptr(), cname.as_ptr()) };
         if ptr < 0 {
             return Err(format_err!(
                 "Failed to attach tracepoint: {}:{}",

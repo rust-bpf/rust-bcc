@@ -87,10 +87,17 @@ fn do_main() -> Result<(), Error> {
                 .value_name("Count")
                 .help("The number of intervals before exit")
                 .takes_value(true),
-        ).get_matches();
+        )
+        .get_matches();
 
-    let interval: usize = matches.value_of("interval").unwrap_or("1").parse().expect("Invalid argument for interval");
-    let windows: Option<usize> = matches.value_of("windows").map(|v| { v.parse().expect("Invalid argument for windows") });
+    let interval: usize = matches
+        .value_of("interval")
+        .unwrap_or("1")
+        .parse()
+        .expect("Invalid argument for interval");
+    let windows: Option<usize> = matches
+        .value_of("windows")
+        .map(|v| v.parse().expect("Invalid argument for windows"));
 
     let code = include_str!("softirqs.c");
     // compile the above BPF code!
