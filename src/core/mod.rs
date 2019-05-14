@@ -63,7 +63,7 @@ impl BPF {
     pub fn new(code: &str) -> Result<BPF, Error> {
         let cs = CString::new(code)?;
         let ptr =
-            unsafe { bpf_module_create_c_from_string(cs.as_ptr(), 2, ptr::null_mut(), 0, false) };
+            unsafe { bpf_module_create_c_from_string(cs.as_ptr(), 2, ptr::null_mut(), 0, true) };
         if ptr.is_null() {
             return Err(format_err!("couldn't create BPF program"));
         }
