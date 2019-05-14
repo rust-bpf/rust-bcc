@@ -59,36 +59,22 @@ impl BPF {
     }
 
     // 0.9.0 changes the API for bpf_module_create_c_from_string()
-    #[cfg(feature = "v0_9_0")]
+    #[cfg(any(
+        feature = "v0_9_0",
+        not(any(
+            feature = "v0_4_0",
+            feature = "v0_5_0",
+            feature = "v0_6_0",
+            feature = "v0_6_1",
+            feature = "v0_7_0",
+            feature = "v0_8_0",
+            feature = "v0_9_0",
+        )),
+    ))]
     pub fn new(code: &str) -> Result<BPF, Error> {
         let cs = CString::new(code)?;
         let ptr =
             unsafe { bpf_module_create_c_from_string(cs.as_ptr(), 2, ptr::null_mut(), 0, true) };
-        if ptr.is_null() {
-            return Err(format_err!("couldn't create BPF program"));
-        }
-
-        Ok(BPF {
-            p: ptr,
-            uprobes: HashSet::new(),
-            kprobes: HashSet::new(),
-            tracepoints: HashSet::new(),
-        })
-    }
-
-    #[cfg(not(any(
-        feature = "v0_4_0",
-        feature = "v0_5_0",
-        feature = "v0_6_0",
-        feature = "v0_6_1",
-        feature = "v0_7_0",
-        feature = "v0_8_0",
-        feature = "v0_9_0",
-    )))]
-    pub fn new(code: &str) -> Result<BPF, Error> {
-        let cs = CString::new(code)?;
-        let ptr =
-            unsafe { bpf_module_create_c_from_string(cs.as_ptr(), 2, ptr::null_mut(), 0, false) };
         if ptr.is_null() {
             return Err(format_err!("couldn't create BPF program"));
         }
@@ -207,54 +193,18 @@ impl BPF {
         }
     }
 
-    #[cfg(feature = "v0_9_0")]
-    pub fn load(
-        &mut self,
-        name: &str,
-        prog_type: u32,
-        log_level: i32,
-        log_size: u32,
-    ) -> Result<File, Error> {
-        let cname = CString::new(name).unwrap();
-        unsafe {
-            let start: *mut bpf_insn = bpf_function_start(self.p, cname.as_ptr()) as *mut bpf_insn;
-            let size = bpf_function_size(self.p, cname.as_ptr()) as i32;
-            let license = bpf_module_license(self.p);
-            let version = bpf_module_kern_version(self.p);
-            if start.is_null() {
-                return Err(format_err!("Error in bpf_function_start for {}", name));
-            }
-            let mut log_buf: Vec<u8> = Vec::with_capacity(log_size as usize);
-            // TODO: we're ignoring any changes bpf_prog_load made to log_buf right now
-            // We should instead do something with this log buffer (I'm not clear on what it's for
-            // yet though)
-            let fd = bcc_prog_load(
-                prog_type,
-                cname.as_ptr(),
-                start,
-                size,
-                license,
-                version,
-                log_level,
-                log_buf.as_mut_ptr() as *mut i8,
-                log_buf.capacity() as u32,
-            );
-            if fd < 0 {
-                return Err(format_err!("error loading BPF program: {}", name));
-            }
-            Ok(File::from_raw_fd(fd))
-        }
-    }
-
-    #[cfg(not(any(
-        feature = "v0_4_0",
-        feature = "v0_5_0",
-        feature = "v0_6_0",
-        feature = "v0_6_1",
-        feature = "v0_7_0",
-        feature = "v0_8_0",
+    #[cfg(any(
         feature = "v0_9_0",
-    )))]
+        not(any(
+            feature = "v0_4_0",
+            feature = "v0_5_0",
+            feature = "v0_6_0",
+            feature = "v0_6_1",
+            feature = "v0_7_0",
+            feature = "v0_8_0",
+            feature = "v0_9_0",
+        )),
+    ))]
     pub fn load(
         &mut self,
         name: &str,
