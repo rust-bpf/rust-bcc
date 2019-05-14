@@ -16,7 +16,6 @@ typedef struct account_val {
 } account_val_t;
 
 BPF_HASH(start, u32, account_val_t);
-BPF_HASH(iptr, u32);
 BPF_HISTOGRAM(dist, irq_key_t);
 
 int softirq_entry(struct tracepoint__irq__softirq_entry *args)
