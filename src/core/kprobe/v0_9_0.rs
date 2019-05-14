@@ -30,7 +30,7 @@ impl Kprobe {
                 cname.as_ptr(),
                 cfunction.as_ptr(),
                 0,
-                0,
+                -1,
             )
         };
         if ptr < 0 {
