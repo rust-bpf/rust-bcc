@@ -2,6 +2,8 @@ use bcc::core::BPF;
 use clap::{App, Arg};
 use failure::Error;
 
+use core::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 use std::{fmt, mem, ptr, thread, time};
 
 // A simple tool for reporting on time spent in softirq handlers
@@ -71,7 +73,7 @@ impl fmt::Display for SoftIRQ {
     }
 }
 
-fn do_main() -> Result<(), Error> {
+fn do_main(runnable: Arc<AtomicBool>) -> Result<(), Error> {
     let matches = App::new("softirqs")
         .about("Reports time spent in IRQ Handlers")
         .arg(
@@ -112,7 +114,7 @@ fn do_main() -> Result<(), Error> {
     let table = module.table("dist");
     let mut window = 0;
 
-    loop {
+    while runnable.load(Ordering::SeqCst) {
         thread::sleep(time::Duration::new(interval as u64, 0));
         println!("======");
         for entry in table.iter() {
@@ -138,6 +140,7 @@ fn do_main() -> Result<(), Error> {
             }
         }
     }
+    Ok(())
 }
 
 fn parse_struct(x: &[u8]) -> irq_key_t {
@@ -145,7 +148,14 @@ fn parse_struct(x: &[u8]) -> irq_key_t {
 }
 
 fn main() {
-    match do_main() {
+    let runnable = Arc::new(AtomicBool::new(true));
+    let r = runnable.clone();
+    ctrlc::set_handler(move || {
+        r.store(false, Ordering::SeqCst);
+    })
+    .expect("Failed to set handler for SIGINT / SIGTERM");
+
+    match do_main(runnable) {
         Err(x) => {
             eprintln!("Error: {}", x);
             eprintln!("{}", x.backtrace());

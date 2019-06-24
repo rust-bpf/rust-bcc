@@ -3,11 +3,13 @@ extern crate byteorder;
 extern crate failure;
 extern crate libc;
 
-use std::ptr;
-
 use bcc::core::BPF;
 use bcc::perf::init_perf_map;
 use failure::Error;
+
+use core::sync::atomic::{AtomicBool, Ordering};
+use std::ptr;
+use std::sync::Arc;
 
 /*
  * Basic Rust clone of `opensnoop`, from the iovisor tools.
@@ -31,7 +33,7 @@ struct data_t {
     fname: [u8; 255], // NAME_MAX
 }
 
-fn do_main() -> Result<(), Error> {
+fn do_main(runnable: Arc<AtomicBool>) -> Result<(), Error> {
     let code = include_str!("opensnoop.c");
     // compile the above BPF code!
     let mut module = BPF::new(code)?;
@@ -47,9 +49,10 @@ fn do_main() -> Result<(), Error> {
     // print a header
     println!("{:-7} {:-16} {}", "PID", "COMM", "FILENAME");
     // this `.poll()` loop is what makes our callback get called
-    loop {
+    while runnable.load(Ordering::SeqCst) {
         perf_map.poll(200);
     }
+    Ok(())
 }
 
 fn perf_data_callback() -> Box<FnMut(&[u8]) + Send> {
@@ -77,7 +80,14 @@ fn get_string(x: &[u8]) -> String {
 }
 
 fn main() {
-    match do_main() {
+    let runnable = Arc::new(AtomicBool::new(true));
+    let r = runnable.clone();
+    ctrlc::set_handler(move || {
+        r.store(false, Ordering::SeqCst);
+    })
+    .expect("Failed to set handler for SIGINT / SIGTERM");
+
+    match do_main(runnable) {
         Err(x) => {
             eprintln!("Error: {}", x);
             eprintln!("{}", x.backtrace());
