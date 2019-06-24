@@ -6,9 +6,12 @@ extern crate libc;
 use bcc::core::BPF;
 use byteorder::{NativeEndian, ReadBytesExt};
 use failure::Error;
-use std::io::Cursor;
 
-fn do_main() -> Result<(), Error> {
+use core::sync::atomic::{AtomicBool, Ordering};
+use std::io::Cursor;
+use std::sync::Arc;
+
+fn do_main(runnable: Arc<AtomicBool>) -> Result<(), Error> {
     let code = "
 #include <uapi/linux/ptrace.h>
 
@@ -39,7 +42,7 @@ int count(struct pt_regs *ctx) {
         -1, /* all PIDs */
     )?;
     let table = module.table("counts");
-    loop {
+    while runnable.load(Ordering::SeqCst) {
         std::thread::sleep(std::time::Duration::from_millis(1000));
         for e in &table {
             // key and value are each a Vec<u8> so we need to transform them into a string and
@@ -51,6 +54,7 @@ int count(struct pt_regs *ctx) {
             }
         }
     }
+    Ok(())
 }
 
 fn get_string(x: &[u8]) -> String {
@@ -61,7 +65,14 @@ fn get_string(x: &[u8]) -> String {
 }
 
 fn main() {
-    match do_main() {
+    let runnable = Arc::new(AtomicBool::new(true));
+    let r = runnable.clone();
+    ctrlc::set_handler(move || {
+        r.store(false, Ordering::SeqCst);
+    })
+    .expect("Failed to set handler for SIGINT / SIGTERM");
+
+    match do_main(runnable) {
         Err(x) => {
             eprintln!("Error: {}", x);
             eprintln!("{}", x.backtrace());
