@@ -38,11 +38,11 @@ impl Tracepoint {
             )
         };
         if ptr.is_null() {
-            return Err(format_err!(
+            Err(format_err!(
                 "Failed to attach tracepoint: {}:{}",
                 subsys,
                 name
-            ));
+            ))
         } else {
             Ok(Self {
                 subsys: csubsys,

@@ -50,7 +50,7 @@ impl Uprobe {
             )
         };
         if uprobe_ptr.is_null() {
-            return Err(format_err!("Failed to attach Uprobe: {}", name));
+            Err(format_err!("Failed to attach Uprobe: {}", name))
         } else {
             Ok(Self {
                 code_fd: file,

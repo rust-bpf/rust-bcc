@@ -118,7 +118,7 @@ impl BPF {
         &mut self,
         name: &str,
         prog_type: u32,
-        log_level: i32,
+        _log_level: i32,
         log_size: u32,
     ) -> Result<File, Error> {
         let cname = CString::new(name).unwrap();
