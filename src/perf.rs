@@ -47,7 +47,7 @@ pub struct PerfMap {
     // TODO: improve this API
     table: Table,
     readers: Vec<PerfReader>,
-    callbacks: Vec<Box<PerfCallback>>,
+    callbacks: Vec<PerfCallback>,
 }
 
 pub fn init_perf_map<F>(mut table: Table, cb: F) -> Result<PerfMap, Error>
@@ -113,13 +113,13 @@ impl PerfMap {
 fn open_perf_buffer(
     cpu: usize,
     raw_cb: Box<FnMut(&[u8]) + Send>,
-) -> Result<(PerfReader, Box<PerfCallback>), Error> {
-    let mut callback = Box::new(PerfCallback { raw_cb });
+) -> Result<(PerfReader, PerfCallback), Error> {
+    let mut callback = PerfCallback { raw_cb };
     let reader = unsafe {
         bpf_open_perf_buffer(
             Some(raw_callback),
             None,
-            callback.as_mut() as *mut _ as MutPointer,
+            &mut callback as *mut _ as MutPointer,
             -1, /* pid */
             cpu as i32,
             BPF_PERF_READER_PAGE_CNT,

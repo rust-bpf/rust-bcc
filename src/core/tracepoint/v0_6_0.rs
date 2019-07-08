@@ -23,11 +23,11 @@ impl Tracepoint {
         let ptr =
             unsafe { bpf_attach_tracepoint(file.as_raw_fd(), csubsys.as_ptr(), cname.as_ptr()) };
         if ptr < 0 {
-            return Err(format_err!(
+            Err(format_err!(
                 "Failed to attach tracepoint: {}:{}",
                 subsys,
                 name
-            ));
+            ))
         } else {
             Ok(Self {
                 subsys: csubsys,
