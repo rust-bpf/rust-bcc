@@ -42,7 +42,7 @@ impl Uprobe {
             )
         };
         if uprobe_ptr < 0 {
-            return Err(format_err!("Failed to attach Uprobe: {}", name));
+            Err(format_err!("Failed to attach Uprobe: {}", name))
         } else {
             Ok(Self {
                 code_fd: file,

@@ -97,20 +97,20 @@ impl BPF {
     }
 
     pub fn load_net(&mut self, name: &str) -> Result<File, Error> {
-        return self.load(name, bpf_prog_type_BPF_PROG_TYPE_SCHED_ACT, 0, 0);
+        self.load(name, bpf_prog_type_BPF_PROG_TYPE_SCHED_ACT, 0, 0)
     }
 
     pub fn load_kprobe(&mut self, name: &str) -> Result<File, Error> {
-        return self.load(name, bpf_prog_type_BPF_PROG_TYPE_KPROBE, 0, 0);
+        self.load(name, bpf_prog_type_BPF_PROG_TYPE_KPROBE, 0, 0)
     }
 
     pub fn load_uprobe(&mut self, name: &str) -> Result<File, Error> {
         // it's BPF_PROG_TYPE_KPROBE even though it's a uprobe, it's weird
-        return self.load(name, bpf_prog_type_BPF_PROG_TYPE_KPROBE, 0, 0);
+        self.load(name, bpf_prog_type_BPF_PROG_TYPE_KPROBE, 0, 0)
     }
 
     pub fn load_tracepoint(&mut self, name: &str) -> Result<File, Error> {
-        return self.load(name, bpf_prog_type_BPF_PROG_TYPE_TRACEPOINT, 0, 0);
+        self.load(name, bpf_prog_type_BPF_PROG_TYPE_TRACEPOINT, 0, 0)
     }
 
     #[cfg(feature = "v0_4_0")]
@@ -118,7 +118,7 @@ impl BPF {
         &mut self,
         name: &str,
         prog_type: u32,
-        log_level: i32,
+        _log_level: i32,
         log_size: u32,
     ) -> Result<File, Error> {
         let cname = CString::new(name).unwrap();

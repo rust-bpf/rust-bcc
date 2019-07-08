@@ -4,7 +4,7 @@ use std::fs::File;
 use std::io::Read;
 use std::str::FromStr;
 
-const CPUONLINE: &'static str = "/sys/devices/system/cpu/online";
+const CPUONLINE: &str = "/sys/devices/system/cpu/online";
 
 // loosely based on https://github.com/iovisor/bcc/blob/v0.3.0/src/python/bcc/utils.py#L15
 fn read_cpu_range(cpu_range_str: &str) -> Result<Vec<usize>, Error> {
@@ -24,17 +24,17 @@ fn read_cpu_range(cpu_range_str: &str) -> Result<Vec<usize>, Error> {
             Ok(res) => res,
             Err(e) => return Err(format_err!("Fail to recognize second cpu number: {}", e)),
         };
-        for n in first..last + 1 {
+        for n in first..=last {
             cpus.push(n);
         }
     }
-    return Ok(cpus);
+    Ok(cpus)
 }
 
 pub fn get() -> Result<Vec<usize>, Error> {
     let mut buffer = String::new();
     File::open(CPUONLINE)?.read_to_string(&mut buffer)?;
-    return read_cpu_range(&buffer);
+    read_cpu_range(&buffer)
 }
 
 #[cfg(test)]
