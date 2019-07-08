@@ -61,6 +61,7 @@ impl BPF {
     // 0.9.0 changes the API for bpf_module_create_c_from_string()
     #[cfg(any(
         feature = "v0_9_0",
+        feature = "v0_10_0",
         not(any(
             feature = "v0_4_0",
             feature = "v0_5_0",
@@ -69,6 +70,7 @@ impl BPF {
             feature = "v0_7_0",
             feature = "v0_8_0",
             feature = "v0_9_0",
+            feature = "v0_10_0",
         )),
     ))]
     pub fn new(code: &str) -> Result<BPF, Error> {
@@ -195,6 +197,7 @@ impl BPF {
 
     #[cfg(any(
         feature = "v0_9_0",
+        feature = "v0_10_0",
         not(any(
             feature = "v0_4_0",
             feature = "v0_5_0",
@@ -203,6 +206,7 @@ impl BPF {
             feature = "v0_7_0",
             feature = "v0_8_0",
             feature = "v0_9_0",
+            feature = "v0_10_0",
         )),
     ))]
     pub fn load(
