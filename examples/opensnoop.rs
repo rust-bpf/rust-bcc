@@ -55,17 +55,14 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), Error> {
     Ok(())
 }
 
-fn perf_data_callback() -> Box<FnMut(&[u8]) + Send> {
-    Box::new(|x| {
-        // This callback
-        let data = parse_struct(x);
-        println!(
-            "{:-7} {:-16} {}",
-            data.id >> 32,
-            get_string(&data.comm),
-            get_string(&data.fname)
-        );
-    })
+fn perf_data_callback(x: &[u8]) {
+    let data = parse_struct(x);
+    println!(
+        "{:-7} {:-16} {}",
+        data.id >> 32,
+        get_string(&data.comm),
+        get_string(&data.fname)
+    );
 }
 
 fn parse_struct(x: &[u8]) -> data_t {
