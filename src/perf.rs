@@ -69,7 +69,7 @@ where
     let mut cur = Cursor::new(leaf);
 
     let cpus = cpuonline::get()?;
-    for cpu in cpus.iter() {
+    for (i, cpu) in cpus.iter().enumerate() {
         unsafe {
             let (mut reader, callback) = open_perf_buffer(*cpu, cb())?;
             let perf_fd = reader.fd() as u32;
@@ -80,13 +80,15 @@ where
             table
                 .set(&mut key, &mut cur.get_mut())
                 .context("Unable to initialize perf map")?;
-            let r = bpf_get_next_key(
-                fd,
-                key.as_mut_ptr() as MutPointer,
-                key.as_mut_ptr() as MutPointer,
-            );
-            if r != 0 {
-                return Err(format_err!("todo: oh no"));
+            if i < cpus.len() - 1 {
+              let r = bpf_get_next_key(
+                  fd,
+                  key.as_mut_ptr() as MutPointer,
+                  key.as_mut_ptr() as MutPointer,
+              );
+              if r != 0 {
+                  return Err(format_err!("todo: oh no"));
+              }
             }
             cur.set_position(0);
         }
