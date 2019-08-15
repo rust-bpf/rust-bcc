@@ -10,7 +10,7 @@ script:
   # - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
   - sudo apt-get update
   - sudo apt-get install linux-headers-`uname -r`
-  - sudo apt-get --yes install bison build-essential cmake flex git libelf-dev libz-dev
+  - sudo apt-get --yes install bison build-essential cmake flex git libelf-dev libfl-dev libz-dev 
   - git clone https://github.com/iovisor/bcc || true
   - cd bcc
   - git checkout master
