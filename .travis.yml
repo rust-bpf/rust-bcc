@@ -1,16 +1,16 @@
 language: rust
-dist: xenial
+dist: bionic
 rust:
   - stable
   - beta
   - nightly
 script:
-  - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-  - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main" | sudo tee -a /etc/apt/sources.list
-  - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
+  # - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+  # - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main" | sudo tee -a /etc/apt/sources.list
+  # - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
   - sudo apt-get update
   - sudo apt-get install linux-headers-`uname -r`
-  - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-5.0-dev libelf-dev libllvm5.0 libz-dev lldb-5.0 llvm-5.0 llvm-5.0-dev llvm-5.0-runtime
+  # - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-5.0-dev libelf-dev libllvm5.0 libz-dev lldb-5.0 llvm-5.0 llvm-5.0-dev llvm-5.0-runtime
   - git clone https://github.com/iovisor/bcc || true
   - cd bcc
   - git checkout master
@@ -91,16 +91,16 @@ matrix:
         - cargo test --release --features $BCC
         - cargo build --release --examples --features $BCC
     - os: linux
-      dist: xenial
+      dist: bionic
       rust: stable
       env: BCC=v0_6_0 RUST_BACKTRACE=1
       script:
-        - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-        - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main" | sudo tee -a /etc/apt/sources.list
-        - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
+        # - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+        # - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main" | sudo tee -a /etc/apt/sources.list
+        # - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
         - sudo apt-get update
         - sudo apt-get install linux-headers-`uname -r`
-        - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-5.0-dev libelf-dev libllvm5.0 libz-dev lldb-5.0 llvm-5.0 llvm-5.0-dev llvm-5.0-runtime
+        # - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-5.0-dev libelf-dev libllvm5.0 libz-dev lldb-5.0 llvm-5.0 llvm-5.0-dev llvm-5.0-runtime
         - git clone https://github.com/iovisor/bcc || true
         - cd bcc
         - git checkout master
@@ -122,16 +122,16 @@ matrix:
         - sudo target/release/examples/runqlat --interval 1 --windows 5
         - sudo target/release/examples/opensnoop --duration 5
     - os: linux
-      dist: xenial
+      dist: bionic
       rust: stable
       env: BCC=v0_6_1 RUST_BACKTRACE=1
       script:
-        - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-        - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main" | sudo tee -a /etc/apt/sources.list
-        - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
+        # - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+        # - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main" | sudo tee -a /etc/apt/sources.list
+        # - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
         - sudo apt-get update
         - sudo apt-get install linux-headers-`uname -r`
-        - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-5.0-dev libelf-dev libllvm5.0 libz-dev lldb-5.0 llvm-5.0 llvm-5.0-dev llvm-5.0-runtime
+        # - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-5.0-dev libelf-dev libllvm5.0 libz-dev lldb-5.0 llvm-5.0 llvm-5.0-dev llvm-5.0-runtime
         - git clone https://github.com/iovisor/bcc || true
         - cd bcc
         - git checkout master
@@ -153,16 +153,16 @@ matrix:
         - sudo target/release/examples/runqlat --interval 1 --windows 5
         - sudo target/release/examples/opensnoop --duration 5
     - os: linux
-      dist: xenial
+      dist: bionic
       rust: stable
       env: BCC=v0_7_0 RUST_BACKTRACE=1
       script:
-        - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-        - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main" | sudo tee -a /etc/apt/sources.list
-        - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
+        # - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+        # - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main" | sudo tee -a /etc/apt/sources.list
+        # - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
         - sudo apt-get update
         - sudo apt-get install linux-headers-`uname -r`
-        - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-5.0-dev libelf-dev libllvm5.0 libz-dev lldb-5.0 llvm-5.0 llvm-5.0-dev llvm-5.0-runtime
+        # - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-5.0-dev libelf-dev libllvm5.0 libz-dev lldb-5.0 llvm-5.0 llvm-5.0-dev llvm-5.0-runtime
         - git clone https://github.com/iovisor/bcc || true
         - cd bcc
         - git checkout master
@@ -184,16 +184,16 @@ matrix:
         - sudo target/release/examples/runqlat --interval 1 --windows 5
         - sudo target/release/examples/opensnoop --duration 5
     - os: linux
-      dist: xenial
+      dist: bionic
       rust: stable
       env: BCC=v0_8_0 RUST_BACKTRACE=1
       script:
-        - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-        - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main" | sudo tee -a /etc/apt/sources.list
-        - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
+        # - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+        # - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main" | sudo tee -a /etc/apt/sources.list
+        # - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
         - sudo apt-get update
         - sudo apt-get install linux-headers-`uname -r`
-        - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-5.0-dev libelf-dev libllvm5.0 libz-dev lldb-5.0 llvm-5.0 llvm-5.0-dev llvm-5.0-runtime
+        # - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-5.0-dev libelf-dev libllvm5.0 libz-dev lldb-5.0 llvm-5.0 llvm-5.0-dev llvm-5.0-runtime
         - git clone https://github.com/iovisor/bcc || true
         - cd bcc
         - git checkout master
@@ -215,16 +215,16 @@ matrix:
         - sudo target/release/examples/runqlat --interval 1 --windows 5
         - sudo target/release/examples/opensnoop --duration 5
     - os: linux
-      dist: xenial
+      dist: bionic
       rust: stable
       env: BCC=v0_9_0 RUST_BACKTRACE=1
       script:
-        - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-        - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main" | sudo tee -a /etc/apt/sources.list
-        - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
+        # - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+        # - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main" | sudo tee -a /etc/apt/sources.list
+        # - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
         - sudo apt-get update
         - sudo apt-get install linux-headers-`uname -r`
-        - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-5.0-dev libelf-dev libllvm5.0 libz-dev lldb-5.0 llvm-5.0 llvm-5.0-dev llvm-5.0-runtime
+        # - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-5.0-dev libelf-dev libllvm5.0 libz-dev lldb-5.0 llvm-5.0 llvm-5.0-dev llvm-5.0-runtime
         - git clone https://github.com/iovisor/bcc || true
         - cd bcc
         - git checkout master
@@ -246,16 +246,16 @@ matrix:
         - sudo target/release/examples/runqlat --interval 1 --windows 5
         - sudo target/release/examples/opensnoop --duration 5
     - os: linux
-      dist: xenial
+      dist: bionic
       rust: stable
       env: BCC=v0_10_0 RUST_BACKTRACE=1
       script:
-        - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-        - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main" | sudo tee -a /etc/apt/sources.list
-        - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
+        # - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+        # - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main" | sudo tee -a /etc/apt/sources.list
+        # - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
         - sudo apt-get update
         - sudo apt-get install linux-headers-`uname -r`
-        - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-5.0-dev libelf-dev libllvm5.0 libz-dev lldb-5.0 llvm-5.0 llvm-5.0-dev llvm-5.0-runtime
+        # - sudo apt-get --yes install bison build-essential cmake flex git libclang-common-5.0-dev libelf-dev libllvm5.0 libz-dev lldb-5.0 llvm-5.0 llvm-5.0-dev llvm-5.0-runtime
         - git clone https://github.com/iovisor/bcc || true
         - cd bcc
         - git checkout master
