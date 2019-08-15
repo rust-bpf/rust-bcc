@@ -30,6 +30,7 @@ script:
   - ls /lib/modules/*/build
   - sudo target/release/examples/softirqs --interval 1 --windows 5
   - sudo target/release/examples/runqlat --interval 1 --windows 5
+  - sudo target/release/examples/opensnoop --duration 5
 matrix:
   allow_failures:
     - rust: nightly
@@ -119,6 +120,7 @@ matrix:
         - ls /lib/modules/*/build
         - sudo target/release/examples/softirqs --interval 1 --windows 5
         - sudo target/release/examples/runqlat --interval 1 --windows 5
+        - sudo target/release/examples/opensnoop --duration 5
     - os: linux
       dist: xenial
       rust: stable
@@ -149,6 +151,7 @@ matrix:
         - ls /lib/modules/*/build
         - sudo target/release/examples/softirqs --interval 1 --windows 5
         - sudo target/release/examples/runqlat --interval 1 --windows 5
+        - sudo target/release/examples/opensnoop --duration 5
     - os: linux
       dist: xenial
       rust: stable
@@ -179,6 +182,7 @@ matrix:
         - ls /lib/modules/*/build
         - sudo target/release/examples/softirqs --interval 1 --windows 5
         - sudo target/release/examples/runqlat --interval 1 --windows 5
+        - sudo target/release/examples/opensnoop --duration 5
     - os: linux
       dist: xenial
       rust: stable
@@ -209,6 +213,7 @@ matrix:
         - ls /lib/modules/*/build
         - sudo target/release/examples/softirqs --interval 1 --windows 5
         - sudo target/release/examples/runqlat --interval 1 --windows 5
+        - sudo target/release/examples/opensnoop --duration 5
     - os: linux
       dist: xenial
       rust: stable
@@ -239,6 +244,7 @@ matrix:
         - ls /lib/modules/*/build
         - sudo target/release/examples/softirqs --interval 1 --windows 5
         - sudo target/release/examples/runqlat --interval 1 --windows 5
+        - sudo target/release/examples/opensnoop --duration 5
     - os: linux
       dist: xenial
       rust: stable
@@ -269,6 +275,7 @@ matrix:
         - ls /lib/modules/*/build
         - sudo target/release/examples/softirqs --interval 1 --windows 5
         - sudo target/release/examples/runqlat --interval 1 --windows 5
+        - sudo target/release/examples/opensnoop --duration 5
 cache:
   directories:
     - $HOME/.cargo
