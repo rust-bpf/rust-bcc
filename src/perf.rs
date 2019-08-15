@@ -86,7 +86,7 @@ where
                 key.as_mut_ptr() as MutPointer,
             );
             if r != 0 {
-                return Err(format_err!("todo: oh no"));
+                return Err(format_err!("bpf_get_next_key failed on cpu: {}", cpu));
             }
             cur.set_position(0);
         }
