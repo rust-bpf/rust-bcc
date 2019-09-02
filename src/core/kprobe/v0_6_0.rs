@@ -5,9 +5,11 @@ use failure::*;
 
 use crate::core::make_alphanumeric;
 
+use regex::Regex;
 use std::ffi::CString;
 use std::fs::File;
 use std::hash::{Hash, Hasher};
+use std::io::{BufRead, BufReader};
 use std::os::unix::prelude::*;
 
 #[derive(Debug)]
@@ -53,6 +55,67 @@ impl Kprobe {
         let name = format!("r_{}", &make_alphanumeric(function));
         Kprobe::new(&name, BPF_PROBE_RETURN, function, code)
             .map_err(|_| format_err!("Failed to attach Kretprobe: {}", name))
+    }
+
+    pub fn get_kprobe_functions(event_re: &str) -> Result<Vec<String>, Error> {
+        let mut fns: Vec<String> = vec![];
+
+        let mut in_init_section = 0;
+        let mut in_irq_section = 0;
+        let re = Regex::new(r"^.*\.cold\.\d+$").unwrap();
+        let avali = BufReader::new(File::open("/proc/kallsyms").unwrap());
+        for line in avali.lines() {
+            let line = line.unwrap();
+            let cols: Vec<&str> = line.split_whitespace().collect();
+            let (t, fname) = (cols[1].to_string().to_lowercase(), cols[2]);
+            // Skip all functions defined between __init_begin and
+            // __init_end
+            if in_init_section == 0 {
+                if fname == "__init_begin" {
+                    in_init_section = 1;
+                    continue;
+                }
+            } else if in_init_section == 1 {
+                if fname == "__init_end" {
+                    in_init_section = 2;
+                }
+                continue;
+            }
+            // Skip all functions defined between __irqentry_text_start and
+            // __irqentry_text_end
+            if in_irq_section == 0 {
+                if fname == "__irqentry_text_start" {
+                    in_irq_section = 1;
+                    continue;
+                }
+            } else if in_irq_section == 1 {
+                if fname == "__irqentry_text_end" {
+                    in_irq_section = 2;
+                }
+                continue;
+            }
+            // All functions defined as NOKPROBE_SYMBOL() start with the
+            // prefix _kbl_addr_*, blacklisting them by looking at the name
+            // allows to catch also those symbols that are defined in kernel
+            // modules.
+            if fname.starts_with("_kbl_addr_") {
+                continue;
+            }
+            // Explicitly blacklist perf-related functions, they are all
+            // non-attachable.
+            else if fname.starts_with("__perf") || fname.starts_with("perf_") {
+                continue;
+            }
+            // Exclude all gcc 8's extra .cold functions
+            else if re.is_match(fname) {
+                continue;
+            }
+            if (t == "t" || t == "w") && fname.contains(event_re) {
+                fns.push(fname.to_owned());
+            }
+        }
+
+        Ok(fns)
     }
 }
 

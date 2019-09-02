@@ -271,6 +271,10 @@ impl BPF {
         Ok(())
     }
 
+    pub fn get_kprobe_functions(&mut self, event_re: &str) -> Result<Vec<String>, Error> {
+        Kprobe::get_kprobe_functions(event_re)
+    }
+
     pub fn attach_uprobe(
         &mut self,
         binary_path: &str,
