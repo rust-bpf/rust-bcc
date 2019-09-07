@@ -5,6 +5,7 @@ extern crate libc;
 
 use bcc::core::BPF;
 use bcc::perf::init_perf_map;
+use clap::{App, Arg};
 use failure::Error;
 
 use core::sync::atomic::{AtomicBool, Ordering};
@@ -34,6 +35,21 @@ struct data_t {
 }
 
 fn do_main(runnable: Arc<AtomicBool>) -> Result<(), Error> {
+    let matches = App::new("opensnoop")
+        .about("Prints out filename + PID every time a file is opened")
+        .arg(
+            Arg::with_name("duration")
+                .long("duration")
+                .value_name("Seconds")
+                .help("The total duration to run this tool")
+                .takes_value(true),
+        )
+        .get_matches();
+
+    let duration: Option<std::time::Duration> = matches
+        .value_of("duration")
+        .map(|v| std::time::Duration::new(v.parse().expect("Invalid argument for duration"), 0));
+
     let code = include_str!("opensnoop.c");
     // compile the above BPF code!
     let mut module = BPF::new(code)?;
@@ -48,9 +64,15 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), Error> {
     let mut perf_map = init_perf_map(table, perf_data_callback)?;
     // print a header
     println!("{:-7} {:-16} {}", "PID", "COMM", "FILENAME");
+    let start = std::time::Instant::now();
     // this `.poll()` loop is what makes our callback get called
     while runnable.load(Ordering::SeqCst) {
         perf_map.poll(200);
+        if let Some(d) = duration {
+            if std::time::Instant::now() - start >= d {
+                break;
+            }
+        }
     }
     Ok(())
 }
