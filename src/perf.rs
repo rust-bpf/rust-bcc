@@ -47,17 +47,15 @@ pub struct PerfMap {
     // TODO: improve this API
     table: Table,
     readers: Vec<PerfReader>,
-    callbacks: Vec<PerfCallback>,
+    callbacks: Vec<Box<PerfCallback>>,
 }
 
 pub fn init_perf_map<F>(mut table: Table, cb: F) -> Result<PerfMap, Error>
 where
     F: Fn() -> Box<FnMut(&[u8]) + Send>,
 {
-    let fd = table.fd();
     let key_size = table.key_size();
     let leaf_size = table.leaf_size();
-    let mut key = vec![0; key_size];
     let leaf = vec![0; leaf_size];
 
     if key_size != 4 || leaf_size != 4 {
@@ -70,26 +68,18 @@ where
 
     let cpus = cpuonline::get()?;
     for cpu in cpus.iter() {
-        unsafe {
-            let (mut reader, callback) = open_perf_buffer(*cpu, cb())?;
-            let perf_fd = reader.fd() as u32;
-            readers.push(reader);
-            callbacks.push(callback);
+        let (mut reader, callback) = open_perf_buffer(*cpu, cb())?;
+        let perf_fd = reader.fd() as u32;
+        readers.push(reader);
+        callbacks.push(callback);
 
-            cur.write_u32::<NativeEndian>(perf_fd)?;
-            table
-                .set(&mut key, &mut cur.get_mut())
-                .context("Unable to initialize perf map")?;
-            let r = bpf_get_next_key(
-                fd,
-                key.as_mut_ptr() as MutPointer,
-                key.as_mut_ptr() as MutPointer,
-            );
-            if r != 0 {
-                return Err(format_err!("bpf_get_next_key failed on cpu: {}", cpu));
-            }
-            cur.set_position(0);
-        }
+        let mut key = vec![];
+        key.write_u32::<NativeEndian>(*cpu as u32)?;
+        cur.write_u32::<NativeEndian>(perf_fd)?;
+        table
+            .set(&mut key, &mut cur.get_mut())
+            .context("Unable to initialize perf map")?;
+        cur.set_position(0);
     }
     Ok(PerfMap {
         table,
@@ -113,13 +103,13 @@ impl PerfMap {
 fn open_perf_buffer(
     cpu: usize,
     raw_cb: Box<FnMut(&[u8]) + Send>,
-) -> Result<(PerfReader, PerfCallback), Error> {
-    let mut callback = PerfCallback { raw_cb };
+) -> Result<(PerfReader, Box<PerfCallback>), Error> {
+    let mut callback = Box::new(PerfCallback { raw_cb });
     let reader = unsafe {
         bpf_open_perf_buffer(
             Some(raw_callback),
             None,
-            &mut callback as *mut _ as MutPointer,
+            callback.as_mut() as *mut _ as MutPointer,
             -1, /* pid */
             cpu as i32,
             BPF_PERF_READER_PAGE_CNT,
