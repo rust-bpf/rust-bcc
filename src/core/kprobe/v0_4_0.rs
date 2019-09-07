@@ -7,6 +7,7 @@ use crate::core::make_alphanumeric;
 use crate::types::MutPointer;
 
 use regex::Regex;
+
 use std::ffi::CString;
 use std::fs::File;
 use std::hash::{Hash, Hasher};
@@ -67,8 +68,14 @@ impl Kprobe {
     pub fn get_kprobe_functions(event_re: &str) -> Result<Vec<String>, Error> {
         let mut fns: Vec<String> = vec![];
 
-        let mut in_init_section = 0;
-        let mut in_irq_section = 0;
+        enum Section {
+            Unmatched,
+            Begin,
+            End,
+        }
+
+        let mut in_init_section = Section::Unmatched;
+        let mut in_irq_section = Section::Unmatched;
         let re = Regex::new(r"^.*\.cold\.\d+$").unwrap();
         let avali = BufReader::new(File::open("/proc/kallsyms").unwrap());
         for line in avali.lines() {
@@ -77,29 +84,37 @@ impl Kprobe {
             let (t, fname) = (cols[1].to_string().to_lowercase(), cols[2]);
             // Skip all functions defined between __init_begin and
             // __init_end
-            if in_init_section == 0 {
-                if fname == "__init_begin" {
-                    in_init_section = 1;
+            match in_init_section {
+                Section::Unmatched => {
+                    if fname == "__init_begin" {
+                        in_init_section = Section::Begin;
+                        continue;
+                    }
+                }
+                Section::Begin => {
+                    if fname == "__init_end" {
+                        in_init_section = Section::End;
+                    }
                     continue;
                 }
-            } else if in_init_section == 1 {
-                if fname == "__init_end" {
-                    in_init_section = 2;
-                }
-                continue;
+                Section::End => (),
             }
             // Skip all functions defined between __irqentry_text_start and
             // __irqentry_text_end
-            if in_irq_section == 0 {
-                if fname == "__irqentry_text_start" {
-                    in_irq_section = 1;
+            match in_irq_section {
+                Section::Unmatched => {
+                    if fname == "__irqentry_text_start" {
+                        in_irq_section = Section::Begin;
+                        continue;
+                    }
+                }
+                Section::Begin => {
+                    if fname == "__irqentry_text_end" {
+                        in_irq_section = Section::End;
+                    }
                     continue;
                 }
-            } else if in_irq_section == 1 {
-                if fname == "__irqentry_text_end" {
-                    in_irq_section = 2;
-                }
-                continue;
+                Section::End => (),
             }
             // All functions defined as NOKPROBE_SYMBOL() start with the
             // prefix _kbl_addr_*, blacklisting them by looking at the name
