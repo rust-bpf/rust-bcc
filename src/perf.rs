@@ -10,7 +10,7 @@ use crate::table::Table;
 use crate::types::*;
 
 struct PerfCallback {
-    raw_cb: Box<FnMut(&[u8]) + Send>,
+    raw_cb: Box<dyn FnMut(&[u8]) + Send>,
 }
 
 const BPF_PERF_READER_PAGE_CNT: i32 = 64;
@@ -52,7 +52,7 @@ pub struct PerfMap {
 
 pub fn init_perf_map<F>(mut table: Table, cb: F) -> Result<PerfMap, Error>
 where
-    F: Fn() -> Box<FnMut(&[u8]) + Send>,
+    F: Fn() -> Box<dyn FnMut(&[u8]) + Send>,
 {
     let key_size = table.key_size();
     let leaf_size = table.leaf_size();
@@ -102,7 +102,7 @@ impl PerfMap {
 
 fn open_perf_buffer(
     cpu: usize,
-    raw_cb: Box<FnMut(&[u8]) + Send>,
+    raw_cb: Box<dyn FnMut(&[u8]) + Send>,
 ) -> Result<(PerfReader, Box<PerfCallback>), Error> {
     let mut callback = Box::new(PerfCallback { raw_cb });
     let reader = unsafe {
