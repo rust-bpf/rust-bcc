@@ -7,6 +7,10 @@ use core::sync::atomic::{AtomicBool, Ordering};
 use std::ptr;
 use std::sync::Arc;
 
+// A simple tool for tracing block device I/O and print details including issuing PID.
+//
+// Based on: https://github.com/iovisor/bcc/blob/master/tools/biosnoop.py
+
 #[repr(C)]
 struct data_t {
     pid: u32,
