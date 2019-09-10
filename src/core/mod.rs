@@ -193,7 +193,7 @@ impl BPF {
                 license,
                 version,
                 log_level,
-                log_buf.as_mut_ptr() as *mut i8,
+                null_or_mut_ptr(&mut log_buf),
                 log_buf.capacity() as u32,
             );
             if fd < 0 {

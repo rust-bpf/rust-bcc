@@ -9,13 +9,12 @@ mod tests {
 
     use bcc::core::BPF;
 
-    use std::ptr;
     #[test]
     fn error_handling() {
         let code = include_str!("error.c");
         // compile the above BPF code!
         let mut module = BPF::new(code).unwrap();
-        match (module.load_kprobe("trace_return")) {
+        match module.load_kprobe("trace_return") {
             Ok(_) => {
                 eprintln!("expected error during program load");
                 std::process::exit(1);
