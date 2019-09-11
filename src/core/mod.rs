@@ -33,6 +33,14 @@ fn make_alphanumeric(s: &str) -> String {
     )
 }
 
+fn null_or_mut_ptr<T>(s: &mut Vec<u8>) -> *mut T {
+    if s.capacity() == 0 {
+        ptr::null_mut()
+    } else {
+        s.as_mut_ptr() as *mut T
+    }
+}
+
 impl BPF {
     /// `code` is a string containing C code. See https://github.com/iovisor/bcc for examples
     #[cfg(any(
@@ -140,7 +148,7 @@ impl BPF {
                 size,
                 license,
                 version,
-                log_buf.as_mut_ptr() as *mut i8,
+                null_or_mut_ptr(&mut log_buf),
                 log_buf.capacity() as u32,
             );
             if fd < 0 {
@@ -185,7 +193,7 @@ impl BPF {
                 license,
                 version,
                 log_level,
-                log_buf.as_mut_ptr() as *mut i8,
+                null_or_mut_ptr(&mut log_buf),
                 log_buf.capacity() as u32,
             );
             if fd < 0 {
@@ -237,7 +245,7 @@ impl BPF {
                 license,
                 version,
                 log_level,
-                log_buf.as_mut_ptr() as *mut i8,
+                null_or_mut_ptr(&mut log_buf),
                 log_buf.capacity() as u32,
             );
             if fd < 0 {
