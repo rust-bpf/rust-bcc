@@ -1,4 +1,6 @@
 # [Unreleased]
+
+# [0.0.12] - 2019-09-16
 ## Added
 - Added `biosnoop` example which traces block device IO and is used to test the 
   `get_kprobe_functions()` function in CI
@@ -66,7 +68,8 @@
 
 Initial release.
 
-[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/0.0.11...HEAD
+[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/0.0.12...HEAD
+[0.0.12]: https://github.com/rust-bpf/rust-bcc/compare/0.0.11...0.0.12
 [0.0.11]: https://github.com/rust-bpf/rust-bcc/compare/0.0.10...0.0.11
 [0.0.10]: https://github.com/rust-bpf/rust-bcc/compare/0.0.9...0.0.10
 [0.0.9]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.7...0.0.9
