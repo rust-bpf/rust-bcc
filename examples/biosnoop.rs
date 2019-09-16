@@ -92,7 +92,7 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), Error> {
 
 static mut START_TS: u64 = 0;
 
-fn perf_data_callback() -> Box<FnMut(&[u8]) + Send> {
+fn perf_data_callback() -> Box<dyn FnMut(&[u8]) + Send> {
     Box::new(|x| unsafe {
         let data = parse_struct(x);
         if START_TS == 0 {
