@@ -5,9 +5,6 @@ rust:
   - beta
   - nightly
 script:
-  # - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-  # - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main" | sudo tee -a /etc/apt/sources.list
-  # - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
   - sudo apt-get update
   - sudo apt-get install linux-headers-`uname -r`
   - sudo apt-get --yes install bison build-essential cmake flex git libelf-dev libfl-dev libz-dev 
@@ -96,9 +93,6 @@ matrix:
       rust: stable
       env: BCC=v0_6_0 RUST_BACKTRACE=1
       script:
-        # - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-        # - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main" | sudo tee -a /etc/apt/sources.list
-        # - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
         - sudo apt-get update
         - sudo apt-get install linux-headers-`uname -r`
         - sudo apt-get -y install bison build-essential cmake flex git libedit-dev libllvm6.0 llvm-6.0-dev libclang-6.0-dev python zlib1g-dev libelf-dev libfl-dev
@@ -128,9 +122,6 @@ matrix:
       rust: stable
       env: BCC=v0_6_1 RUST_BACKTRACE=1
       script:
-        # - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-        # - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main" | sudo tee -a /etc/apt/sources.list
-        # - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
         - sudo apt-get update
         - sudo apt-get install linux-headers-`uname -r`
         - sudo apt-get -y install bison build-essential cmake flex git libedit-dev libllvm6.0 llvm-6.0-dev libclang-6.0-dev python zlib1g-dev libelf-dev libfl-dev
@@ -160,9 +151,6 @@ matrix:
       rust: stable
       env: BCC=v0_7_0 RUST_BACKTRACE=1
       script:
-        # - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-        # - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main" | sudo tee -a /etc/apt/sources.list
-        # - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
         - sudo apt-get update
         - sudo apt-get install linux-headers-`uname -r`
         - sudo apt-get -y install bison build-essential cmake flex git libedit-dev libllvm6.0 llvm-6.0-dev libclang-6.0-dev python zlib1g-dev libelf-dev libfl-dev
@@ -192,9 +180,6 @@ matrix:
       rust: stable
       env: BCC=v0_8_0 RUST_BACKTRACE=1
       script:
-        # - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-        # - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main" | sudo tee -a /etc/apt/sources.list
-        # - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
         - sudo apt-get update
         - sudo apt-get install linux-headers-`uname -r`
         - sudo apt-get -y install bison build-essential cmake flex git libedit-dev libllvm6.0 llvm-6.0-dev libclang-6.0-dev python zlib1g-dev libelf-dev libfl-dev
@@ -224,9 +209,6 @@ matrix:
       rust: stable
       env: BCC=v0_9_0 RUST_BACKTRACE=1
       script:
-        # - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-        # - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main" | sudo tee -a /etc/apt/sources.list
-        # - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
         - sudo apt-get update
         - sudo apt-get install linux-headers-`uname -r`
         - sudo apt-get -y install bison build-essential cmake flex git libedit-dev libllvm6.0 llvm-6.0-dev libclang-6.0-dev python zlib1g-dev libelf-dev libfl-dev
@@ -256,9 +238,6 @@ matrix:
       rust: stable
       env: BCC=v0_10_0 RUST_BACKTRACE=1
       script:
-        # - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-        # - echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main" | sudo tee -a /etc/apt/sources.list
-        # - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
         - sudo apt-get update
         - sudo apt-get install linux-headers-`uname -r`
         - sudo apt-get -y install bison build-essential cmake flex git libedit-dev libllvm6.0 llvm-6.0-dev libclang-6.0-dev python zlib1g-dev libelf-dev libfl-dev
@@ -283,7 +262,3 @@ matrix:
         - sudo target/release/examples/runqlat --interval 1 --windows 5
         - sudo target/release/examples/opensnoop --duration 5
         - sudo target/release/examples/biosnoop --duration 5
-cache:
-  directories:
-    - $HOME/.cargo
-    - $TRAVIS_BUILD_DIR/target
