@@ -8,6 +8,7 @@ use failure::*;
 use self::kprobe::Kprobe;
 use self::tracepoint::Tracepoint;
 use self::uprobe::Uprobe;
+use crate::perf::{self, PerfReader};
 use crate::table::Table;
 use crate::types::MutPointer;
 
@@ -24,6 +25,7 @@ pub struct BPF {
     kprobes: HashSet<Kprobe>,
     uprobes: HashSet<Uprobe>,
     tracepoints: HashSet<Tracepoint>,
+    perf_readers: Vec<PerfReader>,
 }
 
 fn make_alphanumeric(s: &str) -> String {
@@ -63,6 +65,7 @@ impl BPF {
             uprobes: HashSet::new(),
             kprobes: HashSet::new(),
             tracepoints: HashSet::new(),
+            perf_readers: Vec::new(),
         })
     }
 
@@ -94,6 +97,7 @@ impl BPF {
             uprobes: HashSet::new(),
             kprobes: HashSet::new(),
             tracepoints: HashSet::new(),
+            perf_readers: Vec::new(),
         })
     }
 
@@ -299,6 +303,25 @@ impl BPF {
         let tracepoint = Tracepoint::attach_tracepoint(subsys, name, file)?;
         self.tracepoints.insert(tracepoint);
         Ok(())
+    }
+
+    pub fn init_perf_map<F>(&mut self, table: Table, cb: F) -> Result<(), Error>
+    where
+        F: Fn() -> Box<dyn FnMut(&[u8]) + Send>,
+    {
+        let perf_map = perf::init_perf_map(table, cb)?;
+        self.perf_readers.extend(perf_map.readers);
+        Ok(())
+    }
+
+    pub fn perf_map_poll(&mut self, timeout: i32) {
+        unsafe {
+            perf_reader_poll(
+                self.perf_readers.len() as i32,
+                self.perf_readers.as_ptr() as *mut *mut perf_reader,
+                timeout,
+            );
+        };
     }
 }
 
