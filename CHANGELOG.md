@@ -1,5 +1,9 @@
 # [Unreleased]
 
+# [0.0.13] - 2019-10-07
+## Added
+- Added support to pull multiple perf buffers at once
+
 # [0.0.12] - 2019-09-16
 ## Added
 - Added `biosnoop` example which traces block device IO and is used to test the 
@@ -68,7 +72,8 @@
 
 Initial release.
 
-[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/0.0.12...HEAD
+[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/0.0.13...HEAD
+[0.0.13]: https://github.com/rust-bpf/rust-bcc/compare/0.0.12...0.0.13
 [0.0.12]: https://github.com/rust-bpf/rust-bcc/compare/0.0.11...0.0.12
 [0.0.11]: https://github.com/rust-bpf/rust-bcc/compare/0.0.10...0.0.11
 [0.0.10]: https://github.com/rust-bpf/rust-bcc/compare/0.0.9...0.0.10
