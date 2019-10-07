@@ -29,6 +29,7 @@ script:
   - sudo target/release/examples/runqlat --interval 1 --windows 5
   - sudo target/release/examples/opensnoop --duration 5
   - sudo target/release/examples/biosnoop --duration 5
+  - sudo target/release/examples/tcpretrans --duration 5
 matrix:
   allow_failures:
     - rust: nightly
@@ -117,6 +118,7 @@ matrix:
         - sudo target/release/examples/runqlat --interval 1 --windows 5
         - sudo target/release/examples/opensnoop --duration 5
         - sudo target/release/examples/biosnoop --duration 5
+        - sudo target/release/examples/tcpretrans --duration 5
     - os: linux
       dist: bionic
       rust: stable
@@ -146,6 +148,7 @@ matrix:
         - sudo target/release/examples/runqlat --interval 1 --windows 5
         - sudo target/release/examples/opensnoop --duration 5
         - sudo target/release/examples/biosnoop --duration 5
+        - sudo target/release/examples/tcpretrans --duration 5
     - os: linux
       dist: bionic
       rust: stable
@@ -175,6 +178,7 @@ matrix:
         - sudo target/release/examples/runqlat --interval 1 --windows 5
         - sudo target/release/examples/opensnoop --duration 5
         - sudo target/release/examples/biosnoop --duration 5
+        - sudo target/release/examples/tcpretrans --duration 5
     - os: linux
       dist: bionic
       rust: stable
@@ -204,6 +208,7 @@ matrix:
         - sudo target/release/examples/runqlat --interval 1 --windows 5
         - sudo target/release/examples/opensnoop --duration 5
         - sudo target/release/examples/biosnoop --duration 5
+        - sudo target/release/examples/tcpretrans --duration 5
     - os: linux
       dist: bionic
       rust: stable
@@ -233,6 +238,7 @@ matrix:
         - sudo target/release/examples/runqlat --interval 1 --windows 5
         - sudo target/release/examples/opensnoop --duration 5
         - sudo target/release/examples/biosnoop --duration 5
+        - sudo target/release/examples/tcpretrans --duration 5
     - os: linux
       dist: bionic
       rust: stable
@@ -262,3 +268,4 @@ matrix:
         - sudo target/release/examples/runqlat --interval 1 --windows 5
         - sudo target/release/examples/opensnoop --duration 5
         - sudo target/release/examples/biosnoop --duration 5
+        - sudo target/release/examples/tcpretrans --duration 5
