@@ -73,21 +73,33 @@ impl BPF {
     #[cfg(any(
         feature = "v0_9_0",
         feature = "v0_10_0",
-        not(any(
-            feature = "v0_4_0",
-            feature = "v0_5_0",
-            feature = "v0_6_0",
-            feature = "v0_6_1",
-            feature = "v0_7_0",
-            feature = "v0_8_0",
-            feature = "v0_9_0",
-            feature = "v0_10_0",
-        )),
     ))]
     pub fn new(code: &str) -> Result<BPF, Error> {
         let cs = CString::new(code)?;
         let ptr =
             unsafe { bpf_module_create_c_from_string(cs.as_ptr(), 2, ptr::null_mut(), 0, true) };
+        if ptr.is_null() {
+            return Err(format_err!("couldn't create BPF program"));
+        }
+
+        Ok(BPF {
+            p: ptr,
+            uprobes: HashSet::new(),
+            kprobes: HashSet::new(),
+            tracepoints: HashSet::new(),
+            perf_readers: Vec::new(),
+        })
+    }
+
+    // 0.11.0 changes the API for bpf_module_create_c_from_string()
+    #[cfg(any(
+        feature = "v0_11_0",
+        not(feature = "specific"),
+    ))]
+    pub fn new(code: &str) -> Result<BPF, Error> {
+        let cs = CString::new(code)?;
+        let ptr =
+            unsafe { bpf_module_create_c_from_string(cs.as_ptr(), 2, ptr::null_mut(), 0, true, ptr::null_mut()) };
         if ptr.is_null() {
             return Err(format_err!("couldn't create BPF program"));
         }
@@ -210,16 +222,8 @@ impl BPF {
     #[cfg(any(
         feature = "v0_9_0",
         feature = "v0_10_0",
-        not(any(
-            feature = "v0_4_0",
-            feature = "v0_5_0",
-            feature = "v0_6_0",
-            feature = "v0_6_1",
-            feature = "v0_7_0",
-            feature = "v0_8_0",
-            feature = "v0_9_0",
-            feature = "v0_10_0",
-        )),
+        feature = "v0_11_0",
+        not(feature = "specific"),
     ))]
     pub fn load(
         &mut self,

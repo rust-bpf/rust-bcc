@@ -28,6 +28,7 @@ int softirq_entry(struct tracepoint__irq__softirq_entry *args)
     return 0;
 }
 
+// for use with bcc 0.4.0 - 0.6.1
 int softirq_exit(struct tracepoint__irq__softirq_exit *args)
 {
     u64 delta;

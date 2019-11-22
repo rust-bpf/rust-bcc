@@ -12,7 +12,7 @@ script:
   - cd bcc
   - git checkout master
   - git pull
-  - git checkout remotes/origin/tag_v0.10.0
+  - git checkout 0fa419a64e71984d42f107c210d3d3f0cc82d59a
   - mkdir -p _build
   - cd _build
   - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
@@ -252,6 +252,36 @@ matrix:
         - git checkout master
         - git pull
         - git checkout remotes/origin/tag_v0.10.0
+        - mkdir -p _build
+        - cd _build
+        - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+        - make
+        - sudo make install
+        - cd ../..
+        - cargo build --features $BCC
+        - cargo test --features $BCC
+        - cargo build --release --features $BCC
+        - cargo test --release --features $BCC
+        - cargo build --release --examples --features $BCC
+        - ls /lib/modules/*/build
+        - sudo target/release/examples/softirqs --interval 1 --windows 5
+        - sudo target/release/examples/runqlat --interval 1 --windows 5
+        - sudo target/release/examples/opensnoop --duration 5
+        - sudo target/release/examples/biosnoop --duration 5
+        - sudo target/release/examples/tcpretrans --duration 5
+    - os: linux
+      dist: bionic
+      rust: stable
+      env: BCC=v0_11_0 RUST_BACKTRACE=1
+      script:
+        - sudo apt-get update
+        - sudo apt-get install linux-headers-`uname -r`
+        - sudo apt-get -y install bison build-essential cmake flex git libedit-dev libllvm6.0 llvm-6.0-dev libclang-6.0-dev python zlib1g-dev libelf-dev libfl-dev
+        - git clone https://github.com/iovisor/bcc || true
+        - cd bcc
+        - git checkout master
+        - git pull
+        - git checkout 0fa419a64e71984d42f107c210d3d3f0cc82d59a
         - mkdir -p _build
         - cd _build
         - cmake .. -DCMAKE_INSTALL_PREFIX=/usr
