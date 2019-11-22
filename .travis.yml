@@ -28,7 +28,6 @@ matrix:
         - cargo build --release --features $BCC
         - cargo test --release --features $BCC
         - cargo build --release --examples --features $BCC
-        - sudo target/release/examples/softirqs --interval 1 --windows 5
         - sudo target/release/examples/runqlat --interval 1 --windows 5
         - sudo target/release/examples/opensnoop --duration 5
         - sudo target/release/examples/biosnoop --duration 5
@@ -59,7 +58,6 @@ matrix:
         - cargo build --release --features $BCC
         - cargo test --release --features $BCC
         - cargo build --release --examples --features $BCC
-        - sudo target/release/examples/softirqs --interval 1 --windows 5
         - sudo target/release/examples/runqlat --interval 1 --windows 5
         - sudo target/release/examples/opensnoop --duration 5
         - sudo target/release/examples/biosnoop --duration 5
@@ -90,7 +88,6 @@ matrix:
         - cargo build --release --features $BCC
         - cargo test --release --features $BCC
         - cargo build --release --examples --features $BCC
-        - sudo target/release/examples/softirqs --interval 1 --windows 5
         - sudo target/release/examples/runqlat --interval 1 --windows 5
         - sudo target/release/examples/opensnoop --duration 5
         - sudo target/release/examples/biosnoop --duration 5
@@ -123,7 +120,6 @@ matrix:
         - cargo build --release --features $BCC
         - cargo test --release --features $BCC
         - cargo build --release --examples --features $BCC
-        - sudo target/release/examples/softirqs --interval 1 --windows 5
         - sudo target/release/examples/runqlat --interval 1 --windows 5
         - sudo target/release/examples/opensnoop --duration 5
         - sudo target/release/examples/biosnoop --duration 5
@@ -154,7 +150,6 @@ matrix:
         - cargo build --release --features $BCC
         - cargo test --release --features $BCC
         - cargo build --release --examples --features $BCC
-        - sudo target/release/examples/softirqs --interval 1 --windows 5
         - sudo target/release/examples/runqlat --interval 1 --windows 5
         - sudo target/release/examples/opensnoop --duration 5
         - sudo target/release/examples/biosnoop --duration 5
@@ -185,7 +180,6 @@ matrix:
         - cargo build --release --features $BCC
         - cargo test --release --features $BCC
         - cargo build --release --examples --features $BCC
-        - sudo target/release/examples/softirqs --interval 1 --windows 5
         - sudo target/release/examples/runqlat --interval 1 --windows 5
         - sudo target/release/examples/opensnoop --duration 5
         - sudo target/release/examples/biosnoop --duration 5
@@ -216,7 +210,6 @@ matrix:
         - cargo build --release --features $BCC
         - cargo test --release --features $BCC
         - cargo build --release --examples --features $BCC
-        - sudo target/release/examples/softirqs --interval 1 --windows 5
         - sudo target/release/examples/runqlat --interval 1 --windows 5
         - sudo target/release/examples/opensnoop --duration 5
         - sudo target/release/examples/biosnoop --duration 5
@@ -247,7 +240,6 @@ matrix:
         - cargo build --release --features $BCC
         - cargo test --release --features $BCC
         - cargo build --release --examples --features $BCC
-        - sudo target/release/examples/softirqs --interval 1 --windows 5
         - sudo target/release/examples/runqlat --interval 1 --windows 5
         - sudo target/release/examples/opensnoop --duration 5
         - sudo target/release/examples/biosnoop --duration 5
