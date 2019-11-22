@@ -1,4 +1,6 @@
 # [Unreleased]
+## Added
+- Added support for bcc 0.11.0, making it the new default version
 
 # [0.0.13] - 2019-10-07
 ## Added
