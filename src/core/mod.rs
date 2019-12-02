@@ -1,4 +1,5 @@
 mod kprobe;
+mod raw_tracepoint;
 mod tracepoint;
 mod uprobe;
 
@@ -6,13 +7,15 @@ use bcc_sys::bccapi::*;
 use failure::*;
 
 use self::kprobe::Kprobe;
+use self::raw_tracepoint::RawTracepoint;
 use self::tracepoint::Tracepoint;
 use self::uprobe::Uprobe;
 use crate::perf::{self, PerfReader};
+use crate::symbol::SymbolCache;
 use crate::table::Table;
 use crate::types::MutPointer;
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::ffi::CString;
 use std::fs::File;
 use std::ops::Drop;
@@ -25,7 +28,9 @@ pub struct BPF {
     kprobes: HashSet<Kprobe>,
     uprobes: HashSet<Uprobe>,
     tracepoints: HashSet<Tracepoint>,
+    raw_tracepoints: HashSet<RawTracepoint>,
     perf_readers: Vec<PerfReader>,
+    sym_caches: HashMap<pid_t, SymbolCache>,
 }
 
 fn make_alphanumeric(s: &str) -> String {
@@ -65,7 +70,9 @@ impl BPF {
             uprobes: HashSet::new(),
             kprobes: HashSet::new(),
             tracepoints: HashSet::new(),
+            raw_tracepoints: HashSet::new(),
             perf_readers: Vec::new(),
+            sym_caches: HashMap::new(),
         })
     }
 
@@ -87,7 +94,9 @@ impl BPF {
             uprobes: HashSet::new(),
             kprobes: HashSet::new(),
             tracepoints: HashSet::new(),
+            raw_tracepoints: HashSet::new(),
             perf_readers: Vec::new(),
+            sym_caches: HashMap::new(),
         })
     }
 
@@ -109,7 +118,9 @@ impl BPF {
             uprobes: HashSet::new(),
             kprobes: HashSet::new(),
             tracepoints: HashSet::new(),
+            raw_tracepoints: HashSet::new(),
             perf_readers: Vec::new(),
+            sym_caches: HashMap::new(),
         })
     }
 
@@ -135,6 +146,20 @@ impl BPF {
 
     pub fn load_tracepoint(&mut self, name: &str) -> Result<File, Error> {
         self.load(name, bpf_prog_type_BPF_PROG_TYPE_TRACEPOINT, 0, 0)
+    }
+
+    #[cfg(any(
+        feature = "v0_6_0",
+        feature = "v0_6_1",
+        feature = "v0_7_0",
+        feature = "v0_8_0",
+        feature = "v0_9_0",
+        feature = "v0_10_0",
+        feature = "v0_11_0",
+        not(feature = "specific"),
+    ))]
+    pub fn load_raw_tracepoint(&mut self, name: &str) -> Result<File, Error> {
+        self.load(name, bpf_prog_type_BPF_PROG_TYPE_RAW_TRACEPOINT, 0, 0)
     }
 
     #[cfg(feature = "v0_4_0")]
@@ -307,6 +332,45 @@ impl BPF {
         let tracepoint = Tracepoint::attach_tracepoint(subsys, name, file)?;
         self.tracepoints.insert(tracepoint);
         Ok(())
+    }
+
+    #[cfg(any(
+        feature = "v0_6_0",
+        feature = "v0_6_1",
+        feature = "v0_7_0",
+        feature = "v0_8_0",
+        feature = "v0_9_0",
+        feature = "v0_10_0",
+        feature = "v0_11_0",
+        not(feature = "specific"),
+    ))]
+    pub fn attach_raw_tracepoint(&mut self, name: &str, file: File) -> Result<(), Error> {
+        let raw_tracepoint = RawTracepoint::attach_raw_tracepoint(name, file)?;
+        self.raw_tracepoints.insert(raw_tracepoint);
+        Ok(())
+    }
+
+    pub fn ksymname(&mut self, name: &str) -> Result<u64, Error> {
+        self.sym_caches
+            .entry(-1)
+            .or_insert_with(|| SymbolCache::new(-1));
+        let cache = self.sym_caches.get(&-1).unwrap();
+        cache.resolve_name("", name)
+    }
+
+    #[cfg(any(
+        feature = "v0_6_0",
+        feature = "v0_6_1",
+        feature = "v0_7_0",
+        feature = "v0_8_0",
+        feature = "v0_9_0",
+        feature = "v0_10_0",
+        feature = "v0_11_0",
+        not(feature = "specific"),
+    ))]
+    pub fn support_raw_tracepoint(&mut self) -> bool {
+        self.ksymname("bpf_find_raw_tracepoint").is_ok()
+            || self.ksymname("bpf_get_raw_tracepoint").is_ok()
     }
 
     pub fn init_perf_map<F>(&mut self, table: Table, cb: F) -> Result<(), Error>
