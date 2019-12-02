@@ -60,3 +60,41 @@ pub fn resolve_symname(
         Ok((module, symbol.offset))
     }
 }
+
+#[derive(Debug)]
+pub struct SymbolCache {
+    cache: *mut ::std::os::raw::c_void,
+}
+
+impl SymbolCache {
+    pub fn new(pid: pid_t) -> SymbolCache {
+        SymbolCache {
+            cache: unsafe { bcc_symcache_new(pid, ptr::null_mut()) },
+        }
+    }
+
+    pub fn resolve_name(&self, module: &str, name: &str) -> Result<u64, Error> {
+        let cmodule = CString::new(module)?;
+        let cname = CString::new(name)?;
+        let mut addr: u64 = 0;
+
+        let res = unsafe {
+            bcc_symcache_resolve_name(
+                self.cache,
+                cmodule.as_ptr(),
+                cname.as_ptr(),
+                &mut addr as *mut u64,
+            )
+        };
+        if res < 0 {
+            Err(format_err!(
+                "unable to locate symbol {} in module {}: {}",
+                &name,
+                module,
+                res
+            ))
+        } else {
+            Ok(addr)
+        }
+    }
+}

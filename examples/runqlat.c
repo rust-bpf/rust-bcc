@@ -66,3 +66,56 @@ int trace_run(struct pt_regs *ctx, struct task_struct *prev)
     start.delete(&pid);
     return 0;
 }
+
+#define FEATURE_SUPPORT_RAW_TP
+#ifdef FEATURE_SUPPORT_RAW_TP
+int raw_tp__sched_wakeup(struct bpf_raw_tracepoint_args *ctx)
+{
+    // TP_PROTO(struct task_struct *p)
+    struct task_struct *p = (struct task_struct *)ctx->args[0];
+    return trace_enqueue(p->tgid, p->pid);
+}
+
+int raw_tp__sched_wakeup_new(struct bpf_raw_tracepoint_args *ctx)
+{
+    // TP_PROTO(struct task_struct *p)
+    struct task_struct *p = (struct task_struct *)ctx->args[0];
+    return trace_enqueue(p->tgid, p->pid);
+}
+
+int raw_tp__sched_switch(struct bpf_raw_tracepoint_args *ctx)
+{
+    // TP_PROTO(bool preempt, struct task_struct *prev, struct task_struct *next)
+    struct task_struct *prev = (struct task_struct *)ctx->args[1];
+    struct task_struct *next = (struct task_struct *)ctx->args[2];
+    u32 pid, tgid;
+
+    // ivcsw: treat like an enqueue event and store timestamp
+    if (prev->state == TASK_RUNNING) {
+        tgid = prev->tgid;
+        pid = prev->pid;
+        if (pid != 0) {
+            u64 ts = bpf_ktime_get_ns();
+            start.update(&pid, &ts);
+        }
+    }
+
+    tgid = next->tgid;
+    pid = next->pid;
+    if (pid == 0)
+        return 0;
+    u64 *tsp, delta;
+
+    // fetch timestamp and calculate delta
+    tsp = start.lookup(&pid);
+    if (tsp == 0) {
+        return 0;   // missed enqueue
+    }
+    delta = bpf_ktime_get_ns() - *tsp;
+    delta /= 1000; // microseconds
+    // store as histogram
+    dist.increment(bpf_log2l(delta));
+    start.delete(&pid);
+    return 0;
+}
+#endif
