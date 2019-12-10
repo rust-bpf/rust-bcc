@@ -1,6 +1,9 @@
 # [Unreleased]
+
+# [0.0.14] - 2019-12-10
 ## Added
 - Added support for bcc 0.11.0, making it the new default version
+- Added support for raw tracepoints
 
 # [0.0.13] - 2019-10-07
 ## Added
@@ -74,7 +77,8 @@
 
 Initial release.
 
-[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/0.0.13...HEAD
+[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/0.0.14...HEAD
+[0.0.14]: https://github.com/rust-bpf/rust-bcc/compare/0.0.13...0.0.14
 [0.0.13]: https://github.com/rust-bpf/rust-bcc/compare/0.0.12...0.0.13
 [0.0.12]: https://github.com/rust-bpf/rust-bcc/compare/0.0.11...0.0.12
 [0.0.11]: https://github.com/rust-bpf/rust-bcc/compare/0.0.10...0.0.11
