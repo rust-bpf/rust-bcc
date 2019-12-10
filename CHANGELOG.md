@@ -1,6 +1,6 @@
 # [Unreleased]
 
-# [0.0.14] - 2019-12-06
+# [0.0.14] - 2019-12-10
 ## Added
 - Added support for bcc 0.11.0, making it the new default version
 - Added support for raw tracepoints
