@@ -1,4 +1,5 @@
 use bcc::core::BPF;
+use bcc::perf::BPF_PERF_READER_PAGE_CNT;
 extern crate chrono;
 use chrono::Utc;
 use clap::{App, Arg};
@@ -61,9 +62,9 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), Error> {
     bpf.attach_kprobe("tcp_retransmit_skb", trace_retransmit)?;
 
     let table = bpf.table("ipv4_events");
-    bpf.init_perf_map(table, print_ipv4_event)?;
+    bpf.init_perf_map(table, print_ipv4_event, BPF_PERF_READER_PAGE_CNT)?;
     let table = bpf.table("ipv6_events");
-    bpf.init_perf_map(table, print_ipv6_event)?;
+    bpf.init_perf_map(table, print_ipv6_event, BPF_PERF_READER_PAGE_CNT)?;
 
     println!(
         "{:<-8} {:<-6} {:<-2} {:<-20} {:>-1} {:<-20} {:<-4}",

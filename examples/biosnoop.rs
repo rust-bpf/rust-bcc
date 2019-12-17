@@ -1,5 +1,5 @@
 use bcc::core::BPF;
-use bcc::perf::init_perf_map;
+use bcc::perf::{init_perf_map, BPF_PERF_READER_PAGE_CNT};
 use clap::{App, Arg};
 use failure::Error;
 
@@ -71,7 +71,7 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), Error> {
     }
     // the "events" table is where the "open file" events get sent
     let table = bpf.table("events");
-    let mut perf_map = init_perf_map(table, perf_data_callback)?;
+    let mut perf_map = init_perf_map(table, perf_data_callback, BPF_PERF_READER_PAGE_CNT)?;
     // print a header
     println!(
         "{:<-11} {:<-14} {:<-6} {:<-7} {:<-1} {:<-10} {:>-7}",

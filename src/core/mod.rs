@@ -373,11 +373,11 @@ impl BPF {
             || self.ksymname("bpf_get_raw_tracepoint").is_ok()
     }
 
-    pub fn init_perf_map<F>(&mut self, table: Table, cb: F) -> Result<(), Error>
+    pub fn init_perf_map<F>(&mut self, table: Table, cb: F, page_cnt: i32) -> Result<(), Error>
     where
         F: Fn() -> Box<dyn FnMut(&[u8]) + Send>,
     {
-        let perf_map = perf::init_perf_map(table, cb)?;
+        let perf_map = perf::init_perf_map(table, cb, page_cnt)?;
         self.perf_readers.extend(perf_map.readers);
         Ok(())
     }

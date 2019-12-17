@@ -13,7 +13,8 @@ struct PerfCallback {
     raw_cb: Box<dyn FnMut(&[u8]) + Send>,
 }
 
-const BPF_PERF_READER_PAGE_CNT: i32 = 64;
+/// This is a default safe page count to use when setting up the perf buffer
+pub const BPF_PERF_READER_PAGE_CNT: i32 = 64;
 
 unsafe extern "C" fn raw_callback(pc: MutPointer, ptr: MutPointer, size: i32) {
     let slice = std::slice::from_raw_parts(ptr as *const u8, size as usize);
@@ -47,7 +48,7 @@ pub struct PerfMap {
     pub readers: Vec<PerfReader>,
 }
 
-pub fn init_perf_map<F>(mut table: Table, cb: F) -> Result<PerfMap, Error>
+pub fn init_perf_map<F>(mut table: Table, cb: F, page_cnt: i32) -> Result<PerfMap, Error>
 where
     F: Fn() -> Box<dyn FnMut(&[u8]) + Send>,
 {
@@ -64,7 +65,7 @@ where
 
     let cpus = cpuonline::get()?;
     for cpu in cpus.iter() {
-        let mut reader = open_perf_buffer(*cpu, cb())?;
+        let mut reader = open_perf_buffer(*cpu, cb(), page_cnt)?;
         let perf_fd = reader.fd() as u32;
         readers.push(reader);
 
@@ -91,7 +92,10 @@ impl PerfMap {
     }
 }
 
-fn open_perf_buffer(cpu: usize, raw_cb: Box<dyn FnMut(&[u8]) + Send>) -> Result<PerfReader, Error> {
+fn open_perf_buffer(cpu: usize, raw_cb: Box<dyn FnMut(&[u8]) + Send>, page_cnt: i32) -> Result<PerfReader, Error> {
+    if (page_cnt & (page_cnt - 1)) != 0 {
+        return Err(format_err!("page_cnt must be divisible by 2"))
+    }
     let callback = Box::new(PerfCallback { raw_cb });
     let reader = unsafe {
         bpf_open_perf_buffer(
@@ -100,7 +104,7 @@ fn open_perf_buffer(cpu: usize, raw_cb: Box<dyn FnMut(&[u8]) + Send>) -> Result<
             Box::into_raw(callback) as MutPointer,
             -1, /* pid */
             cpu as i32,
-            BPF_PERF_READER_PAGE_CNT,
+            page_cnt,
         )
     };
     if reader.is_null() {
