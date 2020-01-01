@@ -104,6 +104,10 @@ impl BPF {
         self.load(name, bpf_prog_type_BPF_PROG_TYPE_KPROBE, 0, 0)
     }
 
+    pub fn load_kretprobe(&mut self, name: &str) -> Result<File, Error> {
+        self.load(name, bpf_task_fd_type_BPF_FD_TYPE_KRETPROBE, 0, 0)
+    }
+
     pub fn load_uprobe(&mut self, name: &str) -> Result<File, Error> {
         // it's BPF_PROG_TYPE_KPROBE even though it's a uprobe, it's weird
         self.load(name, bpf_prog_type_BPF_PROG_TYPE_KPROBE, 0, 0)
