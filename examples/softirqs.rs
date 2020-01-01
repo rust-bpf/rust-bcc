@@ -101,16 +101,27 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), Error> {
         .value_of("windows")
         .map(|v| v.parse().expect("Invalid argument for windows"));
 
-    let code = include_str!("softirqs.c");
+    let code = if cfg!(any(
+        feature = "v0_4_0",
+        feature = "v0_5_0",
+        feature = "v0_6_0",
+        feature = "v0_6_1",
+    )) {
+        include_str!("softirqs_0_4_0.c")
+    } else {
+        include_str!("softirqs_0_7_0.c")
+    };
+
     // compile the above BPF code!
     let mut module = BPF::new(code)?;
 
     // load + attach tracepoints!
     let softirq_entry = module.load_tracepoint("softirq_entry")?;
     let softirq_exit = module.load_tracepoint("softirq_exit")?;
+    
     module.attach_tracepoint("irq", "softirq_entry", softirq_entry)?;
     module.attach_tracepoint("irq", "softirq_exit", softirq_exit)?;
-
+    
     let table = module.table("dist");
     let mut window = 0;
 

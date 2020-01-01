@@ -1,6 +1,6 @@
 [package]
 name = "bcc"
-version = "0.0.12-alpha.0"
+version = "0.0.15-alpha.0"
 authors = ["Julia Evans <julia@jvns.ca>", "Brian Martin <brayniac@gmail.com>"]
 description = "Idiomatic Rust bindings for BPF Compiler Collection (BCC)"
 keywords = ["bpf", "bindings", "bcc"]
@@ -12,7 +12,7 @@ homepage = "https://github.com/rust-bpf/rust-bcc"
 edition = '2018'
 
 [dependencies]
-bcc-sys = "0.10.0"
+bcc-sys = "0.11.0"
 byteorder = "1.3.1"
 failure = "0.1.5"
 libc = "0.2.55"
@@ -22,14 +22,17 @@ regex = "1.3.1"
 clap = "2.33.0"
 ctrlc = "3.1.3"
 lazy_static = "1.3.0"
+chrono = "0.4"
 
 [features]
 static = ["bcc-sys/static"]
-v0_4_0 = ["bcc-sys/v0_4_0"]
-v0_5_0 = ["bcc-sys/v0_5_0"]
-v0_6_0 = ["bcc-sys/v0_6_0"]
-v0_6_1 = ["bcc-sys/v0_6_1"]
-v0_7_0 = ["bcc-sys/v0_7_0"]
-v0_8_0 = ["bcc-sys/v0_8_0"]
-v0_9_0 = ["bcc-sys/v0_9_0"]
-v0_10_0 = ["bcc-sys/v0_10_0"]
+specific = []
+v0_4_0 = ["bcc-sys/v0_4_0", "specific"]
+v0_5_0 = ["bcc-sys/v0_5_0", "specific"]
+v0_6_0 = ["bcc-sys/v0_6_0", "specific"]
+v0_6_1 = ["bcc-sys/v0_6_1", "specific"]
+v0_7_0 = ["bcc-sys/v0_7_0", "specific"]
+v0_8_0 = ["bcc-sys/v0_8_0", "specific"]
+v0_9_0 = ["bcc-sys/v0_9_0", "specific"]
+v0_10_0 = ["bcc-sys/v0_10_0", "specific"]
+v0_11_0 = ["bcc-sys/v0_11_0", "specific"]

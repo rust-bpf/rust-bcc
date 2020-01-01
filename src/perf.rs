@@ -10,7 +10,7 @@ use crate::table::Table;
 use crate::types::*;
 
 struct PerfCallback {
-    raw_cb: Box<FnMut(&[u8]) + Send>,
+    raw_cb: Box<dyn FnMut(&[u8]) + Send>,
 }
 
 const BPF_PERF_READER_PAGE_CNT: i32 = 64;
@@ -25,7 +25,8 @@ unsafe extern "C" fn raw_callback(pc: MutPointer, ptr: MutPointer, size: i32) {
 // need this to be represented in memory as just a pointer!!
 // very important!!
 #[repr(C)]
-struct PerfReader {
+#[derive(Debug)]
+pub struct PerfReader {
     ptr: *mut perf_reader,
 }
 
@@ -43,16 +44,12 @@ impl Drop for PerfReader {
 
 #[allow(dead_code)]
 pub struct PerfMap {
-    // table and callbacks are just in here to make sure the data stays owned/alive
-    // TODO: improve this API
-    table: Table,
-    readers: Vec<PerfReader>,
-    callbacks: Vec<Box<PerfCallback>>,
+    pub readers: Vec<PerfReader>,
 }
 
 pub fn init_perf_map<F>(mut table: Table, cb: F) -> Result<PerfMap, Error>
 where
-    F: Fn() -> Box<FnMut(&[u8]) + Send>,
+    F: Fn() -> Box<dyn FnMut(&[u8]) + Send>,
 {
     let key_size = table.key_size();
     let leaf_size = table.leaf_size();
@@ -63,15 +60,13 @@ where
     }
 
     let mut readers: Vec<PerfReader> = vec![];
-    let mut callbacks = vec![];
     let mut cur = Cursor::new(leaf);
 
     let cpus = cpuonline::get()?;
     for cpu in cpus.iter() {
-        let (mut reader, callback) = open_perf_buffer(*cpu, cb())?;
+        let mut reader = open_perf_buffer(*cpu, cb())?;
         let perf_fd = reader.fd() as u32;
         readers.push(reader);
-        callbacks.push(callback);
 
         let mut key = vec![];
         key.write_u32::<NativeEndian>(*cpu as u32)?;
@@ -81,11 +76,7 @@ where
             .context("Unable to initialize perf map")?;
         cur.set_position(0);
     }
-    Ok(PerfMap {
-        table,
-        readers,
-        callbacks,
-    })
+    Ok(PerfMap { readers })
 }
 
 impl PerfMap {
@@ -100,16 +91,13 @@ impl PerfMap {
     }
 }
 
-fn open_perf_buffer(
-    cpu: usize,
-    raw_cb: Box<FnMut(&[u8]) + Send>,
-) -> Result<(PerfReader, Box<PerfCallback>), Error> {
-    let mut callback = Box::new(PerfCallback { raw_cb });
+fn open_perf_buffer(cpu: usize, raw_cb: Box<dyn FnMut(&[u8]) + Send>) -> Result<PerfReader, Error> {
+    let callback = Box::new(PerfCallback { raw_cb });
     let reader = unsafe {
         bpf_open_perf_buffer(
             Some(raw_callback),
             None,
-            callback.as_mut() as *mut _ as MutPointer,
+            Box::into_raw(callback) as MutPointer,
             -1, /* pid */
             cpu as i32,
             BPF_PERF_READER_PAGE_CNT,
@@ -118,10 +106,7 @@ fn open_perf_buffer(
     if reader.is_null() {
         return Err(format_err!("failed to open perf buffer"));
     }
-    Ok((
-        PerfReader {
-            ptr: reader as *mut perf_reader,
-        },
-        callback,
-    ))
+    Ok(PerfReader {
+        ptr: reader as *mut perf_reader,
+    })
 }

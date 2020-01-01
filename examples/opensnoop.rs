@@ -77,7 +77,7 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), Error> {
     Ok(())
 }
 
-fn perf_data_callback() -> Box<FnMut(&[u8]) + Send> {
+fn perf_data_callback() -> Box<dyn FnMut(&[u8]) + Send> {
     Box::new(|x| {
         // This callback
         let data = parse_struct(x);

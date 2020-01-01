@@ -10,6 +10,51 @@ use std::{mem, thread, time};
 //
 // Based on: https://github.com/iovisor/bcc/blob/master/tools/runqlat.py
 
+#[cfg(any(
+    feature = "v0_4_0",
+    feature = "v0_5_0",
+))]
+fn attach_events(bpf: &mut BPF) {
+    let trace_run = bpf.load_kprobe("trace_run").unwrap();
+    let trace_ttwu_do_wakeup = bpf.load_kprobe("trace_ttwu_do_wakeup").unwrap();
+    let trace_wake_up_new_task = bpf.load_kprobe("trace_wake_up_new_task").unwrap();
+
+    bpf.attach_kprobe("finish_task_switch", trace_run).unwrap();
+    bpf.attach_kprobe("wake_up_new_task", trace_wake_up_new_task).unwrap();
+    bpf.attach_kprobe("ttwu_do_wakeup", trace_ttwu_do_wakeup).unwrap();
+}
+
+#[cfg(any(
+    feature = "v0_6_0",
+    feature = "v0_6_1",
+    feature = "v0_7_0",
+    feature = "v0_8_0",
+    feature = "v0_9_0",
+    feature = "v0_10_0",
+    feature = "v0_11_0",
+    not(feature = "specific"),
+))]
+fn attach_events(bpf: &mut BPF) {
+    if bpf.support_raw_tracepoint() {
+        let raw_tp_sched_wakeup = bpf.load_raw_tracepoint("raw_tp__sched_wakeup").unwrap();
+        let raw_tp_sched_wakeup_new = bpf.load_raw_tracepoint("raw_tp__sched_wakeup_new").unwrap();
+        let raw_tp_sched_switch = bpf.load_raw_tracepoint("raw_tp__sched_switch").unwrap();
+
+        bpf.attach_raw_tracepoint("sched_wakeup", raw_tp_sched_wakeup).unwrap();
+        bpf.attach_raw_tracepoint("sched_wakeup_new", raw_tp_sched_wakeup_new).unwrap();
+        bpf.attach_raw_tracepoint("sched_switch", raw_tp_sched_switch).unwrap();
+    } else {
+        // load + attach kprobes!
+        let trace_run = bpf.load_kprobe("trace_run").unwrap();
+        let trace_ttwu_do_wakeup = bpf.load_kprobe("trace_ttwu_do_wakeup").unwrap();
+        let trace_wake_up_new_task = bpf.load_kprobe("trace_wake_up_new_task").unwrap();
+
+        bpf.attach_kprobe("finish_task_switch", trace_run).unwrap();
+        bpf.attach_kprobe("wake_up_new_task", trace_wake_up_new_task).unwrap();
+        bpf.attach_kprobe("ttwu_do_wakeup", trace_ttwu_do_wakeup).unwrap();
+     }
+}
+
 fn do_main(runnable: Arc<AtomicBool>) -> Result<(), Error> {
     let matches = App::new("runqlat")
         .about("Reports distribution of scheduler latency")
@@ -38,18 +83,14 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), Error> {
         .value_of("windows")
         .map(|v| v.parse().expect("Invalid argument for windows"));
 
-    let code = include_str!("runqlat.c");
+    let code = if cfg!(any(feature = "v0_4_0", feature = "v0_5_0")) {
+        include_str!("runqlat.c").replace("#define FEATURE_SUPPORT_RAW_TP", "")
+    } else {
+        include_str!("runqlat.c").to_string()
+    };
     // compile the above BPF code!
-    let mut bpf = BPF::new(code)?;
-
-    // load + attach kprobes!
-    let trace_run = bpf.load_kprobe("trace_run")?;
-    let trace_ttwu_do_wakeup = bpf.load_kprobe("trace_ttwu_do_wakeup")?;
-    let trace_wake_up_new_task = bpf.load_kprobe("trace_wake_up_new_task")?;
-
-    bpf.attach_kprobe("finish_task_switch", trace_run)?;
-    bpf.attach_kprobe("wake_up_new_task", trace_wake_up_new_task)?;
-    bpf.attach_kprobe("ttwu_do_wakeup", trace_ttwu_do_wakeup)?;
+    let mut bpf = BPF::new(&code)?;
+    attach_events(&mut bpf);
 
     let table = bpf.table("dist");
     let mut window = 0;
