@@ -139,6 +139,16 @@ impl BPF {
         self.load(name, bpf_prog_type_BPF_PROG_TYPE_KPROBE, 0, 0)
     }
 
+    #[cfg(any(
+        feature = "v0_6_0",
+        feature = "v0_6_1",
+        feature = "v0_7_0",
+        feature = "v0_8_0",
+        feature = "v0_9_0",
+        feature = "v0_10_0",
+        feature = "v0_11_0",
+        not(feature = "specific"),
+    ))]
     pub fn load_kretprobe(&mut self, name: &str) -> Result<File, Error> {
         self.load(name, bpf_task_fd_type_BPF_FD_TYPE_KRETPROBE, 0, 0)
     }
