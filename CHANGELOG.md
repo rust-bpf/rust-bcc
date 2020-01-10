@@ -1,6 +1,6 @@
 # [Unreleased]
 
-# [0.0.15] - 2020-01-02
+# [0.0.15] - 2020-01-10
 ## Added
 - Added support for bcc 0.12.0, making it the new default version
 
