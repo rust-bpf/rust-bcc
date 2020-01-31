@@ -78,10 +78,7 @@ impl BPF {
     }
 
     // 0.9.0 changes the API for bpf_module_create_c_from_string()
-    #[cfg(any(
-        feature = "v0_9_0",
-        feature = "v0_10_0",
-    ))]
+    #[cfg(any(feature = "v0_9_0", feature = "v0_10_0",))]
     pub fn new(code: &str) -> Result<BPF, Error> {
         let cs = CString::new(code)?;
         let ptr =
@@ -102,15 +99,19 @@ impl BPF {
     }
 
     // 0.11.0 changes the API for bpf_module_create_c_from_string()
-    #[cfg(any(
-        feature = "v0_11_0",
-        feature = "v0_12_0",
-        not(feature = "specific"),
-    ))]
+    #[cfg(any(feature = "v0_11_0", feature = "v0_12_0", not(feature = "specific"),))]
     pub fn new(code: &str) -> Result<BPF, Error> {
         let cs = CString::new(code)?;
-        let ptr =
-            unsafe { bpf_module_create_c_from_string(cs.as_ptr(), 2, ptr::null_mut(), 0, true, ptr::null_mut()) };
+        let ptr = unsafe {
+            bpf_module_create_c_from_string(
+                cs.as_ptr(),
+                2,
+                ptr::null_mut(),
+                0,
+                true,
+                ptr::null_mut(),
+            )
+        };
         if ptr.is_null() {
             return Err(format_err!("couldn't create BPF program"));
         }
@@ -179,7 +180,8 @@ impl BPF {
     ) -> Result<File, Error> {
         let cname = CString::new(name).unwrap();
         unsafe {
-            let start: *mut bpf_insn = bpf_function_start(self.ptr(), cname.as_ptr()) as *mut bpf_insn;
+            let start: *mut bpf_insn =
+                bpf_function_start(self.ptr(), cname.as_ptr()) as *mut bpf_insn;
             let size = bpf_function_size(self.ptr(), cname.as_ptr()) as i32;
             let license = bpf_module_license(self.ptr());
             let version = bpf_module_kern_version(self.ptr());
@@ -222,7 +224,8 @@ impl BPF {
     ) -> Result<File, Error> {
         let cname = CString::new(name).unwrap();
         unsafe {
-            let start: *mut bpf_insn = bpf_function_start(self.ptr(), cname.as_ptr()) as *mut bpf_insn;
+            let start: *mut bpf_insn =
+                bpf_function_start(self.ptr(), cname.as_ptr()) as *mut bpf_insn;
             let size = bpf_function_size(self.ptr(), cname.as_ptr()) as i32;
             let license = bpf_module_license(self.ptr());
             let version = bpf_module_kern_version(self.ptr());
@@ -267,7 +270,8 @@ impl BPF {
     ) -> Result<File, Error> {
         let cname = CString::new(name).unwrap();
         unsafe {
-            let start: *mut bpf_insn = bpf_function_start(self.ptr(), cname.as_ptr()) as *mut bpf_insn;
+            let start: *mut bpf_insn =
+                bpf_function_start(self.ptr(), cname.as_ptr()) as *mut bpf_insn;
             let size = bpf_function_size(self.ptr(), cname.as_ptr()) as i32;
             let license = bpf_module_license(self.ptr());
             let version = bpf_module_kern_version(self.ptr());
