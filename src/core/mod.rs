@@ -133,7 +133,7 @@ impl BPF {
     pub fn table(&self, name: &str) -> Table {
         // TODO: clean up this unwrap (and all the rest in this file)
         let cname = CString::new(name).unwrap();
-        let id = unsafe { bpf_table_id(self.p.load(Ordering::SeqCst), cname.as_ptr()) };
+        let id = unsafe { bpf_table_id(self.ptr(), cname.as_ptr()) };
         Table::new(id, self.ptr())
     }
 
