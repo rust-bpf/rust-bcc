@@ -1,1 +1,1 @@
-pub type MutPointer = *mut std::os::raw::c_void;
+pub type MutPointer = *mut core::ffi::c_void;

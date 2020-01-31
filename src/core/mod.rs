@@ -13,8 +13,9 @@ use self::uprobe::Uprobe;
 use crate::perf::{self, PerfReader};
 use crate::symbol::SymbolCache;
 use crate::table::Table;
-use crate::types::MutPointer;
 
+use core::ffi::c_void;
+use core::sync::atomic::{AtomicPtr, Ordering};
 use std::collections::{HashMap, HashSet};
 use std::ffi::CString;
 use std::fs::File;
@@ -24,7 +25,7 @@ use std::ptr;
 
 #[derive(Debug)]
 pub struct BPF {
-    p: MutPointer,
+    p: AtomicPtr<c_void>,
     kprobes: HashSet<Kprobe>,
     uprobes: HashSet<Uprobe>,
     tracepoints: HashSet<Tracepoint>,
@@ -115,7 +116,7 @@ impl BPF {
         }
 
         Ok(BPF {
-            p: ptr,
+            p: AtomicPtr::new(ptr),
             uprobes: HashSet::new(),
             kprobes: HashSet::new(),
             tracepoints: HashSet::new(),
@@ -125,11 +126,15 @@ impl BPF {
         })
     }
 
+    fn ptr(&self) -> *mut c_void {
+        self.p.load(Ordering::SeqCst)
+    }
+
     pub fn table(&self, name: &str) -> Table {
         // TODO: clean up this unwrap (and all the rest in this file)
         let cname = CString::new(name).unwrap();
-        let id = unsafe { bpf_table_id(self.p as MutPointer, cname.as_ptr()) };
-        Table::new(id, self.p)
+        let id = unsafe { bpf_table_id(self.p.load(Ordering::SeqCst), cname.as_ptr()) };
+        Table::new(id, self.ptr())
     }
 
     pub fn load_net(&mut self, name: &str) -> Result<File, Error> {
@@ -174,10 +179,10 @@ impl BPF {
     ) -> Result<File, Error> {
         let cname = CString::new(name).unwrap();
         unsafe {
-            let start: *mut bpf_insn = bpf_function_start(self.p, cname.as_ptr()) as *mut bpf_insn;
-            let size = bpf_function_size(self.p, cname.as_ptr()) as i32;
-            let license = bpf_module_license(self.p);
-            let version = bpf_module_kern_version(self.p);
+            let start: *mut bpf_insn = bpf_function_start(self.ptr(), cname.as_ptr()) as *mut bpf_insn;
+            let size = bpf_function_size(self.ptr(), cname.as_ptr()) as i32;
+            let license = bpf_module_license(self.ptr());
+            let version = bpf_module_kern_version(self.ptr());
             if start.is_null() {
                 return Err(format_err!("Error in bpf_function_start for {}", name));
             }
@@ -217,10 +222,10 @@ impl BPF {
     ) -> Result<File, Error> {
         let cname = CString::new(name).unwrap();
         unsafe {
-            let start: *mut bpf_insn = bpf_function_start(self.p, cname.as_ptr()) as *mut bpf_insn;
-            let size = bpf_function_size(self.p, cname.as_ptr()) as i32;
-            let license = bpf_module_license(self.p);
-            let version = bpf_module_kern_version(self.p);
+            let start: *mut bpf_insn = bpf_function_start(self.ptr(), cname.as_ptr()) as *mut bpf_insn;
+            let size = bpf_function_size(self.ptr(), cname.as_ptr()) as i32;
+            let license = bpf_module_license(self.ptr());
+            let version = bpf_module_kern_version(self.ptr());
             if start.is_null() {
                 return Err(format_err!("Error in bpf_function_start for {}", name));
             }
@@ -262,10 +267,10 @@ impl BPF {
     ) -> Result<File, Error> {
         let cname = CString::new(name).unwrap();
         unsafe {
-            let start: *mut bpf_insn = bpf_function_start(self.p, cname.as_ptr()) as *mut bpf_insn;
-            let size = bpf_function_size(self.p, cname.as_ptr()) as i32;
-            let license = bpf_module_license(self.p);
-            let version = bpf_module_kern_version(self.p);
+            let start: *mut bpf_insn = bpf_function_start(self.ptr(), cname.as_ptr()) as *mut bpf_insn;
+            let size = bpf_function_size(self.ptr(), cname.as_ptr()) as i32;
+            let license = bpf_module_license(self.ptr());
+            let version = bpf_module_kern_version(self.ptr());
             if start.is_null() {
                 return Err(format_err!("Error in bpf_function_start for {}", name));
             }
@@ -401,7 +406,7 @@ impl BPF {
 impl Drop for BPF {
     fn drop(&mut self) {
         unsafe {
-            bpf_module_destroy(self.p);
+            bpf_module_destroy(self.ptr());
         };
     }
 }

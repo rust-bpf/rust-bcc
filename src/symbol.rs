@@ -1,7 +1,9 @@
 use bcc_sys::bccapi::*;
 use failure::*;
-use libc::{c_void, free};
+use libc::free;
 
+use core::ffi::c_void;
+use core::sync::atomic::{AtomicPtr, Ordering};
 use std::ffi::CStr;
 use std::ffi::CString;
 use std::mem;
@@ -63,13 +65,13 @@ pub fn resolve_symname(
 
 #[derive(Debug)]
 pub struct SymbolCache {
-    cache: *mut ::std::os::raw::c_void,
+    cache: AtomicPtr<c_void>,
 }
 
 impl SymbolCache {
     pub fn new(pid: pid_t) -> SymbolCache {
         SymbolCache {
-            cache: unsafe { bcc_symcache_new(pid, ptr::null_mut()) },
+            cache: unsafe { AtomicPtr::new(bcc_symcache_new(pid, ptr::null_mut())) },
         }
     }
 
@@ -80,7 +82,7 @@ impl SymbolCache {
 
         let res = unsafe {
             bcc_symcache_resolve_name(
-                self.cache,
+                self.cache.load(Ordering::SeqCst),
                 cmodule.as_ptr(),
                 cname.as_ptr(),
                 &mut addr as *mut u64,
