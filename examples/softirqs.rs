@@ -118,10 +118,10 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), Error> {
     // load + attach tracepoints!
     let softirq_entry = module.load_tracepoint("softirq_entry")?;
     let softirq_exit = module.load_tracepoint("softirq_exit")?;
-    
+
     module.attach_tracepoint("irq", "softirq_entry", softirq_entry)?;
     module.attach_tracepoint("irq", "softirq_exit", softirq_exit)?;
-    
+
     let table = module.table("dist");
     let mut window = 0;
 

@@ -2,6 +2,8 @@ use bcc_sys::bccapi::*;
 use byteorder::{NativeEndian, WriteBytesExt};
 use failure::*;
 
+use core::ffi::c_void;
+use core::sync::atomic::{AtomicPtr, Ordering};
 use std;
 use std::io::Cursor;
 
@@ -27,18 +29,22 @@ unsafe extern "C" fn raw_callback(pc: MutPointer, ptr: MutPointer, size: i32) {
 #[repr(C)]
 #[derive(Debug)]
 pub struct PerfReader {
-    ptr: *mut perf_reader,
+    ptr: AtomicPtr<perf_reader>,
 }
 
 impl PerfReader {
     pub fn fd(&mut self) -> i32 {
-        unsafe { perf_reader_fd(self.ptr) }
+        unsafe { perf_reader_fd(self.ptr()) }
+    }
+
+    fn ptr(&self) -> *mut perf_reader {
+        self.ptr.load(Ordering::SeqCst)
     }
 }
 
 impl Drop for PerfReader {
     fn drop(&mut self) {
-        unsafe { perf_reader_free(self.ptr as MutPointer) }
+        unsafe { perf_reader_free(self.ptr() as *mut c_void) }
     }
 }
 
@@ -107,6 +113,6 @@ fn open_perf_buffer(cpu: usize, raw_cb: Box<dyn FnMut(&[u8]) + Send>) -> Result<
         return Err(format_err!("failed to open perf buffer"));
     }
     Ok(PerfReader {
-        ptr: reader as *mut perf_reader,
+        ptr: AtomicPtr::new(reader as *mut perf_reader),
     })
 }
