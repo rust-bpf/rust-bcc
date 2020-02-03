@@ -67,7 +67,7 @@ impl BPF {
         }
 
         Ok(BPF {
-            p: ptr,
+            p: AtomicPtr::new(ptr),
             uprobes: HashSet::new(),
             kprobes: HashSet::new(),
             tracepoints: HashSet::new(),
@@ -88,7 +88,7 @@ impl BPF {
         }
 
         Ok(BPF {
-            p: ptr,
+            p: AtomicPtr::new(ptr),
             uprobes: HashSet::new(),
             kprobes: HashSet::new(),
             tracepoints: HashSet::new(),
