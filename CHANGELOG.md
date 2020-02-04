@@ -1,5 +1,10 @@
 # [Unreleased]
 
+# [0.0.16] - 2020-02-03
+## Added
+- Makes BPF struct both `Send` and `Sync` by using `AtomicPtr`s instead of bare
+  pointers
+
 # [0.0.15] - 2020-01-10
 ## Added
 - Added support for bcc 0.12.0, making it the new default version
@@ -81,8 +86,9 @@
 
 Initial release.
 
-[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/0.0.15...HEAD
-[0.0.14]: https://github.com/rust-bpf/rust-bcc/compare/0.0.14...0.0.15
+[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/0.0.16...HEAD
+[0.0.16]: https://github.com/rust-bpf/rust-bcc/compare/0.0.15...0.0.16
+[0.0.15]: https://github.com/rust-bpf/rust-bcc/compare/0.0.14...0.0.15
 [0.0.14]: https://github.com/rust-bpf/rust-bcc/compare/0.0.13...0.0.14
 [0.0.13]: https://github.com/rust-bpf/rust-bcc/compare/0.0.12...0.0.13
 [0.0.12]: https://github.com/rust-bpf/rust-bcc/compare/0.0.11...0.0.12
