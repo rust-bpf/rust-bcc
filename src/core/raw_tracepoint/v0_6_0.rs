@@ -1,5 +1,5 @@
+use anyhow::{self, Result};
 use bcc_sys::bccapi::*;
-use failure::*;
 
 use std::ffi::CString;
 use std::fs::File;
@@ -14,12 +14,12 @@ pub struct RawTracepoint {
 }
 
 impl RawTracepoint {
-    pub fn attach_raw_tracepoint(name: &str, file: File) -> Result<Self, Error> {
-        let cname =
-            CString::new(name).map_err(|_| format_err!("Nul byte in Tracepoint name: {}", name))?;
+    pub fn attach_raw_tracepoint(name: &str, file: File) -> Result<Self> {
+        let cname = CString::new(name)
+            .map_err(|_| anyhow::anyhow!("Nul byte in Tracepoint name: {}", name))?;
         let ptr = unsafe { bpf_attach_raw_tracepoint(file.as_raw_fd(), cname.as_ptr() as *mut _) };
         if ptr < 0 {
-            Err(format_err!("Failed to attach raw tracepoint: {}", name))
+            Err(anyhow::anyhow!("Failed to attach raw tracepoint: {}", name))
         } else {
             Ok(Self {
                 name: cname,

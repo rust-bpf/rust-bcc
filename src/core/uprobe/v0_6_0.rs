@@ -1,7 +1,7 @@
+use anyhow::{self, bail, Result};
 use bcc_sys::bccapi::bpf_probe_attach_type_BPF_PROBE_ENTRY as BPF_PROBE_ENTRY;
 use bcc_sys::bccapi::bpf_probe_attach_type_BPF_PROBE_RETURN as BPF_PROBE_RETURN;
 use bcc_sys::bccapi::*;
-use failure::*;
 
 use crate::core::make_alphanumeric;
 use crate::symbol;
@@ -26,11 +26,11 @@ impl Uprobe {
         addr: u64,
         file: File,
         pid: pid_t,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self> {
         let cname =
-            CString::new(name).map_err(|_| format_err!("Nul byte in Uprobe name: {}", name))?;
+            CString::new(name).map_err(|_| anyhow::anyhow!("Nul byte in Uprobe name: {}", name))?;
         let cpath =
-            CString::new(path).map_err(|_| format_err!("Nul byte in Uprobe path: {}", name))?;
+            CString::new(path).map_err(|_| anyhow::anyhow!("Nul byte in Uprobe path: {}", name))?;
         let uprobe_ptr = unsafe {
             bpf_attach_uprobe(
                 file.as_raw_fd(),
@@ -42,7 +42,7 @@ impl Uprobe {
             )
         };
         if uprobe_ptr < 0 {
-            Err(format_err!("Failed to attach Uprobe: {}", name))
+            bail!(anyhow::anyhow!("Failed to attach Uprobe: {}", name))
         } else {
             Ok(Self {
                 code_fd: file,
@@ -52,17 +52,12 @@ impl Uprobe {
         }
     }
 
-    pub fn attach_uprobe(
-        binary_path: &str,
-        symbol: &str,
-        code: File,
-        pid: pid_t,
-    ) -> Result<Self, Error> {
+    pub fn attach_uprobe(binary_path: &str, symbol: &str, code: File, pid: pid_t) -> Result<Self> {
         let (path, addr) = symbol::resolve_symbol_path(binary_path, symbol, 0x0, pid)?;
         let alpha_path = make_alphanumeric(&path);
         let ev_name = format!("r_{}_0x{:x}", &alpha_path, addr);
         Uprobe::new(&ev_name, BPF_PROBE_ENTRY, &path, addr, code, pid)
-            .map_err(|_| format_err!("Failed to attach Uprobe to binary: {}", binary_path))
+            .map_err(|_| anyhow::anyhow!("Failed to attach Uprobe to binary: {}", binary_path))
     }
 
     pub fn attach_uretprobe(
@@ -70,12 +65,12 @@ impl Uprobe {
         symbol: &str,
         code: File,
         pid: pid_t,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self> {
         let (path, addr) = symbol::resolve_symbol_path(binary_path, symbol, 0x0, pid)?;
         let alpha_path = make_alphanumeric(&path);
         let ev_name = format!("r_{}_0x{:x}", &alpha_path, addr);
         Uprobe::new(&ev_name, BPF_PROBE_RETURN, &path, addr, code, pid)
-            .map_err(|_| format_err!("Failed to attach Uretprobe to binary: {}", binary_path))
+            .map_err(|_| anyhow::anyhow!("Failed to attach Uretprobe to binary: {}", binary_path))
     }
 }
 

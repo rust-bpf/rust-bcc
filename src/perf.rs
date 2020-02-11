@@ -1,6 +1,6 @@
+use anyhow::{self, Context, Result};
 use bcc_sys::bccapi::*;
 use byteorder::{NativeEndian, WriteBytesExt};
-use failure::*;
 
 use core::ffi::c_void;
 use core::sync::atomic::{AtomicPtr, Ordering};
@@ -53,7 +53,7 @@ pub struct PerfMap {
     pub readers: Vec<PerfReader>,
 }
 
-pub fn init_perf_map<F>(mut table: Table, cb: F) -> Result<PerfMap, Error>
+pub fn init_perf_map<F>(mut table: Table, cb: F) -> Result<PerfMap>
 where
     F: Fn() -> Box<dyn FnMut(&[u8]) + Send>,
 {
@@ -62,7 +62,7 @@ where
     let leaf = vec![0; leaf_size];
 
     if key_size != 4 || leaf_size != 4 {
-        return Err(format_err!("passed table has wrong size"));
+        return Err(anyhow::anyhow!("passed table has wrong size"));
     }
 
     let mut readers: Vec<PerfReader> = vec![];
@@ -97,7 +97,7 @@ impl PerfMap {
     }
 }
 
-fn open_perf_buffer(cpu: usize, raw_cb: Box<dyn FnMut(&[u8]) + Send>) -> Result<PerfReader, Error> {
+fn open_perf_buffer(cpu: usize, raw_cb: Box<dyn FnMut(&[u8]) + Send>) -> Result<PerfReader> {
     let callback = Box::new(PerfCallback { raw_cb });
     let reader = unsafe {
         bpf_open_perf_buffer(
@@ -110,7 +110,7 @@ fn open_perf_buffer(cpu: usize, raw_cb: Box<dyn FnMut(&[u8]) + Send>) -> Result<
         )
     };
     if reader.is_null() {
-        return Err(format_err!("failed to open perf buffer"));
+        return Err(anyhow::anyhow!("failed to open perf buffer"));
     }
     Ok(PerfReader {
         ptr: AtomicPtr::new(reader as *mut perf_reader),

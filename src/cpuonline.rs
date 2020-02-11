@@ -1,4 +1,4 @@
-use failure::*;
+use anyhow::{self, bail, Result};
 
 use std::fs::File;
 use std::io::Read;
@@ -7,14 +7,14 @@ use std::str::FromStr;
 const CPUONLINE: &str = "/sys/devices/system/cpu/online";
 
 // loosely based on https://github.com/iovisor/bcc/blob/v0.3.0/src/python/bcc/utils.py#L15
-fn read_cpu_range(cpu_range_str: &str) -> Result<Vec<usize>, Error> {
+fn read_cpu_range(cpu_range_str: &str) -> Result<Vec<usize>> {
     let mut cpus = Vec::new();
     let cpu_range_str_trim = cpu_range_str.trim();
     for cpu_range in cpu_range_str_trim.split(',') {
         let rangeop: Vec<&str> = cpu_range.splitn(2, '-').collect();
         let first = match usize::from_str(rangeop[0]) {
             Ok(res) => res,
-            Err(e) => return Err(format_err!("Fail to recognize first cpu number: {}", e)),
+            Err(e) => bail!(anyhow::anyhow!("Fail to recognize first cpu number: {}", e)),
         };
         if rangeop.len() == 1 {
             cpus.push(first);
@@ -22,7 +22,10 @@ fn read_cpu_range(cpu_range_str: &str) -> Result<Vec<usize>, Error> {
         }
         let last = match usize::from_str(rangeop[1]) {
             Ok(res) => res,
-            Err(e) => return Err(format_err!("Fail to recognize second cpu number: {}", e)),
+            Err(e) => bail!(anyhow::anyhow!(
+                "Fail to recognize second cpu number: {}",
+                e
+            )),
         };
         for n in first..=last {
             cpus.push(n);
@@ -31,7 +34,7 @@ fn read_cpu_range(cpu_range_str: &str) -> Result<Vec<usize>, Error> {
     Ok(cpus)
 }
 
-pub fn get() -> Result<Vec<usize>, Error> {
+pub fn get() -> Result<Vec<usize>> {
     let mut buffer = String::new();
     File::open(CPUONLINE)?.read_to_string(&mut buffer)?;
     read_cpu_range(&buffer)

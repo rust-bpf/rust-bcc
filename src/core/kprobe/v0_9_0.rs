@@ -1,7 +1,7 @@
+use anyhow::{self, Result};
 use bcc_sys::bccapi::bpf_probe_attach_type_BPF_PROBE_ENTRY as BPF_PROBE_ENTRY;
 use bcc_sys::bccapi::bpf_probe_attach_type_BPF_PROBE_RETURN as BPF_PROBE_RETURN;
 use bcc_sys::bccapi::*;
-use failure::*;
 
 use crate::core::make_alphanumeric;
 
@@ -21,11 +21,11 @@ pub struct Kprobe {
 }
 
 impl Kprobe {
-    fn new(name: &str, attach_type: u32, function: &str, code: File) -> Result<Self, Error> {
+    fn new(name: &str, attach_type: u32, function: &str, code: File) -> Result<Self> {
         let cname =
-            CString::new(name).map_err(|_| format_err!("Nul byte in Kprobe name: {}", name))?;
+            CString::new(name).map_err(|_| anyhow::anyhow!("Nul byte in Kprobe name: {}", name))?;
         let cfunction = CString::new(function)
-            .map_err(|_| format_err!("Nul byte in Kprobe function: {}", function))?;
+            .map_err(|_| anyhow::anyhow!("Nul byte in Kprobe function: {}", function))?;
         let ptr = unsafe {
             bpf_attach_kprobe(
                 code.as_raw_fd(),
@@ -37,7 +37,7 @@ impl Kprobe {
             )
         };
         if ptr < 0 {
-            Err(format_err!("Failed to attach Kprobe: {}", name))
+            Err(anyhow::anyhow!("Failed to attach Kprobe: {}", name))
         } else {
             Ok(Self {
                 p: ptr,
@@ -47,19 +47,19 @@ impl Kprobe {
         }
     }
 
-    pub fn attach_kprobe(function: &str, code: File) -> Result<Self, Error> {
+    pub fn attach_kprobe(function: &str, code: File) -> Result<Self> {
         let name = format!("p_{}", &make_alphanumeric(function));
         Kprobe::new(&name, BPF_PROBE_ENTRY, function, code)
-            .map_err(|_| format_err!("Failed to attach Kprobe: {}", name))
+            .map_err(|_| anyhow::anyhow!("Failed to attach Kprobe: {}", name))
     }
 
-    pub fn attach_kretprobe(function: &str, code: File) -> Result<Self, Error> {
+    pub fn attach_kretprobe(function: &str, code: File) -> Result<Self> {
         let name = format!("r_{}", &make_alphanumeric(function));
         Kprobe::new(&name, BPF_PROBE_RETURN, function, code)
-            .map_err(|_| format_err!("Failed to attach Kretprobe: {}", name))
+            .map_err(|_| anyhow::anyhow!("Failed to attach Kretprobe: {}", name))
     }
 
-    pub fn get_kprobe_functions(event_re: &str) -> Result<Vec<String>, Error> {
+    pub fn get_kprobe_functions(event_re: &str) -> Result<Vec<String>> {
         let mut fns: Vec<String> = vec![];
 
         enum Section {
