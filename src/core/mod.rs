@@ -99,7 +99,7 @@ impl BPF {
     }
 
     // 0.11.0 changes the API for bpf_module_create_c_from_string()
-    #[cfg(any(feature = "v0_11_0", feature = "v0_12_0", not(feature = "specific"),))]
+    #[cfg(any(feature = "v0_11_0", feature = "v0_12_0", feature = "v0_13_0", not(feature = "specific"),))]
     pub fn new(code: &str) -> Result<BPF, Error> {
         let cs = CString::new(code)?;
         let ptr = unsafe {
@@ -164,6 +164,7 @@ impl BPF {
         feature = "v0_10_0",
         feature = "v0_11_0",
         feature = "v0_12_0",
+        feature = "v0_13_0",
         not(feature = "specific"),
     ))]
     pub fn load_raw_tracepoint(&mut self, name: &str) -> Result<File, Error> {
@@ -259,6 +260,7 @@ impl BPF {
         feature = "v0_10_0",
         feature = "v0_11_0",
         feature = "v0_12_0",
+        feature = "v0_13_0",
         not(feature = "specific"),
     ))]
     pub fn load(
@@ -355,6 +357,7 @@ impl BPF {
         feature = "v0_10_0",
         feature = "v0_11_0",
         feature = "v0_12_0",
+        feature = "v0_13_0",
         not(feature = "specific"),
     ))]
     pub fn attach_raw_tracepoint(&mut self, name: &str, file: File) -> Result<(), Error> {
@@ -380,6 +383,7 @@ impl BPF {
         feature = "v0_10_0",
         feature = "v0_11_0",
         feature = "v0_12_0",
+        feature = "v0_13_0",
         not(feature = "specific"),
     ))]
     pub fn support_raw_tracepoint(&mut self) -> bool {
