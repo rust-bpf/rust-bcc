@@ -307,6 +307,25 @@ impl BPF {
         }
     }
 
+    pub fn get_syscall_prefix(&mut self) -> Result<String, Error> {
+        for prefix in SYSCALL_PREFIXES.iter() {
+            if self.ksymname(prefix).is_ok() {
+                return Ok(prefix.to_owned().to_string());
+            }
+        }
+
+        Ok(String::from(*SYSCALL_PREFIXES.first().unwrap()))
+    }
+
+    pub fn get_syscall_fnname(&mut self, name: &str) -> Result<String, Error> {
+        if let Ok(prefix) = self.get_syscall_prefix() {
+            return Ok(prefix + name);
+        } else {
+            // will never hit this
+            return Err(format_err!("error getting syscall fnname: {}", name));
+        }
+    }
+
     pub fn attach_uretprobe(
         &mut self,
         binary_path: &str,
@@ -423,3 +442,13 @@ impl Drop for BPF {
         };
     }
 }
+
+const SYSCALL_PREFIXES: [&'static str; 7] = [
+    "sys_",
+    "__x64_sys_",
+    "__x32_compat_sys_",
+    "__ia32_compat_sys_",
+    "__arm64_sys_",
+    "__s390x_sys_",
+    "__s390_sys_",
+];
