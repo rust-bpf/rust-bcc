@@ -321,7 +321,6 @@ impl BPF {
         if let Ok(prefix) = self.get_syscall_prefix() {
             return Ok(prefix + name);
         } else {
-            // will never hit this
             return Err(format_err!("error getting syscall fnname: {}", name));
         }
     }
