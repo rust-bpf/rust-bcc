@@ -1,6 +1,6 @@
+use anyhow::Result;
 use bcc::core::BPF;
 use clap::{App, Arg};
-use failure::Error;
 
 use core::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -73,7 +73,7 @@ impl fmt::Display for SoftIRQ {
     }
 }
 
-fn do_main(runnable: Arc<AtomicBool>) -> Result<(), Error> {
+fn do_main(runnable: Arc<AtomicBool>) -> Result<()> {
     let matches = App::new("softirqs")
         .about("Reports time spent in IRQ Handlers")
         .arg(
@@ -169,7 +169,6 @@ fn main() {
     match do_main(runnable) {
         Err(x) => {
             eprintln!("Error: {}", x);
-            eprintln!("{}", x.backtrace());
             std::process::exit(1);
         }
         _ => {}

@@ -1,6 +1,6 @@
+use anyhow::Result;
 use bcc::core::BPF;
 use clap::{App, Arg};
-use failure::Error;
 
 use core::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -50,7 +50,7 @@ fn attach_events(bpf: &mut BPF) {
     }
 }
 
-fn do_main(runnable: Arc<AtomicBool>) -> Result<(), Error> {
+fn do_main(runnable: Arc<AtomicBool>) -> Result<()> {
     let matches = App::new("runqlat")
         .about("Reports distribution of scheduler latency")
         .arg(
@@ -131,7 +131,6 @@ fn main() {
     match do_main(runnable) {
         Err(x) => {
             eprintln!("Error: {}", x);
-            eprintln!("{}", x.backtrace());
             std::process::exit(1);
         }
         _ => {}

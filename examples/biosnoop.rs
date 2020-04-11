@@ -1,7 +1,7 @@
+use anyhow::Result;
 use bcc::core::BPF;
 use bcc::perf::init_perf_map;
 use clap::{App, Arg};
-use failure::Error;
 
 use core::sync::atomic::{AtomicBool, Ordering};
 use std::ptr;
@@ -24,7 +24,7 @@ struct data_t {
     name: [u8; 16],
 }
 
-fn do_main(runnable: Arc<AtomicBool>) -> Result<(), Error> {
+fn do_main(runnable: Arc<AtomicBool>) -> Result<()> {
     let matches = App::new("biosnoop")
         .about("Trace block I/O")
         .arg(
@@ -134,7 +134,6 @@ fn main() {
 
     if let Err(x) = do_main(runnable) {
         eprintln!("Error: {}", x);
-        eprintln!("{}", x.backtrace());
         std::process::exit(1);
     }
 }

@@ -1,8 +1,8 @@
 use bcc::core::BPF;
 extern crate chrono;
+use anyhow::Result;
 use chrono::Utc;
 use clap::{App, Arg};
-use failure::Error;
 
 use core::sync::atomic::{AtomicBool, Ordering};
 use std::net::Ipv4Addr;
@@ -38,7 +38,7 @@ struct ipv6_data_t {
     type_: u64,
 }
 
-fn do_main(runnable: Arc<AtomicBool>) -> Result<(), Error> {
+fn do_main(runnable: Arc<AtomicBool>) -> Result<()> {
     let matches = App::new("biosnoop")
         .arg(
             Arg::with_name("duration")
@@ -131,7 +131,6 @@ fn main() {
 
     if let Err(x) = do_main(runnable) {
         eprintln!("Error: {}", x);
-        eprintln!("{}", x.backtrace());
         std::process::exit(1);
     }
 }

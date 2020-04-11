@@ -3,15 +3,15 @@ extern crate byteorder;
 extern crate failure;
 extern crate libc;
 
+use anyhow::Result;
 use bcc::core::BPF;
 use byteorder::{NativeEndian, ReadBytesExt};
-use failure::Error;
 
 use core::sync::atomic::{AtomicBool, Ordering};
 use std::io::Cursor;
 use std::sync::Arc;
 
-fn do_main(runnable: Arc<AtomicBool>) -> Result<(), Error> {
+fn do_main(runnable: Arc<AtomicBool>) -> Result<()> {
     let code = "
 #include <uapi/linux/ptrace.h>
 
@@ -75,7 +75,6 @@ fn main() {
     match do_main(runnable) {
         Err(x) => {
             eprintln!("Error: {}", x);
-            eprintln!("{}", x.backtrace());
             std::process::exit(1);
         }
         _ => {}
