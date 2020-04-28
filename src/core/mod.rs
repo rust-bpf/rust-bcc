@@ -310,7 +310,7 @@ impl BPF {
     pub fn get_syscall_prefix(&mut self) -> Result<String, Error> {
         for prefix in SYSCALL_PREFIXES.iter() {
             if self.ksymname(prefix).is_ok() {
-                return Ok(prefix.to_owned().to_string());
+                return Ok((*prefix).to_string());
             }
         }
 
@@ -319,9 +319,9 @@ impl BPF {
 
     pub fn get_syscall_fnname(&mut self, name: &str) -> Result<String, Error> {
         if let Ok(prefix) = self.get_syscall_prefix() {
-            return Ok(prefix + name);
+            Ok(prefix + name)
         } else {
-            return Err(format_err!("error getting syscall fnname: {}", name));
+            Err(format_err!("error getting syscall fnname: {}", name))
         }
     }
 
@@ -442,7 +442,7 @@ impl Drop for BPF {
     }
 }
 
-const SYSCALL_PREFIXES: [&'static str; 7] = [
+const SYSCALL_PREFIXES: [&str; 7] = [
     "sys_",
     "__x64_sys_",
     "__x32_compat_sys_",
