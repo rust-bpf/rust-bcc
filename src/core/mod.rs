@@ -23,6 +23,16 @@ use std::ops::Drop;
 use std::os::unix::prelude::*;
 use std::ptr;
 
+const SYSCALL_PREFIXES: [&str; 7] = [
+    "sys_",
+    "__x64_sys_",
+    "__x32_compat_sys_",
+    "__ia32_compat_sys_",
+    "__arm64_sys_",
+    "__s390x_sys_",
+    "__s390_sys_",
+];
+
 #[derive(Debug)]
 pub struct BPF {
     p: AtomicPtr<c_void>,
@@ -307,22 +317,18 @@ impl BPF {
         }
     }
 
-    pub fn get_syscall_prefix(&mut self) -> Result<String, Error> {
+    pub fn get_syscall_prefix(&mut self) -> String {
         for prefix in SYSCALL_PREFIXES.iter() {
             if self.ksymname(prefix).is_ok() {
-                return Ok((*prefix).to_string());
+                return prefix.to_string();
             }
         }
 
-        Ok(String::from(*SYSCALL_PREFIXES.first().unwrap()))
+        SYSCALL_PREFIXES[0].to_string()
     }
 
-    pub fn get_syscall_fnname(&mut self, name: &str) -> Result<String, Error> {
-        if let Ok(prefix) = self.get_syscall_prefix() {
-            Ok(prefix + name)
-        } else {
-            Err(format_err!("error getting syscall fnname: {}", name))
-        }
+    pub fn get_syscall_fnname(&mut self, name: &str) -> String {
+        self.get_syscall_prefix() + name
     }
 
     pub fn attach_uretprobe(
@@ -442,12 +448,3 @@ impl Drop for BPF {
     }
 }
 
-const SYSCALL_PREFIXES: [&str; 7] = [
-    "sys_",
-    "__x64_sys_",
-    "__x32_compat_sys_",
-    "__ia32_compat_sys_",
-    "__arm64_sys_",
-    "__s390x_sys_",
-    "__s390_sys_",
-];
