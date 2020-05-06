@@ -320,7 +320,7 @@ impl BPF {
     pub fn get_syscall_prefix(&mut self) -> String {
         for prefix in SYSCALL_PREFIXES.iter() {
             if self.ksymname(prefix).is_ok() {
-                return prefix.to_string();
+                return (*prefix).to_string();
             }
         }
 
