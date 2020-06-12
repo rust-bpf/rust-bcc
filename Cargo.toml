@@ -14,9 +14,9 @@ edition = '2018'
 [dependencies]
 bcc-sys = "0.13.0"
 byteorder = "1.3.4"
-failure = "0.1.7"
 libc = "0.2.68"
 regex = "1.3.5"
+thiserror = "1.0.19"
 
 [dev-dependencies]
 clap = "2.33.0"

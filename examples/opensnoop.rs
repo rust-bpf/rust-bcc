@@ -5,8 +5,8 @@ extern crate libc;
 
 use bcc::core::BPF;
 use bcc::perf::init_perf_map;
+use bcc::BccError;
 use clap::{App, Arg};
-use failure::Error;
 
 use core::sync::atomic::{AtomicBool, Ordering};
 use std::ptr;
@@ -34,7 +34,7 @@ struct data_t {
     fname: [u8; 255], // NAME_MAX
 }
 
-fn do_main(runnable: Arc<AtomicBool>) -> Result<(), Error> {
+fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     let matches = App::new("opensnoop")
         .about("Prints out filename + PID every time a file is opened")
         .arg(

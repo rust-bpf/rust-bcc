@@ -1,10 +1,9 @@
 use bcc_sys::bccapi::*;
-use failure::*;
 use libc::{c_int, size_t};
 
 use crate::types::MutPointer;
+use crate::BccError;
 
-use std;
 use std::ffi::CStr;
 
 #[derive(Clone, Debug)]
@@ -37,23 +36,23 @@ impl Table {
         }
     }
 
-    pub fn delete(&mut self, key: &mut [u8]) -> Result<(), Error> {
+    pub fn delete(&mut self, key: &mut [u8]) -> Result<(), BccError> {
         let fd = self.fd();
         let res = unsafe { bpf_delete_elem(fd, key.as_mut_ptr() as MutPointer) };
         match res {
             0 => Ok(()),
-            _ => Err(format_err!("unable to delete element ({:?})", key)),
+            _ => Err(Error::TableDelete),
         }
     }
 
-    pub fn delete_all(&mut self) -> Result<(), Error> {
+    pub fn delete_all(&mut self) -> Result<(), BccError> {
         for mut e in self.iter() {
             self.delete(&mut e.key)?;
         }
         Ok(())
     }
 
-    pub fn get(&mut self, key: &mut [u8]) -> Result<Vec<u8>, Error> {
+    pub fn get(&mut self, key: &mut [u8]) -> Result<Vec<u8>, BccError> {
         let mut leaf = vec![0; self.leaf_size()];
         let res = unsafe {
             bpf_lookup_elem(
@@ -64,11 +63,11 @@ impl Table {
         };
         match res {
             0 => Ok(leaf),
-            _ => Err(format_err!("unable to get element ({:?})", leaf)),
+            _ => Err(Error::TableGet),
         }
     }
 
-    pub fn set(&mut self, key: &mut [u8], leaf: &mut [u8]) -> Result<(), Error> {
+    pub fn set(&mut self, key: &mut [u8], leaf: &mut [u8]) -> Result<(), BccError> {
         let res = unsafe {
             bpf_update_elem(
                 self.fd(),
@@ -80,11 +79,7 @@ impl Table {
         // TODO: maybe we can get an errno here to enhance the error message with?
         match res {
             0 => Ok(()),
-            _ => Err(format_err!(
-                "unable to update element ({:?}={:?})",
-                key,
-                leaf
-            )),
+            _ => Err(BccError::TableSet),
         }
     }
 

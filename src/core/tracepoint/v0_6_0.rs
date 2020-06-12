@@ -1,5 +1,6 @@
 use bcc_sys::bccapi::*;
-use failure::*;
+
+use crate::BccError;
 
 use std::ffi::CString;
 use std::fs::File;
@@ -15,19 +16,16 @@ pub struct Tracepoint {
 }
 
 impl Tracepoint {
-    pub fn attach_tracepoint(subsys: &str, name: &str, file: File) -> Result<Self, Error> {
-        let cname =
-            CString::new(name).map_err(|_| format_err!("Nul byte in Tracepoint name: {}", name))?;
-        let csubsys = CString::new(subsys)
-            .map_err(|_| format_err!("Nul byte in Tracepoint subsys: {}", subsys))?;
+    pub fn attach_tracepoint(subsys: &str, name: &str, file: File) -> Result<Self, BccError> {
+        let cname = CString::new(name)?;
+        let csubsys = CString::new(subsys)?;
         let ptr =
             unsafe { bpf_attach_tracepoint(file.as_raw_fd(), csubsys.as_ptr(), cname.as_ptr()) };
         if ptr < 0 {
-            Err(format_err!(
-                "Failed to attach tracepoint: {}:{}",
-                subsys,
-                name
-            ))
+            Err(BccError::AttachTracepoint {
+                subsys: subsys.to_string(),
+                name: name.to_string(),
+            })
         } else {
             Ok(Self {
                 subsys: csubsys,

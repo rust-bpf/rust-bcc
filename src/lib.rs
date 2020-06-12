@@ -9,7 +9,10 @@
 
 pub mod core;
 mod cpuonline;
+mod error;
 pub mod perf;
 pub mod symbol;
 pub mod table;
 mod types;
+
+pub use error::BccError;
