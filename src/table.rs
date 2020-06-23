@@ -41,7 +41,7 @@ impl Table {
         let res = unsafe { bpf_delete_elem(fd, key.as_mut_ptr() as MutPointer) };
         match res {
             0 => Ok(()),
-            _ => Err(Error::TableDelete),
+            _ => Err(BccError::TableDelete),
         }
     }
 
@@ -63,7 +63,7 @@ impl Table {
         };
         match res {
             0 => Ok(leaf),
-            _ => Err(Error::TableGet),
+            _ => Err(BccError::TableGet),
         }
     }
 
