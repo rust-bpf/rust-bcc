@@ -41,7 +41,7 @@ impl Table {
         let res = unsafe { bpf_delete_elem(fd, key.as_mut_ptr() as MutPointer) };
         match res {
             0 => Ok(()),
-            _ => Err(BccError::TableDelete),
+            _ => Err(BccError::DeleteTableValue),
         }
     }
 
@@ -63,7 +63,7 @@ impl Table {
         };
         match res {
             0 => Ok(leaf),
-            _ => Err(BccError::TableGet),
+            _ => Err(BccError::GetTableValue),
         }
     }
 
@@ -79,7 +79,7 @@ impl Table {
         // TODO: maybe we can get an errno here to enhance the error message with?
         match res {
             0 => Ok(()),
-            _ => Err(BccError::TableSet),
+            _ => Err(BccError::SetTableValue),
         }
     }
 

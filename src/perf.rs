@@ -61,7 +61,7 @@ where
     let leaf = vec![0; leaf_size];
 
     if key_size != 4 || leaf_size != 4 {
-        return Err(BccError::TableSize);
+        return Err(BccError::TableInvalidSize);
     }
 
     let mut readers: Vec<PerfReader> = vec![];

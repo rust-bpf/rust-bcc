@@ -29,13 +29,13 @@ pub enum BccError {
     #[error("error opening perf buffer")]
     OpenPerfBuffer,
     #[error("failed to delete key from table")]
-    TableDelete,
+    DeleteTableValue,
     #[error("failed to get value from table")]
-    TableGet,
+    GetTableValue,
     #[error("failed to set value in table")]
-    TableSet,
+    SetTableValue,
     #[error("table has wrong size for key or leaf")]
-    TableSize,
+    TableInvalidSize,
     #[error("unknown symbol ({name}) in module ({module})")]
     UnknownSymbol { name: String, module: String },
     #[error("invalid utf8")]
