@@ -1,6 +1,5 @@
 use bcc::core::BPF;
 use bcc::BccError;
-extern crate chrono;
 use chrono::Utc;
 use clap::{App, Arg};
 
@@ -81,7 +80,7 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     Ok(())
 }
 
-fn print_ipv4_event() -> Box<FnMut(&[u8]) + Send> {
+fn print_ipv4_event() -> Box<dyn FnMut(&[u8]) + Send> {
     Box::new(|x| {
         let event = parse_ipv4_struct(x);
         println!(
@@ -97,7 +96,7 @@ fn print_ipv4_event() -> Box<FnMut(&[u8]) + Send> {
     })
 }
 
-fn print_ipv6_event() -> Box<FnMut(&[u8]) + Send> {
+fn print_ipv6_event() -> Box<dyn FnMut(&[u8]) + Send> {
     Box::new(|x| {
         let event = parse_ipv6_struct(x);
         println!(
@@ -131,7 +130,6 @@ fn main() {
 
     if let Err(x) = do_main(runnable) {
         eprintln!("Error: {}", x);
-        eprintln!("{}", x.backtrace());
         std::process::exit(1);
     }
 }

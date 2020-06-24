@@ -1,8 +1,3 @@
-extern crate bcc;
-extern crate byteorder;
-extern crate failure;
-extern crate libc;
-
 use bcc::core::BPF;
 use bcc::perf::init_perf_map;
 use bcc::BccError;
@@ -112,7 +107,6 @@ fn main() {
     match do_main(runnable) {
         Err(x) => {
             eprintln!("Error: {}", x);
-            eprintln!("{}", x.backtrace());
             std::process::exit(1);
         }
         _ => {}

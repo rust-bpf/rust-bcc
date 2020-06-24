@@ -170,7 +170,6 @@ fn main() {
     match do_main(runnable) {
         Err(x) => {
             eprintln!("Error: {}", x);
-            eprintln!("{}", x.backtrace());
             std::process::exit(1);
         }
         _ => {}

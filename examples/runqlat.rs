@@ -23,7 +23,7 @@ fn attach_events(bpf: &mut BPF) {
         .unwrap();
 }
 
-#[cfg(any(not(feature = "v0_4_0"), not(feature = "v0_5_0"),))]
+#[cfg(not(any(feature = "v0_4_0", feature = "v0_5_0")))]
 fn attach_events(bpf: &mut BPF) {
     if bpf.support_raw_tracepoint() {
         let raw_tp_sched_wakeup = bpf.load_raw_tracepoint("raw_tp__sched_wakeup").unwrap();
@@ -131,7 +131,6 @@ fn main() {
     match do_main(runnable) {
         Err(x) => {
             eprintln!("Error: {}", x);
-            eprintln!("{}", x.backtrace());
             std::process::exit(1);
         }
         _ => {}

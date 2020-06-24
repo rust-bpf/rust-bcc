@@ -134,7 +134,6 @@ fn main() {
 
     if let Err(x) = do_main(runnable) {
         eprintln!("Error: {}", x);
-        eprintln!("{}", x.backtrace());
         std::process::exit(1);
     }
 }
