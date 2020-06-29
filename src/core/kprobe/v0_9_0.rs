@@ -1,9 +1,9 @@
 use bcc_sys::bccapi::bpf_probe_attach_type_BPF_PROBE_ENTRY as BPF_PROBE_ENTRY;
 use bcc_sys::bccapi::bpf_probe_attach_type_BPF_PROBE_RETURN as BPF_PROBE_RETURN;
 use bcc_sys::bccapi::*;
-use failure::*;
 
 use crate::core::make_alphanumeric;
+use crate::BccError;
 
 use regex::Regex;
 
@@ -21,11 +21,9 @@ pub struct Kprobe {
 }
 
 impl Kprobe {
-    fn new(name: &str, attach_type: u32, function: &str, code: File) -> Result<Self, Error> {
-        let cname =
-            CString::new(name).map_err(|_| format_err!("Nul byte in Kprobe name: {}", name))?;
-        let cfunction = CString::new(function)
-            .map_err(|_| format_err!("Nul byte in Kprobe function: {}", function))?;
+    fn new(name: &str, attach_type: u32, function: &str, code: File) -> Result<Self, BccError> {
+        let cname = CString::new(name)?;
+        let cfunction = CString::new(function)?;
         let ptr = unsafe {
             bpf_attach_kprobe(
                 code.as_raw_fd(),
@@ -37,7 +35,15 @@ impl Kprobe {
             )
         };
         if ptr < 0 {
-            Err(format_err!("Failed to attach Kprobe: {}", name))
+            match attach_type {
+                BPF_PROBE_ENTRY => Err(BccError::AttachKprobe {
+                    name: name.to_string(),
+                }),
+                BPF_PROBE_RETURN => Err(BccError::AttachKretprobe {
+                    name: name.to_string(),
+                }),
+                _ => unreachable!(),
+            }
         } else {
             Ok(Self {
                 p: ptr,
@@ -47,19 +53,17 @@ impl Kprobe {
         }
     }
 
-    pub fn attach_kprobe(function: &str, code: File) -> Result<Self, Error> {
+    pub fn attach_kprobe(function: &str, code: File) -> Result<Self, BccError> {
         let name = format!("p_{}", &make_alphanumeric(function));
         Kprobe::new(&name, BPF_PROBE_ENTRY, function, code)
-            .map_err(|_| format_err!("Failed to attach Kprobe: {}", name))
     }
 
-    pub fn attach_kretprobe(function: &str, code: File) -> Result<Self, Error> {
+    pub fn attach_kretprobe(function: &str, code: File) -> Result<Self, BccError> {
         let name = format!("r_{}", &make_alphanumeric(function));
         Kprobe::new(&name, BPF_PROBE_RETURN, function, code)
-            .map_err(|_| format_err!("Failed to attach Kretprobe: {}", name))
     }
 
-    pub fn get_kprobe_functions(event_re: &str) -> Result<Vec<String>, Error> {
+    pub fn get_kprobe_functions(event_re: &str) -> Result<Vec<String>, BccError> {
         let mut fns: Vec<String> = vec![];
 
         enum Section {
@@ -111,19 +115,18 @@ impl Kprobe {
                 Section::End => (),
             }
             // All functions defined as NOKPROBE_SYMBOL() start with the
-            // prefix _kbl_addr_*, blacklisting them by looking at the name
+            // prefix _kbl_addr_*, excluding them by looking at the name
             // allows to catch also those symbols that are defined in kernel
             // modules.
             if fname.starts_with("_kbl_addr_") {
                 continue;
             }
-            // Explicitly blacklist perf-related functions, they are all
-            // non-attachable.
-            else if fname.starts_with("__perf") || fname.starts_with("perf_") {
+            // Exclude perf-related functions, they are all non-attachable.
+            if fname.starts_with("__perf") || fname.starts_with("perf_") {
                 continue;
             }
             // Exclude all gcc 8's extra .cold functions
-            else if re.is_match(fname) {
+            if re.is_match(fname) {
                 continue;
             }
             if (t == "t" || t == "w") && fname.contains(event_re) {

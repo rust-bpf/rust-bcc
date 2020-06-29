@@ -1,15 +1,14 @@
 use bcc_sys::bccapi::*;
 use byteorder::{NativeEndian, WriteBytesExt};
-use failure::*;
 
 use core::ffi::c_void;
 use core::sync::atomic::{AtomicPtr, Ordering};
-use std;
 use std::io::Cursor;
 
 use crate::cpuonline;
 use crate::table::Table;
 use crate::types::*;
+use crate::BccError;
 
 struct PerfCallback {
     raw_cb: Box<dyn FnMut(&[u8]) + Send>,
@@ -53,7 +52,7 @@ pub struct PerfMap {
     pub readers: Vec<PerfReader>,
 }
 
-pub fn init_perf_map<F>(mut table: Table, cb: F) -> Result<PerfMap, Error>
+pub fn init_perf_map<F>(mut table: Table, cb: F) -> Result<PerfMap, BccError>
 where
     F: Fn() -> Box<dyn FnMut(&[u8]) + Send>,
 {
@@ -62,7 +61,7 @@ where
     let leaf = vec![0; leaf_size];
 
     if key_size != 4 || leaf_size != 4 {
-        return Err(format_err!("passed table has wrong size"));
+        return Err(BccError::TableInvalidSize);
     }
 
     let mut readers: Vec<PerfReader> = vec![];
@@ -77,10 +76,11 @@ where
         let mut key = vec![];
         key.write_u32::<NativeEndian>(*cpu as u32)?;
         cur.write_u32::<NativeEndian>(perf_fd)?;
-        table
-            .set(&mut key, &mut cur.get_mut())
-            .context("Unable to initialize perf map")?;
-        cur.set_position(0);
+        if table.set(&mut key, &mut cur.get_mut()).is_ok() {
+            cur.set_position(0);
+        } else {
+            return Err(BccError::InitializePerfMap);
+        }
     }
     Ok(PerfMap { readers })
 }
@@ -97,7 +97,10 @@ impl PerfMap {
     }
 }
 
-fn open_perf_buffer(cpu: usize, raw_cb: Box<dyn FnMut(&[u8]) + Send>) -> Result<PerfReader, Error> {
+fn open_perf_buffer(
+    cpu: usize,
+    raw_cb: Box<dyn FnMut(&[u8]) + Send>,
+) -> Result<PerfReader, BccError> {
     let callback = Box::new(PerfCallback { raw_cb });
     let reader = unsafe {
         bpf_open_perf_buffer(
@@ -110,7 +113,7 @@ fn open_perf_buffer(cpu: usize, raw_cb: Box<dyn FnMut(&[u8]) + Send>) -> Result<
         )
     };
     if reader.is_null() {
-        return Err(format_err!("failed to open perf buffer"));
+        return Err(BccError::OpenPerfBuffer);
     }
     Ok(PerfReader {
         ptr: AtomicPtr::new(reader as *mut perf_reader),

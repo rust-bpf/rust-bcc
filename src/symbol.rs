@@ -1,5 +1,6 @@
+use crate::BccError;
+
 use bcc_sys::bccapi::*;
-use failure::*;
 use libc::free;
 
 use core::ffi::c_void;
@@ -14,7 +15,7 @@ pub fn resolve_symbol_path(
     symname: &str,
     addr: u64,
     pid: pid_t,
-) -> Result<(String, u64), Error> {
+) -> Result<(String, u64), BccError> {
     let pid: pid_t = match pid {
         -1 => 0,
         x => x,
@@ -28,7 +29,7 @@ pub fn resolve_symname(
     symname: &str,
     addr: u64,
     pid: pid_t,
-) -> Result<(String, u64), Error> {
+) -> Result<(String, u64), BccError> {
     let mut symbol = unsafe { mem::zeroed::<bcc_symbol>() };
     let cmodule = CString::new(module)?;
     let csymname = CString::new(symname)?;
@@ -44,12 +45,10 @@ pub fn resolve_symname(
         )
     };
     if res < 0 {
-        Err(format_err!(
-            "unable to locate symbol {} in module {}: {}",
-            &symname,
-            module,
-            res
-        ))
+        Err(BccError::UnknownSymbol {
+            name: symname.to_string(),
+            module: module.to_string(),
+        })
     } else {
         let module = unsafe {
             CStr::from_ptr(symbol.module as *mut i8)
@@ -75,7 +74,7 @@ impl SymbolCache {
         }
     }
 
-    pub fn resolve_name(&self, module: &str, name: &str) -> Result<u64, Error> {
+    pub fn resolve_name(&self, module: &str, name: &str) -> Result<u64, BccError> {
         let cmodule = CString::new(module)?;
         let cname = CString::new(name)?;
         let mut addr: u64 = 0;
@@ -89,12 +88,10 @@ impl SymbolCache {
             )
         };
         if res < 0 {
-            Err(format_err!(
-                "unable to locate symbol {} in module {}: {}",
-                &name,
-                module,
-                res
-            ))
+            Err(BccError::UnknownSymbol {
+                name: name.to_string(),
+                module: module.to_string(),
+            })
         } else {
             Ok(addr)
         }

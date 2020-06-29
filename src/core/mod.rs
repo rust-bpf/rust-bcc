@@ -4,7 +4,6 @@ mod tracepoint;
 mod uprobe;
 
 use bcc_sys::bccapi::*;
-use failure::*;
 
 use self::kprobe::Kprobe;
 use self::raw_tracepoint::RawTracepoint;
@@ -13,6 +12,7 @@ use self::uprobe::Uprobe;
 use crate::perf::{self, PerfReader};
 use crate::symbol::SymbolCache;
 use crate::table::Table;
+use crate::BccError;
 
 use core::ffi::c_void;
 use core::sync::atomic::{AtomicPtr, Ordering};
@@ -59,11 +59,11 @@ impl BPF {
         feature = "v0_7_0",
         feature = "v0_8_0",
     ))]
-    pub fn new(code: &str) -> Result<BPF, Error> {
+    pub fn new(code: &str) -> Result<BPF, BccError> {
         let cs = CString::new(code)?;
         let ptr = unsafe { bpf_module_create_c_from_string(cs.as_ptr(), 2, ptr::null_mut(), 0) };
         if ptr.is_null() {
-            return Err(format_err!("couldn't create BPF program"));
+            return Err(BccError::Compilation);
         }
 
         Ok(BPF {
@@ -79,12 +79,12 @@ impl BPF {
 
     // 0.9.0 changes the API for bpf_module_create_c_from_string()
     #[cfg(any(feature = "v0_9_0", feature = "v0_10_0",))]
-    pub fn new(code: &str) -> Result<BPF, Error> {
+    pub fn new(code: &str) -> Result<BPF, BccError> {
         let cs = CString::new(code)?;
         let ptr =
             unsafe { bpf_module_create_c_from_string(cs.as_ptr(), 2, ptr::null_mut(), 0, true) };
         if ptr.is_null() {
-            return Err(format_err!("couldn't create BPF program"));
+            return Err(BccError::Compilation);
         }
 
         Ok(BPF {
@@ -105,7 +105,7 @@ impl BPF {
         feature = "v0_13_0",
         not(feature = "specific"),
     ))]
-    pub fn new(code: &str) -> Result<BPF, Error> {
+    pub fn new(code: &str) -> Result<BPF, BccError> {
         let cs = CString::new(code)?;
         let ptr = unsafe {
             bpf_module_create_c_from_string(
@@ -118,7 +118,7 @@ impl BPF {
             )
         };
         if ptr.is_null() {
-            return Err(format_err!("couldn't create BPF program"));
+            return Err(BccError::Compilation);
         }
 
         Ok(BPF {
@@ -143,20 +143,20 @@ impl BPF {
         Table::new(id, self.ptr())
     }
 
-    pub fn load_net(&mut self, name: &str) -> Result<File, Error> {
+    pub fn load_net(&mut self, name: &str) -> Result<File, BccError> {
         self.load(name, bpf_prog_type_BPF_PROG_TYPE_SCHED_ACT, 0, 0)
     }
 
-    pub fn load_kprobe(&mut self, name: &str) -> Result<File, Error> {
+    pub fn load_kprobe(&mut self, name: &str) -> Result<File, BccError> {
         self.load(name, bpf_prog_type_BPF_PROG_TYPE_KPROBE, 0, 0)
     }
 
-    pub fn load_uprobe(&mut self, name: &str) -> Result<File, Error> {
+    pub fn load_uprobe(&mut self, name: &str) -> Result<File, BccError> {
         // it's BPF_PROG_TYPE_KPROBE even though it's a uprobe, it's weird
         self.load(name, bpf_prog_type_BPF_PROG_TYPE_KPROBE, 0, 0)
     }
 
-    pub fn load_tracepoint(&mut self, name: &str) -> Result<File, Error> {
+    pub fn load_tracepoint(&mut self, name: &str) -> Result<File, BccError> {
         self.load(name, bpf_prog_type_BPF_PROG_TYPE_TRACEPOINT, 0, 0)
     }
 
@@ -172,7 +172,7 @@ impl BPF {
         feature = "v0_13_0",
         not(feature = "specific"),
     ))]
-    pub fn load_raw_tracepoint(&mut self, name: &str) -> Result<File, Error> {
+    pub fn load_raw_tracepoint(&mut self, name: &str) -> Result<File, BccError> {
         self.load(name, bpf_prog_type_BPF_PROG_TYPE_RAW_TRACEPOINT, 0, 0)
     }
 
@@ -183,7 +183,7 @@ impl BPF {
         prog_type: u32,
         _log_level: i32,
         log_size: u32,
-    ) -> Result<File, Error> {
+    ) -> Result<File, BccError> {
         let cname = CString::new(name).unwrap();
         unsafe {
             let start: *mut bpf_insn =
@@ -192,7 +192,9 @@ impl BPF {
             let license = bpf_module_license(self.ptr());
             let version = bpf_module_kern_version(self.ptr());
             if start.is_null() {
-                return Err(format_err!("Error in bpf_function_start for {}", name));
+                return Err(BccError::Loading {
+                    name: name.to_string(),
+                });
             }
             let mut log_buf: Vec<u8> = Vec::with_capacity(log_size as usize);
             // TODO: we're ignoring any changes bpf_prog_load made to log_buf right now
@@ -208,7 +210,9 @@ impl BPF {
                 log_buf.capacity() as u32,
             );
             if fd < 0 {
-                return Err(format_err!("error loading BPF program: {}", name));
+                return Err(BccError::Loading {
+                    name: name.to_string(),
+                });
             }
             Ok(File::from_raw_fd(fd))
         }
@@ -227,7 +231,7 @@ impl BPF {
         prog_type: u32,
         log_level: i32,
         log_size: u32,
-    ) -> Result<File, Error> {
+    ) -> Result<File, BccError> {
         let cname = CString::new(name).unwrap();
         unsafe {
             let start: *mut bpf_insn =
@@ -236,7 +240,9 @@ impl BPF {
             let license = bpf_module_license(self.ptr());
             let version = bpf_module_kern_version(self.ptr());
             if start.is_null() {
-                return Err(format_err!("Error in bpf_function_start for {}", name));
+                return Err(BccError::Loading {
+                    name: name.to_string(),
+                });
             }
             let mut log_buf: Vec<u8> = Vec::with_capacity(log_size as usize);
             // TODO: we're ignoring any changes bpf_prog_load made to log_buf right now
@@ -254,7 +260,9 @@ impl BPF {
                 log_buf.capacity() as u32,
             );
             if fd < 0 {
-                return Err(format_err!("error loading BPF program: {}", name));
+                return Err(BccError::Loading {
+                    name: name.to_string(),
+                });
             }
             Ok(File::from_raw_fd(fd))
         }
@@ -274,7 +282,7 @@ impl BPF {
         prog_type: u32,
         log_level: i32,
         log_size: u32,
-    ) -> Result<File, Error> {
+    ) -> Result<File, BccError> {
         let cname = CString::new(name).unwrap();
         unsafe {
             let start: *mut bpf_insn =
@@ -283,7 +291,9 @@ impl BPF {
             let license = bpf_module_license(self.ptr());
             let version = bpf_module_kern_version(self.ptr());
             if start.is_null() {
-                return Err(format_err!("Error in bpf_function_start for {}", name));
+                return Err(BccError::Loading {
+                    name: name.to_string(),
+                });
             }
             let mut log_buf: Vec<u8> = Vec::with_capacity(log_size as usize);
             // TODO: we're ignoring any changes bpf_prog_load made to log_buf right now
@@ -301,7 +311,9 @@ impl BPF {
                 log_buf.capacity() as u32,
             );
             if fd < 0 {
-                return Err(format_err!("error loading BPF program: {}", name));
+                return Err(BccError::Loading {
+                    name: name.to_string(),
+                });
             }
             Ok(File::from_raw_fd(fd))
         }
@@ -313,25 +325,25 @@ impl BPF {
         symbol: &str,
         file: File,
         pid: pid_t,
-    ) -> Result<(), Error> {
+    ) -> Result<(), BccError> {
         let uprobe = Uprobe::attach_uretprobe(binary_path, symbol, file, pid)?;
         self.uprobes.insert(uprobe);
         Ok(())
     }
 
-    pub fn attach_kprobe(&mut self, function: &str, file: File) -> Result<(), Error> {
+    pub fn attach_kprobe(&mut self, function: &str, file: File) -> Result<(), BccError> {
         let kprobe = Kprobe::attach_kprobe(function, file)?;
         self.kprobes.insert(kprobe);
         Ok(())
     }
 
-    pub fn attach_kretprobe(&mut self, function: &str, file: File) -> Result<(), Error> {
+    pub fn attach_kretprobe(&mut self, function: &str, file: File) -> Result<(), BccError> {
         let kretprobe = Kprobe::attach_kretprobe(function, file)?;
         self.kprobes.insert(kretprobe);
         Ok(())
     }
 
-    pub fn get_kprobe_functions(&mut self, event_re: &str) -> Result<Vec<String>, Error> {
+    pub fn get_kprobe_functions(&mut self, event_re: &str) -> Result<Vec<String>, BccError> {
         Kprobe::get_kprobe_functions(event_re)
     }
 
@@ -341,13 +353,18 @@ impl BPF {
         symbol: &str,
         file: File,
         pid: pid_t,
-    ) -> Result<(), Error> {
+    ) -> Result<(), BccError> {
         let uprobe = Uprobe::attach_uprobe(binary_path, symbol, file, pid)?;
         self.uprobes.insert(uprobe);
         Ok(())
     }
 
-    pub fn attach_tracepoint(&mut self, subsys: &str, name: &str, file: File) -> Result<(), Error> {
+    pub fn attach_tracepoint(
+        &mut self,
+        subsys: &str,
+        name: &str,
+        file: File,
+    ) -> Result<(), BccError> {
         let tracepoint = Tracepoint::attach_tracepoint(subsys, name, file)?;
         self.tracepoints.insert(tracepoint);
         Ok(())
@@ -365,13 +382,13 @@ impl BPF {
         feature = "v0_13_0",
         not(feature = "specific"),
     ))]
-    pub fn attach_raw_tracepoint(&mut self, name: &str, file: File) -> Result<(), Error> {
+    pub fn attach_raw_tracepoint(&mut self, name: &str, file: File) -> Result<(), BccError> {
         let raw_tracepoint = RawTracepoint::attach_raw_tracepoint(name, file)?;
         self.raw_tracepoints.insert(raw_tracepoint);
         Ok(())
     }
 
-    pub fn ksymname(&mut self, name: &str) -> Result<u64, Error> {
+    pub fn ksymname(&mut self, name: &str) -> Result<u64, BccError> {
         self.sym_caches
             .entry(-1)
             .or_insert_with(|| SymbolCache::new(-1));
@@ -396,7 +413,7 @@ impl BPF {
             || self.ksymname("bpf_get_raw_tracepoint").is_ok()
     }
 
-    pub fn init_perf_map<F>(&mut self, table: Table, cb: F) -> Result<(), Error>
+    pub fn init_perf_map<F>(&mut self, table: Table, cb: F) -> Result<(), BccError>
     where
         F: Fn() -> Box<dyn FnMut(&[u8]) + Send>,
     {

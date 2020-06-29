@@ -1,8 +1,7 @@
 use bcc::core::BPF;
-extern crate chrono;
+use bcc::BccError;
 use chrono::Utc;
 use clap::{App, Arg};
-use failure::Error;
 
 use core::sync::atomic::{AtomicBool, Ordering};
 use std::net::Ipv4Addr;
@@ -38,7 +37,7 @@ struct ipv6_data_t {
     type_: u64,
 }
 
-fn do_main(runnable: Arc<AtomicBool>) -> Result<(), Error> {
+fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     let matches = App::new("biosnoop")
         .arg(
             Arg::with_name("duration")
@@ -81,7 +80,7 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), Error> {
     Ok(())
 }
 
-fn print_ipv4_event() -> Box<FnMut(&[u8]) + Send> {
+fn print_ipv4_event() -> Box<dyn FnMut(&[u8]) + Send> {
     Box::new(|x| {
         let event = parse_ipv4_struct(x);
         println!(
@@ -97,7 +96,7 @@ fn print_ipv4_event() -> Box<FnMut(&[u8]) + Send> {
     })
 }
 
-fn print_ipv6_event() -> Box<FnMut(&[u8]) + Send> {
+fn print_ipv6_event() -> Box<dyn FnMut(&[u8]) + Send> {
     Box::new(|x| {
         let event = parse_ipv6_struct(x);
         println!(
@@ -131,7 +130,6 @@ fn main() {
 
     if let Err(x) = do_main(runnable) {
         eprintln!("Error: {}", x);
-        eprintln!("{}", x.backtrace());
         std::process::exit(1);
     }
 }
