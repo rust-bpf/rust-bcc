@@ -103,6 +103,7 @@ impl BPF {
         feature = "v0_11_0",
         feature = "v0_12_0",
         feature = "v0_13_0",
+        feature = "v0_14_0",
         not(feature = "specific"),
     ))]
     pub fn new(code: &str) -> Result<BPF, BccError> {
@@ -170,6 +171,7 @@ impl BPF {
         feature = "v0_11_0",
         feature = "v0_12_0",
         feature = "v0_13_0",
+        feature = "v0_14_0",
         not(feature = "specific"),
     ))]
     pub fn load_raw_tracepoint(&mut self, name: &str) -> Result<File, BccError> {
@@ -274,6 +276,7 @@ impl BPF {
         feature = "v0_11_0",
         feature = "v0_12_0",
         feature = "v0_13_0",
+        feature = "v0_14_0",
         not(feature = "specific"),
     ))]
     pub fn load(
@@ -380,6 +383,7 @@ impl BPF {
         feature = "v0_11_0",
         feature = "v0_12_0",
         feature = "v0_13_0",
+        feature = "v0_14_0",
         not(feature = "specific"),
     ))]
     pub fn attach_raw_tracepoint(&mut self, name: &str, file: File) -> Result<(), BccError> {
@@ -406,6 +410,7 @@ impl BPF {
         feature = "v0_11_0",
         feature = "v0_12_0",
         feature = "v0_13_0",
+        feature = "v0_14_0",
         not(feature = "specific"),
     ))]
     pub fn support_raw_tracepoint(&mut self) -> bool {

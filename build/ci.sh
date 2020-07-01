@@ -61,8 +61,11 @@ if [ -n "${BCC_VERSION}" ]; then
     if [[ "${BCC_VERSION}" == "0.13.0" ]]; then
         git checkout 942227484d3207f6a42103674001ef01fb5335a0
     fi
+    if [[ "${BCC_VERSION}" == "0.14.0" ]]; then
+        git checkout ceb458d6a07a42d8d6d3c16a3b8e387b5131d610
+    fi
     if [[ "${BCC_VERSION}" == "latest" ]]; then
-        git checkout 942227484d3207f6a42103674001ef01fb5335a0
+        git checkout ceb458d6a07a42d8d6d3c16a3b8e387b5131d610
     fi
     mkdir -p _build
     cd _build
