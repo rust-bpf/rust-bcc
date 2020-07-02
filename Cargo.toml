@@ -1,7 +1,7 @@
 [package]
 name = "bcc"
-version = "0.0.19-alpha.0"
-authors = ["Julia Evans <julia@jvns.ca>", "Brian Martin <brayniac@gmail.com>"]
+version = "0.0.19"
+authors = ["Julia Evans <julia@jvns.ca>", "Brian Martin <bmartin@twitter.com>"]
 description = "Idiomatic Rust bindings for BPF Compiler Collection (BCC)"
 keywords = ["bpf", "bindings", "bcc"]
 license = "MIT"
