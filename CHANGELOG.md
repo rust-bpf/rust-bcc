@@ -1,5 +1,12 @@
 # [Unreleased]
 
+# [0.0.19] - 2020-07-02
+## Added
+- Added support for bcc 0.14.0
+
+## Changed
+- Changed default bcc version to 0.14.0
+
 # [0.0.18] - 2020-06-29
 ## Changed
 - Changed error handling to use `thiserror` instead of `failure`
@@ -98,7 +105,8 @@
 
 Initial release.
 
-[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/0.0.18...HEAD
+[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/0.0.19...HEAD
+[0.0.19]: https://github.com/rust-bpf/rust-bcc/compare/0.0.18...0.0.19
 [0.0.18]: https://github.com/rust-bpf/rust-bcc/compare/0.0.17...0.0.18
 [0.0.17]: https://github.com/rust-bpf/rust-bcc/compare/0.0.16...0.0.17
 [0.0.16]: https://github.com/rust-bpf/rust-bcc/compare/0.0.15...0.0.16
