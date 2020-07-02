@@ -93,6 +93,13 @@ matrix:
       env: RUST_BACKTRACE=1 LLVM_VERSION="8" BCC_VERSION="0.13.0" FEATURES="v0_13_0"
       script:
         - bash build/ci.sh
+    - name: "xenial / llvm 8 / bcc 0.14.0"
+      os: linux
+      dist: xenial
+      rust: stable
+      env: RUST_BACKTRACE=1 LLVM_VERSION="8" BCC_VERSION="0.14.0" FEATURES="v0_14_0"
+      script:
+        - bash build/ci.sh
     - name: "xenial / llvm 8 / bcc latest"
       os: linux
       dist: xenial
@@ -133,6 +140,13 @@ matrix:
       dist: xenial
       rust: stable
       env: RUST_BACKTRACE=1 LLVM_VERSION="9" BCC_VERSION="0.13.0" FEATURES="v0_13_0"
+      script:
+        - bash build/ci.sh
+    - name: "xenial / llvm 9 / bcc 0.14.0"
+      os: linux
+      dist: xenial
+      rust: stable
+      env: RUST_BACKTRACE=1 LLVM_VERSION="9" BCC_VERSION="0.14.0" FEATURES="v0_14_0"
       script:
         - bash build/ci.sh
     - name: "xenial / llvm 9 / bcc latest"
@@ -177,6 +191,13 @@ matrix:
       env: RUST_BACKTRACE=1 LLVM_VERSION="8" BCC_VERSION="0.13.0" FEATURES="v0_13_0"
       script:
         - bash build/ci.sh
+    - name: "bionic / llvm 8 / bcc 0.14.0"
+      os: linux
+      dist: bionic
+      rust: stable
+      env: RUST_BACKTRACE=1 LLVM_VERSION="8" BCC_VERSION="0.14.0" FEATURES="v0_14_0"
+      script:
+        - bash build/ci.sh
     - name: "bionic / llvm 8 / bcc latest"
       os: linux
       dist: bionic
@@ -219,6 +240,13 @@ matrix:
       env: RUST_BACKTRACE=1 LLVM_VERSION="9" BCC_VERSION="0.13.0" FEATURES="v0_13_0"
       script:
         - bash build/ci.sh
+    - name: "bionic / llvm 9 / bcc 0.14.0"
+      os: linux
+      dist: bionic
+      rust: stable
+      env: RUST_BACKTRACE=1 LLVM_VERSION="9" BCC_VERSION="0.14.0" FEATURES="v0_14_0"
+      script:
+        - bash build/ci.sh
     - name: "bionic / llvm 9 / bcc latest"
       os: linux
       dist: bionic
@@ -259,6 +287,13 @@ matrix:
       dist: bionic
       rust: stable
       env: RUST_BACKTRACE=1 LLVM_VERSION="10" BCC_VERSION="0.13.0" FEATURES="v0_13_0"
+      script:
+        - bash build/ci.sh
+    - name: "bionic / llvm 10 / bcc 0.14.0"
+      os: linux
+      dist: bionic
+      rust: stable
+      env: RUST_BACKTRACE=1 LLVM_VERSION="10" BCC_VERSION="0.14.0" FEATURES="v0_14_0"
       script:
         - bash build/ci.sh
     - name: "bionic / llvm 10 / bcc latest"
