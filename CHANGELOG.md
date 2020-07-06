@@ -1,5 +1,12 @@
 # [Unreleased]
 
+# [0.0.20] - 2020-07-06
+## Added
+- Added support for bcc 0.15.0
+
+## Changed
+- Changed default bcc version to 0.15.0
+
 # [0.0.19] - 2020-07-02
 ## Added
 - Added support for bcc 0.14.0
@@ -105,7 +112,8 @@
 
 Initial release.
 
-[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/0.0.19...HEAD
+[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/0.0.20...HEAD
+[0.0.19]: https://github.com/rust-bpf/rust-bcc/compare/0.0.19...0.0.20
 [0.0.19]: https://github.com/rust-bpf/rust-bcc/compare/0.0.18...0.0.19
 [0.0.18]: https://github.com/rust-bpf/rust-bcc/compare/0.0.17...0.0.18
 [0.0.17]: https://github.com/rust-bpf/rust-bcc/compare/0.0.16...0.0.17
