@@ -6,6 +6,10 @@ use core::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::{mem, ptr, thread, time};
 
+// A simple tool for reporting on time spent in hardirq handlers
+//
+// Based on: https://github.com/iovisor/bcc/blob/master/tools/hardirqs.py
+
 #[repr(C)]
 struct irq_key_t {
     name: [u8; 32],
@@ -55,7 +59,7 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
 
     while runnable.load(Ordering::SeqCst) {
         thread::sleep(time::Duration::new(interval as u64, 0));
-        println!("\n{:<-16} {:<-11}", "HARDIRQ", "time_nsecs");
+        println!("\n{:<-16} {:<-11}", "HARDIRQ", "time (ns)");
 
         for entry in table.iter() {
             let data = parse_struct(&entry.key);
@@ -71,8 +75,11 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
             if time > 0 {
                 println!("{:<-16} {:<-11}", name, time);
             }
+
+            let mut key = [0; 40];
+            key.copy_from_slice(&entry.key);
+            let _ = table.set(&mut key, &mut [0_u8; 8]);
         }
-        table.delete_all();
 
         if let Some(windows) = windows {
             window += 1;

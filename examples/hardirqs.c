@@ -13,7 +13,7 @@ typedef struct irq_key {
     u64 slot;
 } irq_key_t;
 
-BPF_HASH(start, u32);
+BPF_HASH(start, u32, u64);
 BPF_HASH(irqdesc, u32, struct irq_desc *);
 BPF_HISTOGRAM(dist, irq_key_t);
 
@@ -32,7 +32,7 @@ int hardirq_exit(struct pt_regs *ctx)
     u64 *tsp, delta;
     struct irq_desc **descp;
     u32 pid = bpf_get_current_pid_tgid();
-    
+
     // fetch timestamp and calculate delta
     tsp = start.lookup(&pid);
     descp = irqdesc.lookup(&pid);
