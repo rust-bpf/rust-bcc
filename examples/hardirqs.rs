@@ -33,6 +33,13 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
                 .help("The number of intervals before exit")
                 .takes_value(true),
         )
+        .arg(
+            Arg::with_name("nanoseconds")
+                .long("nano")
+                .short("N")
+                .help("Display the timestamps in nanoseconds")
+                .takes_value(false),
+        )
         .get_matches();
 
     let interval: usize = matches
@@ -44,6 +51,12 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     let windows: Option<usize> = matches
         .value_of("windows")
         .map(|v| v.parse().expect("Invalud argument for windows"));
+
+    let (factor, unit) = if matches.is_present("nanoseconds") {
+        (1, "ns")
+    } else {
+        (1000, "us")
+    };
 
     let code = include_str!("hardirqs.c");
     let mut bpf = BPF::new(code)?;
@@ -59,7 +72,7 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
 
     while runnable.load(Ordering::SeqCst) {
         thread::sleep(time::Duration::new(interval as u64, 0));
-        println!("\n{:<-16} {:<-11}", "HARDIRQ", "time (ns)");
+        println!("\n{:<-16} {:<-11}", "HARDIRQ", unit);
 
         for entry in table.iter() {
             let data = parse_struct(&entry.key);
@@ -73,7 +86,7 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
             let name = get_string(&data.name);
 
             if time > 0 {
-                println!("{:<-16} {:<-11}", name, time);
+                println!("{:<-16} {:<-11}", name, time / factor);
             }
 
             let mut key = [0; 40];
