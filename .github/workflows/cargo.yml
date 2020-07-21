@@ -226,10 +226,9 @@ jobs:
     name: focal / llvm 9 / bcc 0.15.0 / static
     runs-on: ubuntu-20.04
     env:
-      FEATURES: v0_15_0 static
-    env:
       CFLAGS: -fPIC
       RUSTFLAGS: -L /usr/lib -L /usr/lib64 -L /usr/lib/llvm-9/lib
+      FEATURES: v0_15_0 static
     steps:
     - uses: actions/checkout@v2
     - uses: actions/cache@v2
