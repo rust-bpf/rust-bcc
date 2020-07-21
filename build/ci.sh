@@ -1,9 +1,11 @@
 #!/bin/bash -ev
 
 ## Add LLVM repo
-wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-echo "deb http://apt.llvm.org/${TRAVIS_DIST}/ llvm-toolchain-${TRAVIS_DIST}-${LLVM_VERSION} main" | sudo tee -a /etc/apt/sources.list
-sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
+if [ -n "${TRAVIS_DIST}" ]; then
+    wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+    echo "deb http://apt.llvm.org/${TRAVIS_DIST}/ llvm-toolchain-${TRAVIS_DIST}-${LLVM_VERSION} main" | sudo tee -a /etc/apt/sources.list
+    sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/ppa
+fi
 
 ## Update apt
 sudo apt-get update
