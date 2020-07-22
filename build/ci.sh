@@ -126,23 +126,25 @@ cd ../..
 
 ## Build and test
 if [ -n "${FEATURES}" ]; then
-    if [[ $STATIC != true ]]; then
-        cargo build --release --features "${FEATURES}"
-        cargo test --release --features "${FEATURES}"
-    else
+    if [[ $STATIC == true ]]; then
         export RUSTFLAGS="-L /usr/lib -L /usr/lib64 -L /usr/lib/llvm-${LLVM}/lib"
     fi
+
+    cargo build --release --features "${FEATURES}"
+    cargo test --release --features "${FEATURES}"
+
     sudo target/release/examples/runqlat --interval 1 --windows 5
     sudo target/release/examples/opensnoop --duration 5
     sudo target/release/examples/biosnoop --duration 5
     sudo target/release/examples/tcpretrans --duration 5
 else
-    if [[ $STATIC != true ]]; then
-        cargo build --release
-        cargo test --release
-    else
+    if [[ $STATIC == true ]]; then
         export RUSTFLAGS="-L /usr/lib -L /usr/lib64 -L /usr/lib/llvm-${LLVM}/lib"
     fi
+
+    cargo build --release
+    cargo test --release
+
     sudo target/release/examples/runqlat --interval 1 --windows 5
     sudo target/release/examples/opensnoop --duration 5
     sudo target/release/examples/biosnoop --duration 5
