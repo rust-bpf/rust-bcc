@@ -138,7 +138,7 @@ impl EntryIter {
         }
     }
 
-    pub fn start(&mut self) -> Entry {
+    pub fn start(&mut self) -> Option<Entry> {
         self.fd = Some(self.table.fd());
         let key_size = self.table.key_size();
         let leaf_size = self.table.leaf_size();
@@ -149,9 +149,11 @@ impl EntryIter {
         self.current = Some(entry);
         unsafe {
             let (k, _) = self.entry_ptrs().unwrap();
-            bpf_get_first_key(self.fd.unwrap(), k, key_size);
+            if bpf_get_first_key(self.fd.unwrap(), k, key_size) < 0 {
+                self.current = None;
+            }
         }
-        self.current.clone().unwrap()
+        self.current.clone()
     }
 }
 
@@ -169,7 +171,7 @@ impl Iterator for EntryIter {
                 }
             }
         } else {
-            Some(self.start())
+            self.start()
         }
     }
 }
