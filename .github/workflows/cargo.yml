@@ -6,7 +6,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  CACHE: 0
+  cache: 0
 
 jobs:
   xenial-llvm_8-bcc_v0_10_0:
@@ -19,17 +19,6 @@ jobs:
       LLVM: 8
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/cache@v2
-      env:
-        cache-name:  xenial-llvm_8-bcc_v0_10_0
-      with:
-        path: |
-          ~/.cache/sccache
-          ~/.cargo/bin
-          ~/.cargo/git
-          ~/.cargo/registry
-          target
-        key: ${{ env.cache-name }}-${{ env.cache }}-${{ hashFiles('Cargo.toml') }}
     - name: Run CI
       run: bash -e build/ci.sh
   xenial-llvm_8-bcc_v0_11_0:
@@ -42,17 +31,6 @@ jobs:
       LLVM: 8
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/cache@v2
-      env:
-        cache-name: xenial-llvm_8-bcc_v0_11_0
-      with:
-        path: |
-          ~/.cache/sccache
-          ~/.cargo/bin
-          ~/.cargo/git
-          ~/.cargo/registry
-          target
-        key: ${{ env.cache-name }}-${{ env.cache }}-${{ hashFiles('**/Cargo.toml') }}
     - name: Run CI
       run: bash -e build/ci.sh
   xenial-llvm_8-bcc_v0_12_0:
@@ -65,17 +43,6 @@ jobs:
       LLVM: 8
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/cache@v2
-      env:
-        cache-name: xenial-llvm_8-bcc_v0_12_0
-      with:
-        path: |
-          ~/.cache/sccache
-          ~/.cargo/bin
-          ~/.cargo/git
-          ~/.cargo/registry
-          target
-        key: ${{ env.cache-name }}-${{ env.cache }}-${{ hashFiles('**/Cargo.toml') }}
     - name: Run CI
       run: bash -e build/ci.sh
   xenial-llvm_8-bcc_v0_13_0:
@@ -88,17 +55,6 @@ jobs:
       LLVM: 8
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/cache@v2
-      env:
-        cache-name: xenial-llvm_8-bcc_v0_13_0
-      with:
-        path: |
-          ~/.cache/sccache
-          ~/.cargo/bin
-          ~/.cargo/git
-          ~/.cargo/registry
-          target
-        key: ${{ env.cache-name }}-${{ env.cache }}-${{ hashFiles('**/Cargo.toml') }}
     - name: Run CI
       run: bash -e build/ci.sh
   xenial-llvm_8-bcc_v0_14_0:
@@ -111,17 +67,6 @@ jobs:
       LLVM: 8
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/cache@v2
-      env:
-        cache-name: xenial-llvm_8-bcc_v0_14_0
-      with:
-        path: |
-          ~/.cache/sccache
-          ~/.cargo/bin
-          ~/.cargo/git
-          ~/.cargo/registry
-          target
-        key: ${{ env.cache-name }}-${{ env.cache }}-${{ hashFiles('**/Cargo.toml') }}
     - name: Run CI
       run: bash -e build/ci.sh
   xenial-llvm_8-bcc_v0_15_0:
@@ -134,17 +79,6 @@ jobs:
       LLVM: 8
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/cache@v2
-      env:
-        cache-name: xenial-llvm_8-bcc_v0_15_0
-      with:
-        path: |
-          ~/.cache/sccache
-          ~/.cargo/bin
-          ~/.cargo/git
-          ~/.cargo/registry
-          target
-        key: ${{ env.cache-name }}-${{ env.cache }}-${{ hashFiles('**/Cargo.toml') }}
     - name: Run CI
       run: bash -e build/ci.sh
   xenial-llvm_8-bcc_v0_15_0-static:
@@ -158,17 +92,6 @@ jobs:
       STATIC: true
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/cache@v2
-      env:
-        cache-name: xenial-llvm_8-bcc_v0_15_0-static
-      with:
-        path: |
-          ~/.cache/sccache
-          ~/.cargo/bin
-          ~/.cargo/git
-          ~/.cargo/registry
-          target
-        key: ${{ runner.os }}-cargo-${{ env.cache-name }}-${{ hashFiles('**/Cargo.lock') }}
     - name: Run CI
       run: bash -e build/ci.sh
   focal-llvm_9-bcc_v0_12_0:
@@ -181,17 +104,6 @@ jobs:
       LLVM: 9
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/cache@v2
-      env:
-        cache-name: focal-llvm_9-bcc_v0_12_0
-      with:
-        path: |
-          ~/.cache/sccache
-          ~/.cargo/bin
-          ~/.cargo/git
-          ~/.cargo/registry
-          target
-        key: ${{ env.cache-name }}-${{ env.cache }}-${{ hashFiles('**/Cargo.toml') }}
     - name: Run CI
       run: bash -e build/ci.sh
   focal-llvm_9-bcc_v0_13_0:
@@ -204,17 +116,6 @@ jobs:
       LLVM: 9
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/cache@v2
-      env:
-        cache-name: focal-llvm_9-bcc_v0_13_0
-      with:
-        path: |
-          ~/.cache/sccache
-          ~/.cargo/bin
-          ~/.cargo/git
-          ~/.cargo/registry
-          target
-        key: ${{ env.cache-name }}-${{ env.cache }}-${{ hashFiles('**/Cargo.toml') }}
     - name: Run CI
       run: bash -e build/ci.sh
   focal-llvm_9-bcc_v0_14_0:
@@ -227,17 +128,6 @@ jobs:
       LLVM: 9
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/cache@v2
-      env:
-        cache-name: focal-llvm_9-bcc_v0_14_0
-      with:
-        path: |
-          ~/.cache/sccache
-          ~/.cargo/bin
-          ~/.cargo/git
-          ~/.cargo/registry
-          target
-        key: ${{ env.cache-name }}-${{ env.cache }}-${{ hashFiles('**/Cargo.toml') }}
     - name: Run CI
       run: bash -e build/ci.sh
   focal-llvm_9-bcc_v0_15_0:
@@ -250,17 +140,6 @@ jobs:
       LLVM: 9
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/cache@v2
-      env:
-        cache-name: focal-llvm_9-bcc_v0_15_0
-      with:
-        path: |
-          ~/.cache/sccache
-          ~/.cargo/bin
-          ~/.cargo/git
-          ~/.cargo/registry
-          target
-        key: ${{ env.cache-name }}-${{ env.cache }}-${{ hashFiles('**/Cargo.toml') }}
     - name: Run CI
       run: bash -e build/ci.sh
   focal-llvm_9-bcc_v0_15_0-static:
@@ -274,34 +153,12 @@ jobs:
       STATIC: true
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/cache@v2
-      env:
-        cache-name: focal_nightly_bcc-0.15.0_static
-      with:
-        path: |
-          ~/.cache/sccache
-          ~/.cargo/bin
-          ~/.cargo/git
-          ~/.cargo/registry
-          target
-        key: ${{ runner.os }}-cargo-${{ env.cache-name }}-${{ hashFiles('**/Cargo.lock') }}
     - name: Run CI
       run: bash -e build/ci.sh
   rustfmt:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/cache@v2
-      env:
-        cache-name: rustfmt
-      with:
-        path: |
-          ~/.cache/sccache
-          ~/.cargo/bin
-          ~/.cargo/git
-          ~/.cargo/registry
-          target
-        key: ${{ env.cache-name }}-${{ env.cache }}-${{ hashFiles('**/Cargo.toml') }}
     - name: install rustfmt
       run: rustup component add rustfmt
     - name: rustfmt
@@ -310,17 +167,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/cache@v2
-      env:
-        cache-name: clippy
-      with:
-        path: |
-          ~/.cache/sccache
-          ~/.cargo/bin
-          ~/.cargo/git
-          ~/.cargo/registry
-          target
-        key: ${{ env.cache-name }}-${{ env.cache }}-${{ hashFiles('**/Cargo.toml') }}
     - name: install clippy
       run: rustup component add clippy
     - name: clippy

@@ -2,26 +2,6 @@
 
 set -e
 
-# try to install or use existing sccache
-export SCCACHE=false
-
-if sccache --version > /dev/null 2>&1; then
-    echo "Using existing sccache"
-    export SCCACHE=true
-elif cargo install sccache; then
-    echo "Installed sccache"
-    export SCCACHE=true
-else
-    echo "Building without sccache"
-fi
-
-if [[ $SCCACHE == true ]]; then
-    export RUSTC_WRAPPER="sccache"
-    export CC="sccache gcc"
-    export CXX="sccache g++"
-    sccache --version
-fi
-
 ## Update apt
 sudo apt-get update
 
