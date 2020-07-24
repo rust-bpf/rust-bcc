@@ -358,7 +358,7 @@ impl BPF {
         Kprobe::get_kprobe_functions(event_re)
     }
 
-    pub fn attach_pref_event(
+    pub fn attach_perf_event(
         &mut self, name: &str, 
         perf_type: Option<u32>, 
         perf_config: Option<u32>,
