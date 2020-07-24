@@ -1,5 +1,13 @@
 # [Unreleased]
 
+# [0.0.21] - 2020-07-24
+## Fixed
+- Iterating on an empty table would improperly return an entry (#100)
+- Fixed some issues with static linking by pulling in a newer version of bcc-sys
+
+## Changed
+- LLVM 9 is now the default expected toolchain for static builds
+
 # [0.0.20] - 2020-07-06
 ## Added
 - Added support for bcc 0.15.0

@@ -13,6 +13,13 @@ particularly idiomatic for Rust. Pull requests very much appreciated.
 
 * bcc v0.4.0-v0.15.0
 
+## Static linking
+
+This crate allows for statically linking libbpf/libbcc which enables the creation of tools which
+have no runtime dependency on matching versions being present on target systems. To statically link,
+you may need to compile several dependencies from source. See the `build/ci.sh` script for how those
+dependencies are built and how we build and run statically linked examples in CI.
+
 ## Getting Started
 
 The best way to learn about how to use this crate right now is to read the examples. The exciting
