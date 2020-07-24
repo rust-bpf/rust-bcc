@@ -133,6 +133,7 @@ if [ -n "${FEATURES}" ]; then
     cargo build --release --features "${FEATURES}"
     cargo test --release --features "${FEATURES}"
 
+    sudo target/release/examples/smoketest
     sudo target/release/examples/runqlat --interval 1 --windows 5
     sudo target/release/examples/opensnoop --duration 5
     sudo target/release/examples/biosnoop --duration 5
@@ -145,6 +146,7 @@ else
     cargo build --release
     cargo test --release
 
+    sudo target/release/examples/smoketest
     sudo target/release/examples/runqlat --interval 1 --windows 5
     sudo target/release/examples/opensnoop --duration 5
     sudo target/release/examples/biosnoop --duration 5
