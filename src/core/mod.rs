@@ -10,7 +10,7 @@ use self::kprobe::Kprobe;
 use self::raw_tracepoint::RawTracepoint;
 use self::tracepoint::Tracepoint;
 use self::uprobe::Uprobe;
-use self::perf_event::{PerfEvent};
+use self::perf_event::PerfEvent;
 use crate::perf::{self, PerfReader};
 use crate::symbol::SymbolCache;
 use crate::table::Table;
@@ -360,8 +360,8 @@ impl BPF {
 
     pub fn attach_perf_event(
         &mut self, name: &str, 
-        perf_type: Option<u32>, 
-        perf_config: Option<u32>,
+        perf_type: u32, 
+        perf_config: u32,
         sample_period: Option<u64>,
         sample_freq: Option<u64>,
         pid: Option<i32>,

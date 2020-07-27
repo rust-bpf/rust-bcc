@@ -3,54 +3,9 @@ use crate::BccError;
 
 use bcc_sys::bccapi::*;
 
-use std::cmp::max;
 use std::fs::File;
 use std::hash::{Hash, Hasher};
 use std::os::unix::prelude::*;
-
-// TODO:
-//    - The enums below should probably generated in bcc-sys
-//    - Find a way to map generated to
-
-#[allow(dead_code)]
-pub enum PerfEventType {
-    // From perf_type_id in uapi/linux/perf_event.h
-    Hardware = 0,
-    Software = 1,
-}
-
-#[allow(dead_code)]
-pub enum PerfEventHWConfig {
-    // From perf_hw_id in uapi/linux/perf_event.h
-    CpuCycles = 0,
-    Instructions = 1,
-    CacheReferences = 2,
-    CacheMisses = 3,
-    BranchInstructions = 4,
-    BranchMisses = 5,
-    BusCycles = 6,
-    StalledCyclesFrontend = 7,
-    StalledCyclesBackend = 8,
-    RefCpuCycles = 9,
-    HWMax = 10,
-}
-
-#[allow(dead_code)]
-pub enum PerfEventSWConfig {
-    // From perf_sw_id in uapi/linux/perf_event.h
-    CpuClock = 0,
-    TaskClock = 1,
-    PageFaults = 2,
-    ContextSwitches = 3,
-    CpuMigrations = 4,
-    PageFaultsMin = 5,
-    PageFaultsMaj = 6,
-    AlignmentFaults = 7,
-    EmulationFaults = 8,
-    Dummy = 9,
-    BpfOutput = 10,
-    SWMax = 11,
-}
 
 #[derive(Debug)]
 pub struct PerfEvent {
@@ -123,21 +78,16 @@ impl PerfEvent {
 
     pub fn attach_perf_event(
         code: File,
-        event_type: Option<u32>,
-        event_config: Option<u32>,
+        event_type: u32,
+        event_config: u32,
         sample_period: Option<u64>,
         sample_freq: Option<u64>,
         pid: Option<i32>,
         cpu: Option<usize>,
         group_fd: Option<i32>,
     ) -> Result<Self, BccError> {
-        // Defaults
-        let max_config = max(
-            PerfEventHWConfig::HWMax as u32,
-            PerfEventSWConfig::SWMax as u32,
-        );
-        let event_type = event_type.unwrap_or(max_config);
-        let event_config = event_config.unwrap_or(max_config);
+        let event_type = event_type;
+        let event_config = event_config;
         let sample_period = sample_period.unwrap_or(0);
         let sample_freq = sample_freq.unwrap_or(0);
         let pid = pid.unwrap_or(-1);
