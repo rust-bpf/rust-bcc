@@ -6,7 +6,7 @@ use clap::{App, Arg};
 use core::sync::atomic::{AtomicBool, Ordering};
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::{mem, ptr, thread, time};
+use std::{mem, ptr, thread, time, str};
 
 // Summarize cache reference and cache misses
 //
@@ -19,7 +19,7 @@ const DEFAULT_DURATION: u64 = 10;
 struct key_t {
     cpu: i32,
     pid: i32,
-    name: Vec<u8>,
+    name: [u8; 16],
 }
 
 fn do_main() -> Result<(), BccError> {
@@ -79,8 +79,11 @@ fn do_main() -> Result<(), BccError> {
     // Count misses
     let mut miss_table = bpf.table("miss_count");
     let miss_map = to_map(&mut miss_table);
-    let mut ref_table = bpf.table("ref_table");
+    let mut ref_table = bpf.table("ref_count");
     let ref_map = to_map(&mut ref_table);
+
+    let mut total_hit = 0;
+    let mut total_miss = 0;
 
     println!(
         "{:<-8} {:<-16} {:<-4} {:>-12} {:>-12} {:>6}",
@@ -89,6 +92,8 @@ fn do_main() -> Result<(), BccError> {
     for (key, value) in ref_map.iter() {
         let miss = miss_map.get(key).unwrap_or(&0);
         let hit = if value > miss { value - miss } else { 0 };
+        total_hit += hit;
+        total_miss += miss;
         println!(
             "{:<-8} {:<-16} {:<-4} {:>-12} {:>-12} {:>6}%",
             key.1, // PID
@@ -100,6 +105,8 @@ fn do_main() -> Result<(), BccError> {
         );
     }
 
+    println!("Total hit: {}\nTotal miss: {}", total_hit, total_miss);
+
     Ok(())
 }
 
@@ -109,7 +116,7 @@ fn to_map(table: &mut bcc::table::Table) -> HashMap<(i32, i32, String), u64> {
     for entry in table.iter() {
         let key = parse_struct(&entry.key);
         let value = parse_u64(entry.value);
-        let name = parse_string(&key.name);
+        let name = str::from_utf8(&key.name).unwrap_or("").to_string();
 
         map.insert((key.cpu, key.pid, name), value);
     }
@@ -128,13 +135,6 @@ fn parse_u64(x: Vec<u8>) -> u64 {
 
 fn parse_struct(x: &[u8]) -> key_t {
     unsafe { ptr::read(x.as_ptr() as *const key_t) }
-}
-
-fn parse_string(x: &[u8]) -> String {
-    match x.iter().position(|&r| r == 0) {
-        Some(zero_pos) => String::from_utf8_lossy(&x[0..zero_pos]).to_string(),
-        None => String::from_utf8_lossy(x).to_string(),
-    }
 }
 
 fn main() {
