@@ -45,25 +45,23 @@ impl PerfEvent {
             if ptr < 0 {
                 return Err(BccError::AttachPerfEvent { ev_type, ev_config });
             }
-        } else {
-            if let Ok(cpus) = cpuonline::get() {
-                for i in cpus {
-                    let ptr = unsafe {
-                        bpf_attach_perf_event(
-                            code.as_raw_fd(),
-                            ev_type,
-                            ev_config,
-                            sample_period,
-                            sample_freq,
-                            pid,
-                            i as i32,
-                            group_fd,
-                        )
-                    };
+        } else if let Ok(cpus) = cpuonline::get() {
+            for i in cpus {
+                let ptr = unsafe {
+                    bpf_attach_perf_event(
+                        code.as_raw_fd(),
+                        ev_type,
+                        ev_config,
+                        sample_period,
+                        sample_freq,
+                        pid,
+                        i as i32,
+                        group_fd,
+                    )
+                };
 
-                    if ptr < 0 {
-                        return Err(BccError::AttachPerfEvent { ev_type, ev_config });
-                    }
+                if ptr < 0 {
+                    return Err(BccError::AttachPerfEvent { ev_type, ev_config });
                 }
             }
         }

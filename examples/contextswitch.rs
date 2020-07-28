@@ -9,11 +9,11 @@ use clap::{App, Arg};
 
 use core::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
-use std::{mem, ptr, thread, time};
+use std::{ptr, thread, time};
 
 // Both consants are arbitrary
-const DEFAULT_SAMPLE_FREQ: u64 = 50;
-const DEFAULT_DURATION: u64 = 120;
+const DEFAULT_SAMPLE_FREQ: u64 = 50; // Hertz
+const DEFAULT_DURATION: u64 = 120; // Seconds
 
 #[repr(C)]
 struct key_t {
@@ -47,13 +47,13 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
         .arg(
             Arg::with_name("pid")
                 .long("pid")
-                .help("Only track this pid")
+                .help("Only track this TID")
                 .takes_value(true),
         )
         .arg(
-            Arg::with_name("tgid")
-                .long("tgid")
-                .help("Only track this thread")
+            Arg::with_name("tid")
+                .long("tid")
+                .help("Only track this TID")
                 .takes_value(true),
         )
         .arg(
@@ -72,7 +72,7 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
         .value_of("sample_period")
         .map(|v| v.parse().expect("Invalid sample period"));
 
-    if !sample_frequency.is_some() && !sample_period.is_some() {
+    if sample_frequency.is_none() && !sample_period.is_none() {
         sample_frequency = Some(DEFAULT_SAMPLE_FREQ);
     }
 
@@ -108,14 +108,14 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
 
     println!("Running for {} seconds", duration);
 
-    let mut durr = 0;
+    let mut elapsed = 0;
     while runnable.load(Ordering::SeqCst) {
         thread::sleep(time::Duration::new(1, 0));
 
-        if durr == duration {
+        if elapsed == duration {
             break;
         }
-        durr += 1;
+        elapsed += 1;
     }
 
     // Count misses
@@ -144,20 +144,20 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
 
 fn parse_u32(x: Vec<u8>) -> u32 {
     let mut v = [0_u8; 4];
-    for i in 0..4 {
-        v[i] = *x.get(i).unwrap_or(&0);
+    for (i, byte) in v.iter_mut().enumerate() {
+        *byte = *x.get(i).unwrap_or(&0);
     }
 
-    unsafe { mem::transmute(v) }
+    u32::from_be_bytes(v)
 }
 
 fn parse_u64(x: Vec<u8>) -> u64 {
     let mut v = [0_u8; 8];
-    for i in 0..8 {
-        v[i] = *x.get(i).unwrap_or(&0);
+    for (i, byte) in v.iter_mut().enumerate() {
+        *byte = *x.get(i).unwrap_or(&0);
     }
 
-    unsafe { mem::transmute(v) }
+    u64::from_be_bytes(v)
 }
 
 fn parse_struct(x: &[u8]) -> key_t {

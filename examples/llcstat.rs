@@ -12,8 +12,8 @@ use std::{mem, ptr, str, thread, time};
 //
 // Based on https://github.com/iovisor/bcc/blob/master/tools/llcstat.py
 
-const DEFAULT_SAMPLE_PERIOD: u64 = 100;
-const DEFAULT_DURATION: u64 = 10;
+const DEFAULT_SAMPLE_PERIOD: u64 = 100; // Events (Aka every 100 events)
+const DEFAULT_DURATION: u64 = 10; // Seconds
 
 #[repr(C)]
 struct key_t {
@@ -22,7 +22,7 @@ struct key_t {
     name: [u8; 16],
 }
 
-fn do_main() -> Result<(), BccError> {
+fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     let matches = App::new("cpudist")
         .arg(
             Arg::with_name("sample_period")
@@ -74,7 +74,15 @@ fn do_main() -> Result<(), BccError> {
     )?;
 
     println!("Running for {} seconds", duration);
-    thread::sleep(time::Duration::new(duration, 0));
+
+    let mut elapsed = 0;
+    while runnable.load(Ordering::SeqCst) {
+        if elapsed == duration {
+            break;
+        }
+        thread::sleep(time::Duration::new(1, 0));
+        elapsed += 1;
+    }
 
     // Count misses
     let mut miss_table = bpf.table("miss_count");
@@ -145,7 +153,7 @@ fn main() {
     })
     .expect("Failed to set handler for SIGINT / SIGTERM");
 
-    if let Err(x) = do_main() {
+    if let Err(x) = do_main(runnable) {
         eprintln!("Error: {}", x);
         std::process::exit(1);
     }

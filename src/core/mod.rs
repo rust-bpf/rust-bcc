@@ -373,7 +373,7 @@ impl BPF {
         let func = self.load(name, bpf_prog_type_BPF_PROG_TYPE_PERF_EVENT, 0, 0);
 
         match func {
-            Err(e) => return Err(e),
+            Err(e) => Err(e),
             Ok(f) => {
                 let perf_event = PerfEvent::attach_perf_event(
                     f,
