@@ -10,15 +10,17 @@ use crate::table::Table;
 use crate::types::*;
 use crate::BccError;
 
-// TODO:
-//    - The enums below should probably generated in bcc-sys
-//    - Find a way to map generated to
-
 #[allow(dead_code)]
 pub enum PerfType {
     // From perf_type_id in uapi/linux/perf_event.h
     Hardware = 0,
     Software = 1,
+    Tracepoint = 2,
+    HardwareCache = 3,
+    Raw = 4,
+    Breakpoint = 5,
+
+    Max, // non-ABI
 }
 
 #[allow(dead_code)]
@@ -34,7 +36,8 @@ pub enum PerfHardwareConfig {
     StalledCyclesFrontend = 7,
     StalledCyclesBackend = 8,
     RefCpuCycles = 9,
-    Max = 10, // non-ABI
+
+    Max, // non-ABI
 }
 
 #[allow(dead_code)]
@@ -51,7 +54,8 @@ pub enum PerfSoftwareConfig {
     EmulationFaults = 8,
     Dummy = 9,
     BpfOutput = 10,
-    Max = 11, // non-ABI
+
+    Max, // non-ABI
 }
 
 struct PerfCallback {
