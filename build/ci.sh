@@ -88,6 +88,7 @@ if [ -n "${FEATURES}" ]; then
     sudo target/release/examples/opensnoop --duration 5
     sudo target/release/examples/biosnoop --duration 5
     sudo target/release/examples/tcpretrans --duration 5
+    sudo target/release/examples/contextswitch --duration 5
 else
     cargo build
     cargo test
@@ -97,4 +98,5 @@ else
     sudo target/release/examples/opensnoop --duration 5
     sudo target/release/examples/biosnoop --duration 5
     sudo target/release/examples/tcpretrans --duration 5
+    sudo target/release/examples/contextswitch --duration 5
 fi
