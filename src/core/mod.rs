@@ -359,6 +359,7 @@ impl BPF {
         Kprobe::get_kprobe_functions(event_re)
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn attach_perf_event(
         &mut self,
         name: &str,

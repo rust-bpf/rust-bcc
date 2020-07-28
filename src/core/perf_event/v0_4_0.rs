@@ -16,6 +16,7 @@ pub struct PerfEvent {
 }
 
 impl PerfEvent {
+    #[allow(clippy::too_many_arguments)]
     fn new(
         code: File,
         ev_type: u32,
@@ -74,6 +75,7 @@ impl PerfEvent {
         })
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn attach_perf_event(
         code: File,
         event_type: u32,
