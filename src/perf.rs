@@ -58,6 +58,20 @@ pub enum PerfSoftwareConfig {
     Max, // non-ABI
 }
 
+#[allow(dead_code)]
+pub enum PerfHardwareCacheConfig {
+    // From perf_hw_cache_id in uapi/linux/perf_event.h
+    L1D = 0,
+    L1I = 1,
+    LL = 2,
+    DTLB = 3,
+    ITLB = 4,
+    BPU = 5,
+    NODE = 6,
+
+    Max, // non-ABI
+}
+
 struct PerfCallback {
     raw_cb: Box<dyn FnMut(&[u8]) + Send>,
 }
