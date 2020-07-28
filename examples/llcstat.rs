@@ -6,7 +6,7 @@ use clap::{App, Arg};
 use core::sync::atomic::{AtomicBool, Ordering};
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::{mem, ptr, thread, time, str};
+use std::{mem, ptr, str, thread, time};
 
 // Summarize cache reference and cache misses
 //

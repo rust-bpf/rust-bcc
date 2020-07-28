@@ -1,16 +1,16 @@
 mod kprobe;
+mod perf_event;
 mod raw_tracepoint;
 mod tracepoint;
 mod uprobe;
-mod perf_event;
 
 use bcc_sys::bccapi::*;
 
 use self::kprobe::Kprobe;
+use self::perf_event::PerfEvent;
 use self::raw_tracepoint::RawTracepoint;
 use self::tracepoint::Tracepoint;
 use self::uprobe::Uprobe;
-use self::perf_event::PerfEvent;
 use crate::perf::{self, PerfReader};
 use crate::symbol::SymbolCache;
 use crate::table::Table;
@@ -97,6 +97,7 @@ impl BPF {
             kprobes: HashSet::new(),
             tracepoints: HashSet::new(),
             raw_tracepoints: HashSet::new(),
+            perf_events: HashSet::new(),
             perf_readers: Vec::new(),
             sym_caches: HashMap::new(),
         })
@@ -359,14 +360,15 @@ impl BPF {
     }
 
     pub fn attach_perf_event(
-        &mut self, name: &str, 
-        perf_type: u32, 
+        &mut self,
+        name: &str,
+        perf_type: u32,
         perf_config: u32,
         sample_period: Option<u64>,
         sample_freq: Option<u64>,
         pid: Option<i32>,
         cpu: Option<usize>,
-        group_fd: Option<i32>
+        group_fd: Option<i32>,
     ) -> Result<(), BccError> {
         let func = self.load(name, bpf_prog_type_BPF_PROG_TYPE_PERF_EVENT, 0, 0);
 
@@ -381,12 +383,12 @@ impl BPF {
                     sample_freq,
                     pid,
                     cpu,
-                    group_fd
+                    group_fd,
                 )?;
                 self.perf_events.insert(perf_event);
                 Ok(())
             }
-        } 
+        }
     }
 
     pub fn attach_uprobe(
