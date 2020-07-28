@@ -3,7 +3,7 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use bcc::core::BPF;
-use bcc::perf::{PerfHardwareConfig, PerfType};
+use bcc::perf::{PerfSoftwareConfig, PerfType};
 use bcc::BccError;
 use clap::{App, Arg};
 
@@ -98,7 +98,7 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     bpf.attach_perf_event(
         "do_count",
         PerfType::Software as u32,
-        PerfHardwareConfig::CacheMisses as u32,
+        PerfSoftwareConfig::ContextSwitches as u32,
         sample_period,
         sample_frequency,
         None,
