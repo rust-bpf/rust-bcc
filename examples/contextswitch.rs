@@ -42,19 +42,25 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
                 .long("duration")
                 .short("d")
                 .help("How long to run this trace for (in seconds)")
-                .takes_value(true)
+                .takes_value(true),
         )
         .arg(
             Arg::with_name("pid")
                 .long("pid")
                 .help("Only track this pid")
-                .takes_value(true)
+                .takes_value(true),
         )
         .arg(
             Arg::with_name("tgid")
                 .long("tgid")
                 .help("Only track this thread")
-                .takes_value(true)
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("percpu")
+                .long("percpu")
+                .help("Display context switches per cpu")
+                .takes_value(false),
         )
         .get_matches();
 
@@ -62,7 +68,7 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
         .value_of("sample_frequency")
         .map(|v| v.parse().expect("Invalid sample frequency"));
 
-    let sample_period: Option<u64>= matches
+    let sample_period: Option<u64> = matches
         .value_of("sample_period")
         .map(|v| v.parse().expect("Invalid sample period"));
 
@@ -84,6 +90,9 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
         Some(tgid) => code.replace("##TGID_FILTER##", &format!("tgid != {}", tgid)),
         _ => code.replace("##TGID_FILTER##", "0"),
     };
+    if matches.is_present("percpu") {
+        code = format!("{}\n{}", "#define PERCPU", code);
+    }
 
     let mut bpf = BPF::new(&code)?;
     bpf.attach_perf_event(
@@ -108,19 +117,38 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
         }
         durr += 1;
     }
-    
+
     // Count misses
     let count_table = bpf.table("count");
-    
-    println!("{:<-8} {:<-4} {:>12}", "PID", "CPU", "COUNT");
-    for entry in count_table.iter() {
-        let key = parse_struct(&entry.key);
-        let value = parse_u64(entry.value);
 
-        println!("{:<-8} {:<-4} {:>12}", key.pid, key.cpu, value);
+    if matches.is_present("percpu") {
+        println!("{:<-8} {:<-4} {:>12}", "PID", "CPU", "COUNT");
+        for entry in count_table.iter() {
+            let key = parse_struct(&entry.key);
+            let value = parse_u64(entry.value);
+
+            println!("{:<-8} {:<-4} {:>12}", key.pid, key.cpu, value);
+        }
+    } else {
+        println!("{:<-8} {:>12}", "PID", "COUNT");
+        for entry in count_table.iter() {
+            let key = parse_u32(entry.key);
+            let value = parse_u64(entry.value);
+
+            println!("{:<-8} {:>12}", key, value);
+        }
     }
 
     Ok(())
+}
+
+fn parse_u32(x: Vec<u8>) -> u32 {
+    let mut v = [0_u8; 4];
+    for i in 0..4 {
+        v[i] = *x.get(i).unwrap_or(&0);
+    }
+
+    unsafe { mem::transmute(v) }
 }
 
 fn parse_u64(x: Vec<u8>) -> u64 {

@@ -6,12 +6,15 @@
 #include <linux/ptrace.h>
 #include <uapi/linux/bpf_perf_event.h>
 
+#ifdef PERCPU
 struct key_t {
     int cpu;
     int pid;
 };
-
 BPF_HASH(count, struct key_t);
+#else
+BPF_HASH(count, u32);
+#endif
 
 int do_count(struct bpf_perf_event_data *ctx) {
     u64 id = bpf_get_current_pid_tgid();
@@ -26,9 +29,13 @@ int do_count(struct bpf_perf_event_data *ctx) {
         return 0;
     }
 
+#ifdef PERCPU
     struct key_t key = {};
     key.cpu = bpf_get_smp_processor_id();
     key.pid = bpf_get_current_pid_tgid();
+#else
+    u32 key = pid;
+#endif
 
     count.increment(key);
     return 0;
