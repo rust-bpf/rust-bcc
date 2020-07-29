@@ -138,6 +138,7 @@ if [ -n "${FEATURES}" ]; then
     sudo target/release/examples/opensnoop --duration 5
     sudo target/release/examples/biosnoop --duration 5
     sudo target/release/examples/tcpretrans --duration 5
+    sudo target/release/examples/contextswitch --duration 5
 else
     if [[ $STATIC == true ]]; then
         export RUSTFLAGS="-L /usr/lib -L /usr/lib64 -L /usr/lib/llvm-${LLVM}/lib"
@@ -151,4 +152,5 @@ else
     sudo target/release/examples/opensnoop --duration 5
     sudo target/release/examples/biosnoop --duration 5
     sudo target/release/examples/tcpretrans --duration 5
+    sudo target/release/examples/contextswitch --duration 5
 fi

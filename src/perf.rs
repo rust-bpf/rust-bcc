@@ -10,6 +10,81 @@ use crate::table::Table;
 use crate::types::*;
 use crate::BccError;
 
+pub enum EventType {
+    // From perf_type_id in uapi/linux/perf_event.h
+    Hardware = 0,
+    Software = 1,
+    Tracepoint = 2,
+    HardwareCache = 3,
+    Raw = 4,
+    Breakpoint = 5,
+
+    Max, // non-ABI
+}
+
+pub enum HardwareEvent {
+    // From perf_hw_id in uapi/linux/perf_event.h
+    CpuCycles = 0,
+    Instructions = 1,
+    CacheReferences = 2,
+    CacheMisses = 3,
+    BranchInstructions = 4,
+    BranchMisses = 5,
+    BusCycles = 6,
+    StalledCyclesFrontend = 7,
+    StalledCyclesBackend = 8,
+    RefCpuCycles = 9,
+
+    Max, // non-ABI
+}
+
+pub enum SoftwareEvent {
+    // From perf_sw_id in uapi/linux/perf_event.h
+    CpuClock = 0,
+    TaskClock = 1,
+    PageFaults = 2,
+    ContextSwitches = 3,
+    CpuMigrations = 4,
+    PageFaultsMin = 5,
+    PageFaultsMaj = 6,
+    AlignmentFaults = 7,
+    EmulationFaults = 8,
+    Dummy = 9,
+    BpfOutput = 10,
+
+    Max, // non-ABI
+}
+
+pub enum CacheId {
+    // From perf_hw_cache_id in uapi/linux/perf_event.h
+    L1D = 0,
+    L1I = 1,
+    LL = 2,
+    DTLB = 3,
+    ITLB = 4,
+    BPU = 5,
+    NODE = 6,
+
+    Max, // non-ABI
+}
+
+pub enum CacheOp {
+    // From perf_hw_cache_op_id in uapi/linux/perf_event.h
+    Read = 0,
+    Write = 1,
+    Prefetch = 2,
+
+    Max, // non-ABI
+}
+
+pub enum CacheResult {
+    // From perf_hw_cache_op_result_id in uapi/linux/perf_event.h
+    Access = 0,
+    Miss = 1,
+
+    Max, // non-ABI
+}
+
 struct PerfCallback {
     raw_cb: Box<dyn FnMut(&[u8]) + Send>,
 }
