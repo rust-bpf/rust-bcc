@@ -1,5 +1,4 @@
 use crate::cpuonline;
-use crate::BccError;
 
 use bcc_sys::bccapi::*;
 
@@ -26,7 +25,7 @@ impl PerfEvent {
         pid: i32,
         cpu: Option<usize>,
         group_fd: i32,
-    ) -> Result<Self, BccError> {
+    ) -> Result<Self, ()> {
         let vec: Vec<i32> = vec![];
 
         if let Some(cpu) = cpu {
@@ -44,7 +43,7 @@ impl PerfEvent {
             };
 
             if ptr < 0 {
-                return Err(BccError::AttachPerfEvent { ev_type, ev_config });
+                return Err(());
             }
         } else if let Ok(cpus) = cpuonline::get() {
             for i in cpus {
@@ -62,7 +61,7 @@ impl PerfEvent {
                 };
 
                 if ptr < 0 {
-                    return Err(BccError::AttachPerfEvent { ev_type, ev_config });
+                    return Err(());
                 }
             }
         }

@@ -97,7 +97,7 @@ impl PerfEventProbe {
             self.pid.unwrap_or(-1),
             self.cpu,
             self.group_fd.unwrap_or(-1),
-        )?;
+        ).map_err(|_| BccError::AttachPerfEvent{ event: event })?;
         bpf.perf_events.insert(perf_event);
         Ok(())
     }
