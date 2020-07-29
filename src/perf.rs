@@ -10,6 +10,13 @@ use crate::table::Table;
 use crate::types::*;
 use crate::BccError;
 
+#[derive(Copy, Clone, Debug)]
+pub enum Event {
+    Hardware(HardwareEvent),
+    Software(SoftwareEvent),
+    HardwareCache(CacheId, CacheOp, CacheResult),
+}
+
 pub enum EventType {
     // From perf_type_id in uapi/linux/perf_event.h
     Hardware = 0,
@@ -20,13 +27,6 @@ pub enum EventType {
     Breakpoint = 5,
 
     Max, // non-ABI
-}
-
-#[derive(Copy, Clone, Debug)]
-pub enum Event {
-    Hardware(HardwareEvent),
-    Software(SoftwareEvent),
-    HardwareCache(CacheId, CacheOp, CacheResult),
 }
 
 #[derive(Copy, Clone, Debug)]
