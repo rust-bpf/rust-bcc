@@ -1,5 +1,5 @@
 use bcc::core::BPF;
-use bcc::perf::{PerfHardwareConfig, PerfType};
+use bcc::perf::{EventType, HardwareEvent};
 use bcc::BccError;
 use clap::{App, Arg};
 
@@ -54,8 +54,8 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     let mut bpf = BPF::new(&code)?;
     bpf.attach_perf_event(
         "on_cache_miss",
-        PerfType::Hardware as u32,
-        PerfHardwareConfig::CacheMisses as u32,
+        EventType::Hardware as u32,
+        HardwareEvent::CacheMisses as u32,
         Some(sample_period),
         None,
         None,
@@ -64,8 +64,8 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     )?;
     bpf.attach_perf_event(
         "on_cache_ref",
-        PerfType::Hardware as u32,
-        PerfHardwareConfig::CacheReferences as u32,
+        EventType::Hardware as u32,
+        HardwareEvent::CacheReferences as u32,
         Some(sample_period),
         None,
         None,

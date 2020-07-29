@@ -10,8 +10,7 @@ use crate::table::Table;
 use crate::types::*;
 use crate::BccError;
 
-#[allow(dead_code)]
-pub enum PerfType {
+pub enum EventType {
     // From perf_type_id in uapi/linux/perf_event.h
     Hardware = 0,
     Software = 1,
@@ -23,8 +22,7 @@ pub enum PerfType {
     Max, // non-ABI
 }
 
-#[allow(dead_code)]
-pub enum PerfHardwareConfig {
+pub enum HardwareEvent {
     // From perf_hw_id in uapi/linux/perf_event.h
     CpuCycles = 0,
     Instructions = 1,
@@ -40,8 +38,7 @@ pub enum PerfHardwareConfig {
     Max, // non-ABI
 }
 
-#[allow(dead_code)]
-pub enum PerfSoftwareConfig {
+pub enum SoftwareEvent {
     // From perf_sw_id in uapi/linux/perf_event.h
     CpuClock = 0,
     TaskClock = 1,
@@ -58,8 +55,7 @@ pub enum PerfSoftwareConfig {
     Max, // non-ABI
 }
 
-#[allow(dead_code)]
-pub enum PerfHardwareCacheConfig {
+pub enum CacheId {
     // From perf_hw_cache_id in uapi/linux/perf_event.h
     L1D = 0,
     L1I = 1,
@@ -68,6 +64,23 @@ pub enum PerfHardwareCacheConfig {
     ITLB = 4,
     BPU = 5,
     NODE = 6,
+
+    Max, // non-ABI
+}
+
+pub enum CacheOp {
+    // From perf_hw_cache_op_id in uapi/linux/perf_event.h
+    Read = 0,
+    Write = 1,
+    Prefetch = 2,
+
+    Max, // non-ABI
+}
+
+pub enum CacheResult {
+    // From perf_hw_cache_op_result_id in uapi/linux/perf_event.h
+    Access = 0,
+    Miss = 1,
 
     Max, // non-ABI
 }

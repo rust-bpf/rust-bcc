@@ -3,7 +3,7 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use bcc::core::BPF;
-use bcc::perf::{PerfSoftwareConfig, PerfType};
+use bcc::perf::{EventType, SoftwareEvent};
 use bcc::BccError;
 use clap::{App, Arg};
 
@@ -47,7 +47,7 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
         .arg(
             Arg::with_name("pid")
                 .long("pid")
-                .help("Only track this TID")
+                .help("Only track this PID")
                 .takes_value(true),
         )
         .arg(
@@ -72,7 +72,7 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
         .value_of("sample_period")
         .map(|v| v.parse().expect("Invalid sample period"));
 
-    if sample_frequency.is_none() && !sample_period.is_none() {
+    if sample_frequency.is_none() && sample_period.is_none() {
         sample_frequency = Some(DEFAULT_SAMPLE_FREQ);
     }
 
@@ -97,8 +97,8 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     let mut bpf = BPF::new(&code)?;
     bpf.attach_perf_event(
         "do_count",
-        PerfType::Software as u32,
-        PerfSoftwareConfig::ContextSwitches as u32,
+        EventType::Software as u32,
+        SoftwareEvent::ContextSwitches as u32,
         sample_period,
         sample_frequency,
         None,
@@ -148,7 +148,7 @@ fn parse_u32(x: Vec<u8>) -> u32 {
         *byte = *x.get(i).unwrap_or(&0);
     }
 
-    u32::from_be_bytes(v)
+    u32::from_ne_bytes(v)
 }
 
 fn parse_u64(x: Vec<u8>) -> u64 {
@@ -157,7 +157,7 @@ fn parse_u64(x: Vec<u8>) -> u64 {
         *byte = *x.get(i).unwrap_or(&0);
     }
 
-    u64::from_be_bytes(v)
+    u64::from_ne_bytes(v)
 }
 
 fn parse_struct(x: &[u8]) -> key_t {
