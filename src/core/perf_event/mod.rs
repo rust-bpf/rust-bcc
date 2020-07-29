@@ -6,6 +6,8 @@ use crate::core::BPF;
 use crate::error::BccError;
 use crate::perf::{Event, EventType};
 
+use bcc_sys::bccapi::bpf_prog_type_BPF_PROG_TYPE_PERF_EVENT;
+
 #[derive(Default)]
 pub struct PerfEventProbe {
     name: Option<String>,
@@ -59,19 +61,19 @@ impl PerfEventProbe {
 
     pub fn attach(self, bpf: &mut BPF) -> Result<(), BccError> {
         if self.event.is_none() {
-            return Err(BccError::IncompletePerfEventBuilder {
+            return Err(BccError::IncompletePerfEventProbe {
                 field: "event".to_string(),
             });
         }
         if self.name.is_none() {
-            return Err(BccError::IncompletePerfEventBuilder {
+            return Err(BccError::IncompletePerfEventProbe {
                 field: "name".to_string(),
             });
         }
         let name = self.name.unwrap();
         let event = self.event.unwrap();
 
-        let code_fd = bpf.load_perf_event(&name)?;
+        let code_fd = bpf.load(&name, bpf_prog_type_BPF_PROG_TYPE_PERF_EVENT, 0, 0)?;
 
         let ev_type = match event {
             Event::Hardware(_) => EventType::Hardware,

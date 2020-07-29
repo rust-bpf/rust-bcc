@@ -20,8 +20,8 @@ pub enum BccError {
     Compilation,
     #[error("io error")]
     IoError(#[from] std::io::Error),
-    #[error("perf event builder has incomplete configuration")]
-    IncompletePerfEventBuilder { field: String },
+    #[error("perf event probe has incomplete configuration")]
+    IncompletePerfEventProbe { field: String },
     #[error("error initializing perf map")]
     InitializePerfMap,
     #[error("invalid cpu range ({range})")]

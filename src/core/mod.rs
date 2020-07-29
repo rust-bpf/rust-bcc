@@ -179,10 +179,6 @@ impl BPF {
         self.load(name, bpf_prog_type_BPF_PROG_TYPE_TRACEPOINT, 0, 0)
     }
 
-    pub fn load_perf_event(&mut self, name: &str) -> Result<File, BccError> {
-        self.load(name, bpf_prog_type_BPF_PROG_TYPE_PERF_EVENT, 0, 0)
-    }
-
     #[cfg(any(
         feature = "v0_6_0",
         feature = "v0_6_1",
