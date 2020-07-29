@@ -2,8 +2,8 @@ mod v0_4_0;
 
 pub use v0_4_0::*;
 
-use crate::error::BccError;
 use crate::core::BPF;
+use crate::error::BccError;
 use crate::perf::{Event, EventType};
 
 #[derive(Default)]

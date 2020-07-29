@@ -1,4 +1,4 @@
-use bcc::core::{BPF, PerfEventProbe};
+use bcc::core::{PerfEventProbe, BPF};
 use bcc::perf::{Event, HardwareEvent};
 use bcc::BccError;
 use clap::{App, Arg};
