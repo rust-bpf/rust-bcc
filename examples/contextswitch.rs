@@ -99,7 +99,7 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
         .name("do_count")
         .event(Event::Software(SoftwareEvent::ContextSwitches))
         .sample_period(sample_period)
-        .sample_freq(sample_frequency)
+        .sample_frequency(sample_frequency)
         .attach(&mut bpf)?;
 
     println!("Running for {} seconds", duration);
