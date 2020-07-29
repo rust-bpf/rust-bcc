@@ -17,6 +17,7 @@ pub enum Event {
     HardwareCache(CacheId, CacheOp, CacheResult),
 }
 
+#[derive(Copy, Clone, Debug)]
 pub enum EventType {
     // From perf_type_id in uapi/linux/perf_event.h
     Hardware = 0,
