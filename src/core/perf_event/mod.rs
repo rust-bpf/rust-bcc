@@ -23,9 +23,9 @@ pub struct PerfEventProbe {
 /// PerfEvent such as a hardware or software event. This structure must be
 /// attached to the `BPF` structure to be useful.
 impl PerfEventProbe {
-	/// Creates a new `PerfEventProbe` with the defaults. You must initialize
-	/// both `name` and `event` fields with the corresponding methods before you
-	/// can `attach` the probe.
+    /// Creates a new `PerfEventProbe` with the defaults. You must initialize
+    /// both `name` and `event` fields with the corresponding methods before you
+    /// can `attach` the probe.
     pub fn new() -> Self {
         Default::default()
     }
@@ -124,7 +124,8 @@ impl PerfEventProbe {
             self.pid.unwrap_or(-1),
             self.cpu,
             self.group_fd.unwrap_or(-1),
-        ).map_err(|_| BccError::AttachPerfEvent{ event: event })?;
+        )
+        .map_err(|_| BccError::AttachPerfEvent { event })?;
         bpf.perf_events.insert(perf_event);
         Ok(())
     }
