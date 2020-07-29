@@ -1,5 +1,5 @@
-use bcc::core::BPF;
-use bcc::perf::{EventType, HardwareEvent};
+use bcc::core::{PerfEventProbe, BPF};
+use bcc::perf::{Event, HardwareEvent};
 use bcc::BccError;
 use clap::{App, Arg};
 
@@ -52,26 +52,16 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
 
     let code = include_str!("llcstat.c").to_string();
     let mut bpf = BPF::new(&code)?;
-    bpf.attach_perf_event(
-        "on_cache_miss",
-        EventType::Hardware as u32,
-        HardwareEvent::CacheMisses as u32,
-        Some(sample_period),
-        None,
-        None,
-        None,
-        None,
-    )?;
-    bpf.attach_perf_event(
-        "on_cache_ref",
-        EventType::Hardware as u32,
-        HardwareEvent::CacheReferences as u32,
-        Some(sample_period),
-        None,
-        None,
-        None,
-        None,
-    )?;
+    PerfEventProbe::new()
+        .name("on_cache_miss")
+        .event(Event::Hardware(HardwareEvent::CacheMisses))
+        .sample_period(Some(sample_period))
+        .attach(&mut bpf)?;
+    PerfEventProbe::new()
+        .name("on_cache_ref")
+        .event(Event::Hardware(HardwareEvent::CacheReferences))
+        .sample_period(Some(sample_period))
+        .attach(&mut bpf)?;
 
     println!("Running for {} seconds", duration);
 

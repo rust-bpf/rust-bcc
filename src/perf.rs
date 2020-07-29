@@ -10,6 +10,14 @@ use crate::table::Table;
 use crate::types::*;
 use crate::BccError;
 
+#[derive(Copy, Clone, Debug)]
+pub enum Event {
+    Hardware(HardwareEvent),
+    Software(SoftwareEvent),
+    HardwareCache(CacheId, CacheOp, CacheResult),
+}
+
+#[derive(Copy, Clone, Debug)]
 pub enum EventType {
     // From perf_type_id in uapi/linux/perf_event.h
     Hardware = 0,
@@ -22,6 +30,7 @@ pub enum EventType {
     Max, // non-ABI
 }
 
+#[derive(Copy, Clone, Debug)]
 pub enum HardwareEvent {
     // From perf_hw_id in uapi/linux/perf_event.h
     CpuCycles = 0,
@@ -38,6 +47,7 @@ pub enum HardwareEvent {
     Max, // non-ABI
 }
 
+#[derive(Copy, Clone, Debug)]
 pub enum SoftwareEvent {
     // From perf_sw_id in uapi/linux/perf_event.h
     CpuClock = 0,
@@ -55,6 +65,7 @@ pub enum SoftwareEvent {
     Max, // non-ABI
 }
 
+#[derive(Copy, Clone, Debug)]
 pub enum CacheId {
     // From perf_hw_cache_id in uapi/linux/perf_event.h
     L1D = 0,
@@ -68,6 +79,7 @@ pub enum CacheId {
     Max, // non-ABI
 }
 
+#[derive(Copy, Clone, Debug)]
 pub enum CacheOp {
     // From perf_hw_cache_op_id in uapi/linux/perf_event.h
     Read = 0,
@@ -77,6 +89,7 @@ pub enum CacheOp {
     Max, // non-ABI
 }
 
+#[derive(Copy, Clone, Debug)]
 pub enum CacheResult {
     // From perf_hw_cache_op_result_id in uapi/linux/perf_event.h
     Access = 0,

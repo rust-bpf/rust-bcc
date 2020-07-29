@@ -2,8 +2,8 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use bcc::core::BPF;
-use bcc::perf::{EventType, SoftwareEvent};
+use bcc::core::{PerfEventProbe, BPF};
+use bcc::perf::{Event, SoftwareEvent};
 use bcc::BccError;
 use clap::{App, Arg};
 
@@ -95,16 +95,12 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     }
 
     let mut bpf = BPF::new(&code)?;
-    bpf.attach_perf_event(
-        "do_count",
-        EventType::Software as u32,
-        SoftwareEvent::ContextSwitches as u32,
-        sample_period,
-        sample_frequency,
-        None,
-        None,
-        None,
-    )?;
+    PerfEventProbe::new()
+        .name("do_count")
+        .event(Event::Software(SoftwareEvent::ContextSwitches))
+        .sample_period(sample_period)
+        .sample_frequency(sample_frequency)
+        .attach(&mut bpf)?;
 
     println!("Running for {} seconds", duration);
 

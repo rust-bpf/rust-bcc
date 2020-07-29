@@ -1,3 +1,4 @@
+use crate::perf::Event;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -6,8 +7,8 @@ pub enum BccError {
     AttachKprobe { name: String },
     #[error("failed to attach kretprobe ({name})")]
     AttachKretprobe { name: String },
-    #[error("failed to attach perf event (type: {ev_type} config: {ev_config})")]
-    AttachPerfEvent { ev_type: u32, ev_config: u32 },
+    #[error("failed to attach perf event ({event:?})")]
+    AttachPerfEvent { event: Event },
     #[error("failed to attach raw tracepoint ({name})")]
     AttachRawTracepoint { name: String },
     #[error("failed to attach tracepoint ({subsys}:{name})")]
@@ -20,6 +21,8 @@ pub enum BccError {
     Compilation,
     #[error("io error")]
     IoError(#[from] std::io::Error),
+    #[error("perf event probe has incomplete configuration")]
+    IncompletePerfEventProbe { field: String },
     #[error("error initializing perf map")]
     InitializePerfMap,
     #[error("invalid cpu range ({range})")]

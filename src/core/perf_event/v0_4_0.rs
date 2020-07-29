@@ -1,5 +1,4 @@
 use crate::cpuonline;
-use crate::BccError;
 
 use bcc_sys::bccapi::*;
 
@@ -17,7 +16,7 @@ pub struct PerfEvent {
 
 impl PerfEvent {
     #[allow(clippy::too_many_arguments)]
-    fn new(
+    pub fn new(
         code: File,
         ev_type: u32,
         ev_config: u32,
@@ -26,7 +25,7 @@ impl PerfEvent {
         pid: i32,
         cpu: Option<usize>,
         group_fd: i32,
-    ) -> Result<Self, BccError> {
+    ) -> Result<Self, ()> {
         let vec: Vec<i32> = vec![];
 
         if let Some(cpu) = cpu {
@@ -44,7 +43,7 @@ impl PerfEvent {
             };
 
             if ptr < 0 {
-                return Err(BccError::AttachPerfEvent { ev_type, ev_config });
+                return Err(());
             }
         } else if let Ok(cpus) = cpuonline::get() {
             for i in cpus {
@@ -62,7 +61,7 @@ impl PerfEvent {
                 };
 
                 if ptr < 0 {
-                    return Err(BccError::AttachPerfEvent { ev_type, ev_config });
+                    return Err(());
                 }
             }
         }
@@ -73,35 +72,6 @@ impl PerfEvent {
             p: vec,
             code_fd: code,
         })
-    }
-
-    #[allow(clippy::too_many_arguments)]
-    pub fn attach_perf_event(
-        code: File,
-        event_type: u32,
-        event_config: u32,
-        sample_period: Option<u64>,
-        sample_freq: Option<u64>,
-        pid: Option<i32>,
-        cpu: Option<usize>,
-        group_fd: Option<i32>,
-    ) -> Result<Self, BccError> {
-        let event_type = event_type;
-        let event_config = event_config;
-        let sample_period = sample_period.unwrap_or(0);
-        let sample_freq = sample_freq.unwrap_or(0);
-        let pid = pid.unwrap_or(-1);
-        let group_fd = group_fd.unwrap_or(-1);
-        PerfEvent::new(
-            code,
-            event_type,
-            event_config,
-            sample_period,
-            sample_freq,
-            pid,
-            cpu,
-            group_fd,
-        )
     }
 }
 
