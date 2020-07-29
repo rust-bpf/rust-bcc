@@ -4,6 +4,7 @@ mod raw_tracepoint;
 mod tracepoint;
 mod uprobe;
 
+pub use crate::core::perf_event::PerfEventBuilder;
 use bcc_sys::bccapi::*;
 
 use self::kprobe::Kprobe;
@@ -176,6 +177,10 @@ impl BPF {
 
     pub fn load_tracepoint(&mut self, name: &str) -> Result<File, BccError> {
         self.load(name, bpf_prog_type_BPF_PROG_TYPE_TRACEPOINT, 0, 0)
+    }
+
+    pub fn load_perf_event(&mut self, name: &str) -> Result<File, BccError> {
+        self.load(name, bpf_prog_type_BPF_PROG_TYPE_PERF_EVENT, 0, 0)
     }
 
     #[cfg(any(
@@ -381,6 +386,13 @@ impl BPF {
 
     pub fn get_kprobe_functions(&mut self, event_re: &str) -> Result<Vec<String>, BccError> {
         Kprobe::get_kprobe_functions(event_re)
+    }
+
+    pub fn attach_perf_event_builder(
+        &mut self,
+        perf_event_builder: PerfEventBuilder,
+    ) -> Result<(), BccError> {
+        perf_event_builder.attach(self)
     }
 
     #[allow(clippy::too_many_arguments)]
