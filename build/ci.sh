@@ -2,14 +2,32 @@
 
 set -e
 
+## Functions
+function test {
+    sudo target/release/examples/smoketest
+    sudo target/release/examples/runqlat --interval 1 --windows 5
+    sudo target/release/examples/opensnoop --duration 5
+    sudo target/release/examples/biosnoop --duration 5
+    sudo target/release/examples/tcpretrans --duration 5
+    sudo target/release/examples/contextswitch --duration 5
+}
+
 ## Update apt
 sudo apt-get update
 
-## Install kernel headers for matching version
+## Determine version number format for CLANG/LLVM packages
+if [[ "${LLVM}" == "6" ]]; then
+    export LLVM_PACKAGE="6.0";
+else
+    export LLVM_PACKAGE="${LLVM}"
+fi
+
+## Install kernel headers and dependencies
 sudo apt-get install linux-headers-"$(uname -r)"
 sudo apt-get remove *llvm* *clang*
-sudo apt-get --yes install clang-"${LLVM}" libclang-"${LLVM}"-dev libelf-dev \
-    libfl-dev llvm-"${LLVM}"-dev libz-dev llvm-"${LLVM}"
+sudo apt-get --yes install clang-"${LLVM_PACKAGE}" \
+    libclang-"${LLVM_PACKAGE}"-dev libelf-dev libfl-dev \
+    llvm-"${LLVM_PACKAGE}"-dev libz-dev llvm-"${LLVM_PACKAGE}"
 
 # For static builds, we need to compile the following
 if [[ $STATIC == true ]]; then
@@ -79,41 +97,29 @@ git checkout master
 git pull
 if [[ "${BCC}" == "0.4.0" ]]; then
     git checkout remotes/origin/tag_v0.4.0
-fi
-if [[ "${BCC}" == "0.5.0" ]]; then
+elif [[ "${BCC}" == "0.5.0" ]]; then
     git checkout remotes/origin/tag_v0.5.0
-fi
-if [[ "${BCC}" == "0.6.0" ]]; then
+elif [[ "${BCC}" == "0.6.0" ]]; then
     git checkout remotes/origin/tag_v0.6.0
-fi
-if [[ "${BCC}" == "0.6.1" ]]; then
+elif [[ "${BCC}" == "0.6.1" ]]; then
     git checkout remotes/origin/tag_v0.6.1
-fi
-if [[ "${BCC}" == "0.7.0" ]]; then
+elif [[ "${BCC}" == "0.7.0" ]]; then
     git checkout remotes/origin/tag_v0.7.0
-fi
-if [[ "${BCC}" == "0.8.0" ]]; then
+elif [[ "${BCC}" == "0.8.0" ]]; then
     git checkout remotes/origin/tag_v0.8.0
-fi
-if [[ "${BCC}" == "0.9.0" ]]; then
+elif [[ "${BCC}" == "0.9.0" ]]; then
     git checkout remotes/origin/tag_v0.9.0
-fi
-if [[ "${BCC}" == "0.10.0" ]]; then
+elif [[ "${BCC}" == "0.10.0" ]]; then
     git checkout remotes/origin/tag_v0.10.0
-fi
-if [[ "${BCC}" == "0.11.0" ]]; then
+elif [[ "${BCC}" == "0.11.0" ]]; then
     git checkout 0fa419a64e71984d42f107c210d3d3f0cc82d59a
-fi
-if [[ "${BCC}" == "0.12.0" ]]; then
+elif [[ "${BCC}" == "0.12.0" ]]; then
     git checkout 368a5b0714961953f3e3f61607fa16cb71449c1b
-fi
-if [[ "${BCC}" == "0.13.0" ]]; then
+elif [[ "${BCC}" == "0.13.0" ]]; then
     git checkout 942227484d3207f6a42103674001ef01fb5335a0
-fi
-if [[ "${BCC}" == "0.14.0" ]]; then
+elif [[ "${BCC}" == "0.14.0" ]]; then
     git checkout ceb458d6a07a42d8d6d3c16a3b8e387b5131d610
-fi
-if [[ "${BCC}" == "0.15.0" ]]; then
+elif [[ "${BCC}" == "0.15.0" ]]; then
     git checkout e41f7a3be5c8114ef6a0990e50c2fbabea0e928e
 fi
 mkdir -p _build
@@ -126,31 +132,22 @@ cd ../..
 
 ## Build and test
 if [ -n "${FEATURES}" ]; then
-    if [[ $STATIC == true ]]; then
-        export RUSTFLAGS="-L /usr/lib -L /usr/lib64 -L /usr/lib/llvm-${LLVM}/lib"
-    fi
-
     cargo build --release --features "${FEATURES}"
     cargo test --release --features "${FEATURES}"
-
-    sudo target/release/examples/smoketest
-    sudo target/release/examples/runqlat --interval 1 --windows 5
-    sudo target/release/examples/opensnoop --duration 5
-    sudo target/release/examples/biosnoop --duration 5
-    sudo target/release/examples/tcpretrans --duration 5
-    sudo target/release/examples/contextswitch --duration 5
 else
-    if [[ $STATIC == true ]]; then
-        export RUSTFLAGS="-L /usr/lib -L /usr/lib64 -L /usr/lib/llvm-${LLVM}/lib"
-    fi
-
     cargo build --release
     cargo test --release
+fi
+test
 
-    sudo target/release/examples/smoketest
-    sudo target/release/examples/runqlat --interval 1 --windows 5
-    sudo target/release/examples/opensnoop --duration 5
-    sudo target/release/examples/biosnoop --duration 5
-    sudo target/release/examples/tcpretrans --duration 5
-    sudo target/release/examples/contextswitch --duration 5
+if [[ $STATIC == true ]]; then
+    export RUSTFLAGS="-L /usr/lib -L /usr/lib64 -L /usr/lib/llvm-${LLVM}/lib"
+    if [ -n "${FEATURES}" ]; then
+        cargo build --release --features "${FEATURES} static llvm_${LLVM}"
+        cargo test --release --features "${FEATURES} static llvm_${LLVM}"
+    else
+        cargo build --release --features "static llvm_${LLVM}"
+        cargo test --release --features "static llvm_${LLVM}"
+    fi
+    test
 fi
