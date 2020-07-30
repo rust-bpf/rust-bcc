@@ -14,7 +14,7 @@ pub struct RawTracepoint {
 }
 
 impl RawTracepoint {
-    pub fn attach_raw_tracepoint(name: &str, file: File) -> Result<Self, BccError> {
+    pub fn new(name: &str, file: File) -> Result<Self, BccError> {
         let cname = CString::new(name)?;
         let ptr = unsafe { bpf_attach_raw_tracepoint(file.as_raw_fd(), cname.as_ptr() as *mut _) };
         if ptr < 0 {

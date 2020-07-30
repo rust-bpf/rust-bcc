@@ -6,6 +6,7 @@ mod uprobe;
 
 pub use crate::core::kprobe::{KernelProbe, KernelReturnProbe};
 pub use crate::core::perf_event::PerfEventProbe;
+pub use crate::core::raw_tracepoint::RawTracepointProbe;
 pub use crate::core::uprobe::{UserspaceProbe, UserspaceReturnProbe};
 
 use bcc_sys::bccapi::*;
@@ -171,24 +172,6 @@ impl BPF {
 
     pub fn load_tracepoint(&mut self, name: &str) -> Result<File, BccError> {
         self.load(name, bpf_prog_type_BPF_PROG_TYPE_TRACEPOINT, 0, 0)
-    }
-
-    #[cfg(any(
-        feature = "v0_6_0",
-        feature = "v0_6_1",
-        feature = "v0_7_0",
-        feature = "v0_8_0",
-        feature = "v0_9_0",
-        feature = "v0_10_0",
-        feature = "v0_11_0",
-        feature = "v0_12_0",
-        feature = "v0_13_0",
-        feature = "v0_14_0",
-        feature = "v0_15_0",
-        not(feature = "specific"),
-    ))]
-    pub fn load_raw_tracepoint(&mut self, name: &str) -> Result<File, BccError> {
-        self.load(name, bpf_prog_type_BPF_PROG_TYPE_RAW_TRACEPOINT, 0, 0)
     }
 
     #[cfg(feature = "v0_4_0")]
@@ -362,26 +345,6 @@ impl BPF {
     ) -> Result<(), BccError> {
         let tracepoint = Tracepoint::attach_tracepoint(subsys, name, file)?;
         self.tracepoints.insert(tracepoint);
-        Ok(())
-    }
-
-    #[cfg(any(
-        feature = "v0_6_0",
-        feature = "v0_6_1",
-        feature = "v0_7_0",
-        feature = "v0_8_0",
-        feature = "v0_9_0",
-        feature = "v0_10_0",
-        feature = "v0_11_0",
-        feature = "v0_12_0",
-        feature = "v0_13_0",
-        feature = "v0_14_0",
-        feature = "v0_15_0",
-        not(feature = "specific"),
-    ))]
-    pub fn attach_raw_tracepoint(&mut self, name: &str, file: File) -> Result<(), BccError> {
-        let raw_tracepoint = RawTracepoint::attach_raw_tracepoint(name, file)?;
-        self.raw_tracepoints.insert(raw_tracepoint);
         Ok(())
     }
 

@@ -1,4 +1,4 @@
-use bcc::core::{KernelProbe, BPF};
+use bcc::core::{KernelProbe, RawTracepointProbe, BPF};
 use bcc::BccError;
 use clap::{App, Arg};
 
@@ -30,16 +30,18 @@ fn attach_events(bpf: &mut BPF) -> Result<(), BccError> {
 #[cfg(not(any(feature = "v0_4_0", feature = "v0_5_0")))]
 fn attach_events(bpf: &mut BPF) -> Result<(), BccError> {
     if bpf.support_raw_tracepoint() {
-        let raw_tp_sched_wakeup = bpf.load_raw_tracepoint("raw_tp__sched_wakeup").unwrap();
-        let raw_tp_sched_wakeup_new = bpf.load_raw_tracepoint("raw_tp__sched_wakeup_new").unwrap();
-        let raw_tp_sched_switch = bpf.load_raw_tracepoint("raw_tp__sched_switch").unwrap();
-
-        bpf.attach_raw_tracepoint("sched_wakeup", raw_tp_sched_wakeup)
-            .unwrap();
-        bpf.attach_raw_tracepoint("sched_wakeup_new", raw_tp_sched_wakeup_new)
-            .unwrap();
-        bpf.attach_raw_tracepoint("sched_switch", raw_tp_sched_switch)
-            .unwrap();
+        RawTracepointProbe::new()
+            .name("raw_tp__sched_wakeup")
+            .tracepoint("sched_wakeup")
+            .attach(bpf)?;
+        RawTracepointProbe::new()
+            .name("raw_tp__sched_wakeup_new")
+            .tracepoint("sched_wakeup_new")
+            .attach(bpf)?;
+        RawTracepointProbe::new()
+            .name("raw_tp__sched_switch")
+            .tracepoint("sched_switch")
+            .attach(bpf)?;
         Ok(())
     } else {
         // load + attach kprobes!
