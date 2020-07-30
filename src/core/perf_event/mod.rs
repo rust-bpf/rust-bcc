@@ -97,9 +97,12 @@ impl PerfEventProbe {
                 message: "name is required".to_string(),
             });
         }
-        if self.sample_period.unwrap_or(0) == 0 && self.sample_frequency.unwrap_or(0) == 0 {
+        if (self.sample_period.unwrap_or(0) == 0) as i32
+            ^ (self.sample_frequency.unwrap_or(0) == 0) as i32
+            == 0
+        {
             return Err(BccError::IncompletePerfEventProbe {
-                message: "sample period or sample frequency is required".to_string(),
+                message: "exactly one of sample period or sample frequency is required".to_string(),
             });
         }
         let name = self.name.unwrap();
@@ -133,5 +136,38 @@ impl PerfEventProbe {
         .map_err(|_| BccError::AttachPerfEvent { event })?;
         bpf.perf_events.insert(perf_event);
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::core::BPF;
+    use crate::core::PerfEventProbe;
+    use crate::perf::Event;
+
+    #[test]
+    fn both_freq_and_period () {
+        use crate::perf::HardwareEvent;
+        
+        let mut bpf = BPF::new("").unwrap();
+        let result = PerfEventProbe::new()
+            .name("name")
+            .event(Event::Hardware(HardwareEvent::CpuCycles))
+            .sample_frequency(Some(123))
+            .sample_period(Some(456))
+            .attach(&mut bpf);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn no_freq_or_period () {
+        use crate::perf::HardwareEvent;
+        
+        let mut bpf = BPF::new("").unwrap();
+        let result = PerfEventProbe::new()
+            .name("name")
+            .event(Event::Hardware(HardwareEvent::CpuCycles))
+            .attach(&mut bpf);
+        assert!(result.is_err());
     }
 }
