@@ -139,35 +139,35 @@ impl PerfEventProbe {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use crate::core::BPF;
-    use crate::core::PerfEventProbe;
-    use crate::perf::Event;
+// #[cfg(test)]
+// mod tests {
+//     use crate::core::PerfEventProbe;
+//     use crate::core::BPF;
+//     use crate::perf::Event;
 
-    #[test]
-    fn both_freq_and_period () {
-        use crate::perf::HardwareEvent;
-        
-        let mut bpf = BPF::new("").unwrap();
-        let result = PerfEventProbe::new()
-            .name("name")
-            .event(Event::Hardware(HardwareEvent::CpuCycles))
-            .sample_frequency(Some(123))
-            .sample_period(Some(456))
-            .attach(&mut bpf);
-        assert!(result.is_err());
-    }
+//     #[test]
+//     fn both_freq_and_period() {
+//         use crate::perf::HardwareEvent;
 
-    #[test]
-    fn no_freq_or_period () {
-        use crate::perf::HardwareEvent;
-        
-        let mut bpf = BPF::new("").unwrap();
-        let result = PerfEventProbe::new()
-            .name("name")
-            .event(Event::Hardware(HardwareEvent::CpuCycles))
-            .attach(&mut bpf);
-        assert!(result.is_err());
-    }
-}
+//         let mut bpf = BPF::new("").unwrap();
+//         let result = PerfEventProbe::new()
+//             .name("name")
+//             .event(Event::Hardware(HardwareEvent::CpuCycles))
+//             .sample_frequency(Some(123))
+//             .sample_period(Some(456))
+//             .attach(&mut bpf);
+//         assert!(result.is_err());
+//     }
+
+//     #[test]
+//     fn no_freq_or_period() {
+//         use crate::perf::HardwareEvent;
+
+//         let mut bpf = BPF::new("").unwrap();
+//         let result = PerfEventProbe::new()
+//             .name("name")
+//             .event(Event::Hardware(HardwareEvent::CpuCycles))
+//             .attach(&mut bpf);
+//         assert!(result.is_err());
+//     }
+// }
