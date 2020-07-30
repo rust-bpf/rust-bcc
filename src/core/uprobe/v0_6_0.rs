@@ -2,8 +2,6 @@ use bcc_sys::bccapi::bpf_probe_attach_type_BPF_PROBE_ENTRY as BPF_PROBE_ENTRY;
 use bcc_sys::bccapi::bpf_probe_attach_type_BPF_PROBE_RETURN as BPF_PROBE_RETURN;
 use bcc_sys::bccapi::*;
 
-use crate::core::make_alphanumeric;
-use crate::symbol;
 use crate::BccError;
 
 use std::ffi::CString;
@@ -19,7 +17,7 @@ pub struct Uprobe {
 }
 
 impl Uprobe {
-    fn new(
+    pub fn new(
         name: &str,
         attach_type: u32,
         path: &str,
@@ -56,30 +54,6 @@ impl Uprobe {
                 p: uprobe_ptr,
             })
         }
-    }
-
-    pub fn attach_uprobe(
-        binary_path: &str,
-        symbol: &str,
-        code: File,
-        pid: pid_t,
-    ) -> Result<Self, BccError> {
-        let (path, addr) = symbol::resolve_symbol_path(binary_path, symbol, 0x0, pid)?;
-        let alpha_path = make_alphanumeric(&path);
-        let ev_name = format!("r_{}_0x{:x}", &alpha_path, addr);
-        Uprobe::new(&ev_name, BPF_PROBE_ENTRY, &path, addr, code, pid)
-    }
-
-    pub fn attach_uretprobe(
-        binary_path: &str,
-        symbol: &str,
-        code: File,
-        pid: pid_t,
-    ) -> Result<Self, BccError> {
-        let (path, addr) = symbol::resolve_symbol_path(binary_path, symbol, 0x0, pid)?;
-        let alpha_path = make_alphanumeric(&path);
-        let ev_name = format!("r_{}_0x{:x}", &alpha_path, addr);
-        Uprobe::new(&ev_name, BPF_PROBE_RETURN, &path, addr, code, pid)
     }
 }
 

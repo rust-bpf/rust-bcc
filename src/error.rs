@@ -25,6 +25,8 @@ pub enum BccError {
     IncompleteKernelProbe { message: String },
     #[error("perf event probe has incomplete configuration: {message}")]
     IncompletePerfEventProbe { message: String },
+    #[error("userspace probe has incomplete configuration: {message}")]
+    IncompleteUserspaceProbe { message: String },
     #[error("error initializing perf map")]
     InitializePerfMap,
     #[error("invalid cpu range ({range})")]
