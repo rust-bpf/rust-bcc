@@ -1,7 +1,6 @@
-use bcc::core::BPF;
+use bcc::core::{BPF, TracepointProbe};
 use bcc::BccError;
 use clap::{App, Arg};
-use std::error::Error;
 
 use core::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
