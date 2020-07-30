@@ -2,9 +2,9 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use bcc::{PerfEvent, BPF};
 use bcc::perf_event::{Event, SoftwareEvent};
 use bcc::BccError;
+use bcc::{PerfEvent, BPF};
 use clap::{App, Arg};
 
 use core::sync::atomic::{AtomicBool, Ordering};

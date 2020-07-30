@@ -1,7 +1,7 @@
-use bcc::{PerfEvent};
-use bcc::BPF;
 use bcc::perf_event::{Event, HardwareEvent};
 use bcc::BccError;
+use bcc::PerfEvent;
+use bcc::BPF;
 use clap::{App, Arg};
 
 use core::sync::atomic::{AtomicBool, Ordering};

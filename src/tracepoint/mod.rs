@@ -1,4 +1,3 @@
-
 use crate::core::BPF;
 use crate::error::BccError;
 use bcc_sys::bccapi::bpf_prog_type_BPF_PROG_TYPE_TRACEPOINT as BPF_PROG_TYPE_TRACEPOINT;

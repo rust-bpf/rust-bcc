@@ -1,4 +1,3 @@
-
 use crate::core::make_alphanumeric;
 use crate::core::BPF;
 use crate::error::BccError;
@@ -89,7 +88,8 @@ impl Uprobe {
 
         let code_fd = bpf.load(&name, BPF_PROG_TYPE_KPROBE, 0, 0)?;
 
-        let uprobe = crate::core::Uprobe::new(&ev_name, BPF_PROBE_ENTRY, &path, addr, code_fd, pid)?;
+        let uprobe =
+            crate::core::Uprobe::new(&ev_name, BPF_PROBE_ENTRY, &path, addr, code_fd, pid)?;
         bpf.uprobes.insert(uprobe);
         Ok(())
     }
@@ -174,7 +174,8 @@ impl Uretprobe {
 
         let code_fd = bpf.load(&name, BPF_PROG_TYPE_KPROBE, 0, 0)?;
 
-        let uprobe = crate::core::Uprobe::new(&ev_name, BPF_PROBE_RETURN, &path, addr, code_fd, pid)?;
+        let uprobe =
+            crate::core::Uprobe::new(&ev_name, BPF_PROBE_RETURN, &path, addr, code_fd, pid)?;
         bpf.uprobes.insert(uprobe);
         Ok(())
     }

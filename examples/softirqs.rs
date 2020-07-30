@@ -1,5 +1,5 @@
-use bcc::{Tracepoint, BPF};
 use bcc::BccError;
+use bcc::{Tracepoint, BPF};
 use clap::{App, Arg};
 
 use core::sync::atomic::{AtomicBool, Ordering};

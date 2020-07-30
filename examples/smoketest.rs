@@ -1,5 +1,5 @@
-use bcc::core::BPF;
 use bcc::table::Entry;
+use bcc::BPF;
 
 fn main() {
     println!("smoketest: empty table");

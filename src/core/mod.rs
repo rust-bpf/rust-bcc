@@ -11,7 +11,7 @@ pub(crate) use self::perf_event::PerfEvent;
 pub(crate) use self::raw_tracepoint::RawTracepoint;
 pub(crate) use self::tracepoint::Tracepoint;
 pub(crate) use self::uprobe::Uprobe;
-use crate::perf_event::{PerfReader};
+use crate::perf_event::PerfReader;
 use crate::symbol::SymbolCache;
 use crate::table::Table;
 use crate::BccError;

@@ -1,5 +1,5 @@
-use bcc::{Kprobe, RawTracepoint, BPF};
 use bcc::BccError;
+use bcc::{Kprobe, RawTracepoint, BPF};
 use clap::{App, Arg};
 
 use core::sync::atomic::{AtomicBool, Ordering};

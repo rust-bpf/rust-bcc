@@ -1,8 +1,7 @@
-
-use core::ffi::c_void;
-use bcc_sys::bccapi::perf_reader_free;
-use bcc_sys::bccapi::perf_reader_fd;
 use bcc_sys::bccapi::perf_reader;
+use bcc_sys::bccapi::perf_reader_fd;
+use bcc_sys::bccapi::perf_reader_free;
+use core::ffi::c_void;
 use core::sync::atomic::{AtomicPtr, Ordering};
 
 #[repr(C)]

@@ -5,11 +5,9 @@ pub struct PerfCallback {
 }
 
 impl PerfCallback {
-	pub fn new(raw_cb: Box<dyn FnMut(&[u8]) + Send>) -> Self {
-		Self {
-			raw_cb,
-		}
-	}
+    pub fn new(raw_cb: Box<dyn FnMut(&[u8]) + Send>) -> Self {
+        Self { raw_cb }
+    }
 }
 
 pub(crate) unsafe extern "C" fn raw_callback(pc: MutPointer, ptr: MutPointer, size: i32) {

@@ -1,5 +1,5 @@
-use bcc::{Kprobe, BPF};
 use bcc::BccError;
+use bcc::{Kprobe, BPF};
 use chrono::Utc;
 use clap::{App, Arg};
 

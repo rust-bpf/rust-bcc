@@ -1,6 +1,6 @@
-use bcc::{Kprobe, Kretprobe, BPF};
 use bcc::perf_event::init_perf_map;
 use bcc::BccError;
+use bcc::{Kprobe, Kretprobe, BPF};
 use clap::{App, Arg};
 
 use core::sync::atomic::{AtomicBool, Ordering};

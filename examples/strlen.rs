@@ -2,8 +2,8 @@ extern crate bcc;
 extern crate byteorder;
 extern crate libc;
 
-use bcc::{Uprobe, BPF};
 use bcc::BccError;
+use bcc::{Uprobe, BPF};
 use byteorder::{NativeEndian, ReadBytesExt};
 
 use core::sync::atomic::{AtomicBool, Ordering};

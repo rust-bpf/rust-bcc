@@ -1,13 +1,13 @@
+use crate::cpuonline;
 use crate::error::BccError;
 use crate::perf_event::open_perf_buffer;
-use byteorder::NativeEndian;
-use bcc_sys::bccapi::perf_reader_poll;
-use bcc_sys::bccapi::perf_reader;
-use crate::table::Table;
 use crate::perf_event::perf_reader::PerfReader;
-use crate::cpuonline;
-use std::io::Cursor;
+use crate::table::Table;
+use bcc_sys::bccapi::perf_reader;
+use bcc_sys::bccapi::perf_reader_poll;
+use byteorder::NativeEndian;
 use byteorder::WriteBytesExt;
+use std::io::Cursor;
 
 #[allow(dead_code)]
 pub struct PerfMap {
