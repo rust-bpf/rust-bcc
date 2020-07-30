@@ -16,7 +16,7 @@ pub struct Tracepoint {
 }
 
 impl Tracepoint {
-    pub fn attach_tracepoint(subsys: &str, name: &str, file: File) -> Result<Self, BccError> {
+    pub fn new(subsys: &str, name: &str, file: File) -> Result<Self, BccError> {
         let cname = CString::new(name)?;
         let csubsys = CString::new(subsys)?;
         let ptr =

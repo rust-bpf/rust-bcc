@@ -6,6 +6,7 @@ mod uprobe;
 
 pub use crate::core::kprobe::{KernelProbe, KernelReturnProbe};
 pub use crate::core::perf_event::PerfEventProbe;
+pub use crate::core::tracepoint::TracepointProbe;
 pub use crate::core::uprobe::{UserspaceProbe, UserspaceReturnProbe};
 
 use bcc_sys::bccapi::*;
@@ -167,10 +168,6 @@ impl BPF {
 
     pub fn load_net(&mut self, name: &str) -> Result<File, BccError> {
         self.load(name, bpf_prog_type_BPF_PROG_TYPE_SCHED_ACT, 0, 0)
-    }
-
-    pub fn load_tracepoint(&mut self, name: &str) -> Result<File, BccError> {
-        self.load(name, bpf_prog_type_BPF_PROG_TYPE_TRACEPOINT, 0, 0)
     }
 
     #[cfg(any(
@@ -352,17 +349,6 @@ impl BPF {
 
     pub fn get_kprobe_functions(&mut self, event_re: &str) -> Result<Vec<String>, BccError> {
         crate::core::kprobe::get_kprobe_functions(event_re)
-    }
-
-    pub fn attach_tracepoint(
-        &mut self,
-        subsys: &str,
-        name: &str,
-        file: File,
-    ) -> Result<(), BccError> {
-        let tracepoint = Tracepoint::attach_tracepoint(subsys, name, file)?;
-        self.tracepoints.insert(tracepoint);
-        Ok(())
     }
 
     #[cfg(any(
