@@ -1,4 +1,4 @@
-use bcc::core::{BPF, TracepointProbe};
+use bcc::core::{TracepointProbe, BPF};
 use bcc::BccError;
 use clap::{App, Arg};
 
