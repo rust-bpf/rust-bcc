@@ -2,7 +2,7 @@ extern crate bcc;
 extern crate byteorder;
 extern crate libc;
 
-use bcc::core::{BPF, UserspaceProbe};
+use bcc::core::{UserspaceProbe, BPF};
 use bcc::BccError;
 use byteorder::{NativeEndian, ReadBytesExt};
 

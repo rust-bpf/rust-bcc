@@ -40,13 +40,12 @@ use crate::core::make_alphanumeric;
 use crate::core::BPF;
 use crate::error::BccError;
 
-use bcc_sys::bccapi::pid_t;
 use bcc_sys::bccapi::bpf_probe_attach_type_BPF_PROBE_ENTRY as BPF_PROBE_ENTRY;
 use bcc_sys::bccapi::bpf_probe_attach_type_BPF_PROBE_RETURN as BPF_PROBE_RETURN;
 use bcc_sys::bccapi::bpf_prog_type_BPF_PROG_TYPE_KPROBE as BPF_PROG_TYPE_KPROBE;
+use bcc_sys::bccapi::pid_t;
 
 use std::path::{Path, PathBuf};
-
 
 #[derive(Default)]
 /// A `UserspaceProbe` is used to configure and then attach a uprobe to a
