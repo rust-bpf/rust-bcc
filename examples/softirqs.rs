@@ -116,12 +116,17 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     // compile the above BPF code!
     let mut module = BPF::new(code)?;
 
-    // load + attach tracepoints!
-    let softirq_entry = module.load_tracepoint("softirq_entry")?;
-    let softirq_exit = module.load_tracepoint("softirq_exit")?;
-
-    module.attach_tracepoint("irq", "softirq_entry", softirq_entry)?;
-    module.attach_tracepoint("irq", "softirq_exit", softirq_exit)?;
+    // tracepoints!
+    TracepointProbe::new()
+        .name("softirq_entry")
+        .subsystem("irq")
+        .tracepoint("softirq_entry")
+        .attach(&mut module)?;
+    TracepointProbe::new()
+        .name("softirq_exit")
+        .subsystem("irq")
+        .tracepoint("softirq_exit")
+        .attach(&mut module)?;
 
     let table = module.table("dist");
     let mut window = 0;
