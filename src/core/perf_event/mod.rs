@@ -141,14 +141,14 @@ impl PerfEventProbe {
 
 #[cfg(test)]
 mod tests {
-    use crate::core::BPF;
     use crate::core::PerfEventProbe;
+    use crate::core::BPF;
     use crate::perf::Event;
 
     #[test]
-    fn both_freq_and_period () {
+    fn both_freq_and_period() {
         use crate::perf::HardwareEvent;
-        
+
         let mut bpf = BPF::new("").unwrap();
         let result = PerfEventProbe::new()
             .name("name")
@@ -160,9 +160,9 @@ mod tests {
     }
 
     #[test]
-    fn no_freq_or_period () {
+    fn no_freq_or_period() {
         use crate::perf::HardwareEvent;
-        
+
         let mut bpf = BPF::new("").unwrap();
         let result = PerfEventProbe::new()
             .name("name")

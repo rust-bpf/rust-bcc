@@ -64,7 +64,10 @@ impl RawTracepointProbe {
 
     #[cfg(any(feature = "v0_4_0", feature = "v0_5_0",))]
     pub fn attach(self, bpf: &mut BPF) -> Result<(), BccError> {
-        BccError::BccVersionTooLow { cause: "raw tracepoints".to_owned(), min_version: "0.6.0".to_owned() }
+        BccError::BccVersionTooLow {
+            cause: "raw tracepoints".to_owned(),
+            min_version: "0.6.0".to_owned(),
+        }
     }
 
     #[cfg(any(
@@ -100,6 +103,4 @@ impl RawTracepointProbe {
         bpf.raw_tracepoints.insert(tracepoint);
         Ok(())
     }
-
-
 }
