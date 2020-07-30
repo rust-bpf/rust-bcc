@@ -29,6 +29,8 @@ pub enum BccError {
     IncompletePerfEventProbe { message: String },
     #[error("raw tracepoint probe has incomplete configuration: {message}")]
     IncompleteRawTracepointProbe { message: String },
+    #[error("tracepoint probe has incomplete configuration: {message}")]
+    IncompleteTracepointProbe { message: String },
     #[error("userspace probe has incomplete configuration: {message}")]
     IncompleteUserspaceProbe { message: String },
     #[error("error initializing perf map")]
