@@ -21,6 +21,8 @@ pub enum BccError {
     Compilation,
     #[error("io error")]
     IoError(#[from] std::io::Error),
+    #[error("kernel probe has incomplete configuration: {message}")]
+    IncompleteKernelProbe { message: String },
     #[error("perf event probe has incomplete configuration: {message}")]
     IncompletePerfEventProbe { message: String },
     #[error("error initializing perf map")]

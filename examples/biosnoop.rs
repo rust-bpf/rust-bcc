@@ -1,4 +1,4 @@
-use bcc::core::BPF;
+use bcc::core::{KernelProbe, BPF};
 use bcc::perf::init_perf_map;
 use bcc::BccError;
 use clap::{App, Arg};
@@ -54,19 +54,26 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     };
     // compile the above BPF code!
     let mut bpf = BPF::new(&code)?;
-    // load + attach kprobes!
-    let trace_pid_start = bpf.load_kprobe("trace_pid_start")?;
-    let trace_mq_req_start = bpf.load_kprobe("trace_req_start")?;
-    let trace_req_completion = bpf.load_kprobe("trace_req_completion")?;
 
-    bpf.attach_kprobe("blk_account_io_start", trace_pid_start)?;
-    bpf.attach_kprobe("blk_mq_start_request", trace_mq_req_start)?;
-    bpf.attach_kprobe("blk_account_io_completion", trace_req_completion)?;
-
+    // attach kprobes
+    KernelProbe::new()
+        .name("trace_pid_start")
+        .function("blk_account_io_start")
+        .attach(&mut bpf)?;
+    KernelProbe::new()
+        .name("trace_req_start")
+        .function("blk_mq_start_request")
+        .attach(&mut bpf)?;
+    KernelProbe::new()
+        .name("trace_req_completion")
+        .function("blk_account_io_completion")
+        .attach(&mut bpf)?;
     if let Ok(funcs) = bpf.get_kprobe_functions("blk_start_request") {
         if funcs.len() > 0 {
-            let trace_req_start = bpf.load_kprobe("trace_req_start")?;
-            bpf.attach_kprobe("blk_start_request", trace_req_start)?;
+            KernelProbe::new()
+                .name("trace_req_start")
+                .function("blk_start_request")
+                .attach(&mut bpf)?;
         }
     }
     // the "events" table is where the "open file" events get sent

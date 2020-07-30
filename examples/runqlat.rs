@@ -1,4 +1,4 @@
-use bcc::core::BPF;
+use bcc::core::{KernelProbe, BPF};
 use bcc::BccError;
 use clap::{App, Arg};
 
@@ -11,20 +11,24 @@ use std::{mem, thread, time};
 // Based on: https://github.com/iovisor/bcc/blob/master/tools/runqlat.py
 
 #[cfg(any(feature = "v0_4_0", feature = "v0_5_0",))]
-fn attach_events(bpf: &mut BPF) {
-    let trace_run = bpf.load_kprobe("trace_run").unwrap();
-    let trace_ttwu_do_wakeup = bpf.load_kprobe("trace_ttwu_do_wakeup").unwrap();
-    let trace_wake_up_new_task = bpf.load_kprobe("trace_wake_up_new_task").unwrap();
-
-    bpf.attach_kprobe("finish_task_switch", trace_run).unwrap();
-    bpf.attach_kprobe("wake_up_new_task", trace_wake_up_new_task)
-        .unwrap();
-    bpf.attach_kprobe("ttwu_do_wakeup", trace_ttwu_do_wakeup)
-        .unwrap();
+fn attach_events(bpf: &mut BPF) -> Result<(), BccError> {
+    KernelProbe::new()
+        .name("trace_run")
+        .function("finish_task_switch")
+        .attach(bpf)?;
+    KernelProbe::new()
+        .name("trace_ttwu_do_wakeup")
+        .function("ttwu_do_wakeup")
+        .attach(bpf)?;
+    KernelProbe::new()
+        .name("trace_wake_up_new_task")
+        .function("wake_up_new_task")
+        .attach(bpf)?;
+    Ok(())
 }
 
 #[cfg(not(any(feature = "v0_4_0", feature = "v0_5_0")))]
-fn attach_events(bpf: &mut BPF) {
+fn attach_events(bpf: &mut BPF) -> Result<(), BccError> {
     if bpf.support_raw_tracepoint() {
         let raw_tp_sched_wakeup = bpf.load_raw_tracepoint("raw_tp__sched_wakeup").unwrap();
         let raw_tp_sched_wakeup_new = bpf.load_raw_tracepoint("raw_tp__sched_wakeup_new").unwrap();
@@ -36,17 +40,22 @@ fn attach_events(bpf: &mut BPF) {
             .unwrap();
         bpf.attach_raw_tracepoint("sched_switch", raw_tp_sched_switch)
             .unwrap();
+        Ok(())
     } else {
         // load + attach kprobes!
-        let trace_run = bpf.load_kprobe("trace_run").unwrap();
-        let trace_ttwu_do_wakeup = bpf.load_kprobe("trace_ttwu_do_wakeup").unwrap();
-        let trace_wake_up_new_task = bpf.load_kprobe("trace_wake_up_new_task").unwrap();
-
-        bpf.attach_kprobe("finish_task_switch", trace_run).unwrap();
-        bpf.attach_kprobe("wake_up_new_task", trace_wake_up_new_task)
-            .unwrap();
-        bpf.attach_kprobe("ttwu_do_wakeup", trace_ttwu_do_wakeup)
-            .unwrap();
+        KernelProbe::new()
+            .name("trace_run")
+            .function("finish_task_switch")
+            .attach(bpf)?;
+        KernelProbe::new()
+            .name("trace_ttwu_do_wakeup")
+            .function("ttwu_do_wakeup")
+            .attach(bpf)?;
+        KernelProbe::new()
+            .name("trace_wake_up_new_task")
+            .function("wake_up_new_task")
+            .attach(bpf)?;
+        Ok(())
     }
 }
 
@@ -85,7 +94,7 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     };
     // compile the above BPF code!
     let mut bpf = BPF::new(&code)?;
-    attach_events(&mut bpf);
+    attach_events(&mut bpf)?;
 
     let table = bpf.table("dist");
     let mut window = 0;

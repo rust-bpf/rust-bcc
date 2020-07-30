@@ -4,6 +4,7 @@ mod raw_tracepoint;
 mod tracepoint;
 mod uprobe;
 
+pub use crate::core::kprobe::{KernelProbe, KernelReturnProbe};
 pub use crate::core::perf_event::PerfEventProbe;
 
 use bcc_sys::bccapi::*;
@@ -165,10 +166,6 @@ impl BPF {
 
     pub fn load_net(&mut self, name: &str) -> Result<File, BccError> {
         self.load(name, bpf_prog_type_BPF_PROG_TYPE_SCHED_ACT, 0, 0)
-    }
-
-    pub fn load_kprobe(&mut self, name: &str) -> Result<File, BccError> {
-        self.load(name, bpf_prog_type_BPF_PROG_TYPE_KPROBE, 0, 0)
     }
 
     pub fn load_uprobe(&mut self, name: &str) -> Result<File, BccError> {
@@ -369,20 +366,8 @@ impl BPF {
         Ok(())
     }
 
-    pub fn attach_kprobe(&mut self, function: &str, file: File) -> Result<(), BccError> {
-        let kprobe = Kprobe::attach_kprobe(function, file)?;
-        self.kprobes.insert(kprobe);
-        Ok(())
-    }
-
-    pub fn attach_kretprobe(&mut self, function: &str, file: File) -> Result<(), BccError> {
-        let kretprobe = Kprobe::attach_kretprobe(function, file)?;
-        self.kprobes.insert(kretprobe);
-        Ok(())
-    }
-
     pub fn get_kprobe_functions(&mut self, event_re: &str) -> Result<Vec<String>, BccError> {
-        Kprobe::get_kprobe_functions(event_re)
+        crate::core::kprobe::get_kprobe_functions(event_re)
     }
 
     pub fn attach_uprobe(
