@@ -97,9 +97,12 @@ impl PerfEventProbe {
                 message: "name is required".to_string(),
             });
         }
-        if self.sample_period.unwrap_or(0) == 0 && self.sample_frequency.unwrap_or(0) == 0 {
+        if (self.sample_period.unwrap_or(0) == 0) as i32
+            ^ (self.sample_frequency.unwrap_or(0) == 0) as i32
+            == 0
+        {
             return Err(BccError::IncompletePerfEventProbe {
-                message: "sample period or sample frequency is required".to_string(),
+                message: "exactly one of sample period or sample frequency is required".to_string(),
             });
         }
         let name = self.name.unwrap();
