@@ -7,19 +7,21 @@ mod tests {
 
     extern crate bcc;
 
-    use bcc::core::BPF;
+    use bcc::core::{KernelProbe, BPF};
 
     #[test]
     fn error_handling() {
         let code = include_str!("error.c");
         // compile the above BPF code!
         let mut module = BPF::new(code).unwrap();
-        match module.load_kprobe("trace_return") {
-            Ok(_) => {
-                eprintln!("expected error during program load");
-                std::process::exit(1);
-            }
-            Err(_) => {}
-        };
+        if KernelProbe::new()
+            .name("trace_return")
+            .function("do_sys_open")
+            .attach(&mut module)
+            .is_ok()
+        {
+            eprintln!("expected error during program load");
+            std::process::exit(1);
+        }
     }
 }
