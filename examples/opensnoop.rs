@@ -1,5 +1,5 @@
-use bcc::core::{KernelProbe, KernelReturnProbe, BPF};
-use bcc::perf::init_perf_map;
+use bcc::{Kprobe, Kretprobe, BPF};
+use bcc::perf_event::init_perf_map;
 use bcc::BccError;
 use clap::{App, Arg};
 
@@ -49,11 +49,11 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     // compile the above BPF code!
     let mut module = BPF::new(code)?;
     // load + attach kprobes!
-    KernelProbe::new()
+    Kprobe::new()
         .name("trace_entry")
         .function("do_sys_open")
         .attach(&mut module)?;
-    KernelReturnProbe::new()
+    Kretprobe::new()
         .name("trace_return")
         .function("do_sys_open")
         .attach(&mut module)?;

@@ -7,12 +7,22 @@
 //! # Examples
 //! * see <https://github.com/rust-bpf/rust-bcc/tree/master/examples>
 
-pub mod core;
+mod core;
 mod cpuonline;
 mod error;
-pub mod perf;
+mod kprobe;
+pub mod perf_event;
+mod raw_tracepoint;
 pub mod symbol;
 pub mod table;
+mod tracepoint;
 mod types;
+mod uprobe;
 
+pub use crate::core::BPF;
 pub use error::BccError;
+pub use kprobe::{Kprobe, Kretprobe};
+pub use perf_event::{PerfEvent, PerfMap};
+pub use raw_tracepoint::RawTracepoint;
+pub use tracepoint::Tracepoint;
+pub use uprobe::{Uprobe, Uretprobe};

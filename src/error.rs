@@ -1,4 +1,4 @@
-use crate::perf::Event;
+use crate::perf_event::Event;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
