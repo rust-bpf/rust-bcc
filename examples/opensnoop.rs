@@ -1,4 +1,4 @@
-use bcc::core::BPF;
+use bcc::core::{KernelProbe, KernelReturnProbe, BPF};
 use bcc::perf::init_perf_map;
 use bcc::BccError;
 use clap::{App, Arg};
@@ -49,10 +49,15 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     // compile the above BPF code!
     let mut module = BPF::new(code)?;
     // load + attach kprobes!
-    let return_probe = module.load_kprobe("trace_return")?;
-    let entry_probe = module.load_kprobe("trace_entry")?;
-    module.attach_kprobe("do_sys_open", entry_probe)?;
-    module.attach_kretprobe("do_sys_open", return_probe)?;
+    KernelProbe::new()
+        .name("trace_entry")
+        .function("do_sys_open")
+        .attach(&mut module)?;
+    KernelReturnProbe::new()
+        .name("trace_return")
+        .function("do_sys_open")
+        .attach(&mut module)?;
+
     // the "events" table is where the "open file" events get sent
     let table = module.table("events");
     // install a callback to print out file open events when they happen

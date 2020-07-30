@@ -2,15 +2,11 @@ use bcc_sys::bccapi::bpf_probe_attach_type_BPF_PROBE_ENTRY as BPF_PROBE_ENTRY;
 use bcc_sys::bccapi::bpf_probe_attach_type_BPF_PROBE_RETURN as BPF_PROBE_RETURN;
 use bcc_sys::bccapi::*;
 
-use crate::core::make_alphanumeric;
 use crate::BccError;
-
-use regex::Regex;
 
 use std::ffi::CString;
 use std::fs::File;
 use std::hash::{Hash, Hasher};
-use std::io::{BufRead, BufReader};
 use std::os::unix::prelude::*;
 
 #[derive(Debug)]
@@ -21,7 +17,7 @@ pub struct Kprobe {
 }
 
 impl Kprobe {
-    fn new(name: &str, attach_type: u32, function: &str, code: File) -> Result<Self, BccError> {
+    pub fn new(name: &str, attach_type: u32, function: &str, code: File) -> Result<Self, BccError> {
         let cname = CString::new(name)?;
         let cfunction = CString::new(function)?;
         let ptr = unsafe {
@@ -51,90 +47,6 @@ impl Kprobe {
                 code_fd: code,
             })
         }
-    }
-
-    pub fn attach_kprobe(function: &str, code: File) -> Result<Self, BccError> {
-        let name = format!("p_{}", &make_alphanumeric(function));
-        Kprobe::new(&name, BPF_PROBE_ENTRY, function, code)
-    }
-
-    pub fn attach_kretprobe(function: &str, code: File) -> Result<Self, BccError> {
-        let name = format!("r_{}", &make_alphanumeric(function));
-        Kprobe::new(&name, BPF_PROBE_RETURN, function, code)
-    }
-
-    pub fn get_kprobe_functions(event_re: &str) -> Result<Vec<String>, BccError> {
-        let mut fns: Vec<String> = vec![];
-
-        enum Section {
-            Unmatched,
-            Begin,
-            End,
-        }
-
-        let mut in_init_section = Section::Unmatched;
-        let mut in_irq_section = Section::Unmatched;
-        let re = Regex::new(r"^.*\.cold\.\d+$").unwrap();
-        let avali = BufReader::new(File::open("/proc/kallsyms").unwrap());
-        for line in avali.lines() {
-            let line = line.unwrap();
-            let cols: Vec<&str> = line.split_whitespace().collect();
-            let (t, fname) = (cols[1].to_string().to_lowercase(), cols[2]);
-            // Skip all functions defined between __init_begin and
-            // __init_end
-            match in_init_section {
-                Section::Unmatched => {
-                    if fname == "__init_begin" {
-                        in_init_section = Section::Begin;
-                        continue;
-                    }
-                }
-                Section::Begin => {
-                    if fname == "__init_end" {
-                        in_init_section = Section::End;
-                    }
-                    continue;
-                }
-                Section::End => (),
-            }
-            // Skip all functions defined between __irqentry_text_start and
-            // __irqentry_text_end
-            match in_irq_section {
-                Section::Unmatched => {
-                    if fname == "__irqentry_text_start" {
-                        in_irq_section = Section::Begin;
-                        continue;
-                    }
-                }
-                Section::Begin => {
-                    if fname == "__irqentry_text_end" {
-                        in_irq_section = Section::End;
-                    }
-                    continue;
-                }
-                Section::End => (),
-            }
-            // All functions defined as NOKPROBE_SYMBOL() start with the
-            // prefix _kbl_addr_*, excluding them by looking at the name
-            // allows to catch also those symbols that are defined in kernel
-            // modules.
-            if fname.starts_with("_kbl_addr_") {
-                continue;
-            }
-            // Exclude perf-related functions, they are all non-attachable.
-            if fname.starts_with("__perf") || fname.starts_with("perf_") {
-                continue;
-            }
-            // Exclude all gcc 8's extra .cold functions
-            if re.is_match(fname) {
-                continue;
-            }
-            if (t == "t" || t == "w") && fname.contains(event_re) {
-                fns.push(fname.to_owned());
-            }
-        }
-
-        Ok(fns)
     }
 }
 
