@@ -6,6 +6,7 @@ mod uprobe;
 
 pub use crate::core::kprobe::{KernelProbe, KernelReturnProbe};
 pub use crate::core::perf_event::PerfEventProbe;
+pub use crate::core::uprobe::{UserspaceProbe, UserspaceReturnProbe};
 
 use bcc_sys::bccapi::*;
 
@@ -166,11 +167,6 @@ impl BPF {
 
     pub fn load_net(&mut self, name: &str) -> Result<File, BccError> {
         self.load(name, bpf_prog_type_BPF_PROG_TYPE_SCHED_ACT, 0, 0)
-    }
-
-    pub fn load_uprobe(&mut self, name: &str) -> Result<File, BccError> {
-        // it's BPF_PROG_TYPE_KPROBE even though it's a uprobe, it's weird
-        self.load(name, bpf_prog_type_BPF_PROG_TYPE_KPROBE, 0, 0)
     }
 
     pub fn load_tracepoint(&mut self, name: &str) -> Result<File, BccError> {
@@ -354,32 +350,8 @@ impl BPF {
         self.get_syscall_prefix() + name
     }
 
-    pub fn attach_uretprobe(
-        &mut self,
-        binary_path: &str,
-        symbol: &str,
-        file: File,
-        pid: pid_t,
-    ) -> Result<(), BccError> {
-        let uprobe = Uprobe::attach_uretprobe(binary_path, symbol, file, pid)?;
-        self.uprobes.insert(uprobe);
-        Ok(())
-    }
-
     pub fn get_kprobe_functions(&mut self, event_re: &str) -> Result<Vec<String>, BccError> {
         crate::core::kprobe::get_kprobe_functions(event_re)
-    }
-
-    pub fn attach_uprobe(
-        &mut self,
-        binary_path: &str,
-        symbol: &str,
-        file: File,
-        pid: pid_t,
-    ) -> Result<(), BccError> {
-        let uprobe = Uprobe::attach_uprobe(binary_path, symbol, file, pid)?;
-        self.uprobes.insert(uprobe);
-        Ok(())
     }
 
     pub fn attach_tracepoint(

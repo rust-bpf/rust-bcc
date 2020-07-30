@@ -2,7 +2,7 @@ extern crate bcc;
 extern crate byteorder;
 extern crate libc;
 
-use bcc::core::BPF;
+use bcc::core::{BPF, UserspaceProbe};
 use bcc::BccError;
 use byteorder::{NativeEndian, ReadBytesExt};
 
@@ -33,13 +33,11 @@ int count(struct pt_regs *ctx) {
 };
     ";
     let mut module = BPF::new(code)?;
-    let uprobe_code = module.load_uprobe("count")?;
-    module.attach_uprobe(
-        "/lib/x86_64-linux-gnu/libc.so.6",
-        "strlen",
-        uprobe_code,
-        -1, /* all PIDs */
-    )?;
+    UserspaceProbe::new()
+        .name("count")
+        .binary("/lib/x86_64-linux-gnu/libc.so.6")
+        .symbol("strlen")
+        .attach(&mut module)?;
     let table = module.table("counts");
     while runnable.load(Ordering::SeqCst) {
         std::thread::sleep(std::time::Duration::from_millis(1000));
