@@ -1,4 +1,5 @@
-use bcc::core::BPF;
+use bcc::core::{PerfEventProbe, BPF};
+use bcc::perf::{Event, HardwareEvent};
 use bcc::table::Entry;
 
 fn main() {
@@ -33,6 +34,16 @@ fn main() {
     assert!(table.delete_all().is_ok());
     let entries: Vec<Entry> = table.iter().collect();
     assert_eq!(entries.len(), 0);
+
+    println!("smoketest: PerfEventBuilder both freq and period");
+    let mut bpf = BPF::new("").unwrap();
+    let result = PerfEventProbe::new()
+        .event(Event::Hardware(HardwareEvent::CpuCycles))
+        .name("abc")
+        .sample_period(Some(1))
+        .sample_frequency(Some(2))
+        .attach(&mut bpf);
+    assert!(result.is_err());
 
     println!("smoketest passed");
 }
