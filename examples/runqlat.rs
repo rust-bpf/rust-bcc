@@ -1,5 +1,5 @@
-use bcc::core::{KernelProbe, RawTracepointProbe, BPF};
 use bcc::BccError;
+use bcc::{Kprobe, RawTracepoint, BPF};
 use clap::{App, Arg};
 
 use core::sync::atomic::{AtomicBool, Ordering};
@@ -12,15 +12,15 @@ use std::{mem, thread, time};
 
 #[cfg(any(feature = "v0_4_0", feature = "v0_5_0",))]
 fn attach_events(bpf: &mut BPF) -> Result<(), BccError> {
-    KernelProbe::new()
+    Kprobe::new()
         .name("trace_run")
         .function("finish_task_switch")
         .attach(bpf)?;
-    KernelProbe::new()
+    Kprobe::new()
         .name("trace_ttwu_do_wakeup")
         .function("ttwu_do_wakeup")
         .attach(bpf)?;
-    KernelProbe::new()
+    Kprobe::new()
         .name("trace_wake_up_new_task")
         .function("wake_up_new_task")
         .attach(bpf)?;
@@ -30,30 +30,30 @@ fn attach_events(bpf: &mut BPF) -> Result<(), BccError> {
 #[cfg(not(any(feature = "v0_4_0", feature = "v0_5_0")))]
 fn attach_events(bpf: &mut BPF) -> Result<(), BccError> {
     if bpf.support_raw_tracepoint() {
-        RawTracepointProbe::new()
+        RawTracepoint::new()
             .name("raw_tp__sched_wakeup")
             .tracepoint("sched_wakeup")
             .attach(bpf)?;
-        RawTracepointProbe::new()
+        RawTracepoint::new()
             .name("raw_tp__sched_wakeup_new")
             .tracepoint("sched_wakeup_new")
             .attach(bpf)?;
-        RawTracepointProbe::new()
+        RawTracepoint::new()
             .name("raw_tp__sched_switch")
             .tracepoint("sched_switch")
             .attach(bpf)?;
         Ok(())
     } else {
         // load + attach kprobes!
-        KernelProbe::new()
+        Kprobe::new()
             .name("trace_run")
             .function("finish_task_switch")
             .attach(bpf)?;
-        KernelProbe::new()
+        Kprobe::new()
             .name("trace_ttwu_do_wakeup")
             .function("ttwu_do_wakeup")
             .attach(bpf)?;
-        KernelProbe::new()
+        Kprobe::new()
             .name("trace_wake_up_new_task")
             .function("wake_up_new_task")
             .attach(bpf)?;

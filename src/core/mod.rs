@@ -4,20 +4,14 @@ mod raw_tracepoint;
 mod tracepoint;
 mod uprobe;
 
-pub use crate::core::kprobe::{KernelProbe, KernelReturnProbe};
-pub use crate::core::perf_event::PerfEventProbe;
-pub use crate::core::raw_tracepoint::RawTracepointProbe;
-pub use crate::core::tracepoint::TracepointProbe;
-pub use crate::core::uprobe::{UserspaceProbe, UserspaceReturnProbe};
-
 use bcc_sys::bccapi::*;
 
-use self::kprobe::Kprobe;
-use self::perf_event::PerfEvent;
-use self::raw_tracepoint::RawTracepoint;
-use self::tracepoint::Tracepoint;
-use self::uprobe::Uprobe;
-use crate::perf::{self, PerfReader};
+pub(crate) use self::kprobe::Kprobe;
+pub(crate) use self::perf_event::PerfEvent;
+pub(crate) use self::raw_tracepoint::RawTracepoint;
+pub(crate) use self::tracepoint::Tracepoint;
+pub(crate) use self::uprobe::Uprobe;
+use crate::perf_event::PerfReader;
 use crate::symbol::SymbolCache;
 use crate::table::Table;
 use crate::BccError;
@@ -44,16 +38,16 @@ const SYSCALL_PREFIXES: [&str; 7] = [
 #[derive(Debug)]
 pub struct BPF {
     p: AtomicPtr<c_void>,
-    kprobes: HashSet<Kprobe>,
-    uprobes: HashSet<Uprobe>,
-    tracepoints: HashSet<Tracepoint>,
-    raw_tracepoints: HashSet<RawTracepoint>,
-    perf_events: HashSet<PerfEvent>,
+    pub(crate) kprobes: HashSet<Kprobe>,
+    pub(crate) uprobes: HashSet<Uprobe>,
+    pub(crate) tracepoints: HashSet<Tracepoint>,
+    pub(crate) raw_tracepoints: HashSet<RawTracepoint>,
+    pub(crate) perf_events: HashSet<PerfEvent>,
     perf_readers: Vec<PerfReader>,
     sym_caches: HashMap<pid_t, SymbolCache>,
 }
 
-fn make_alphanumeric(s: &str) -> String {
+pub(crate) fn make_alphanumeric(s: &str) -> String {
     s.replace(
         |c| !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')),
         "_",
@@ -331,7 +325,7 @@ impl BPF {
     }
 
     pub fn get_kprobe_functions(&mut self, event_re: &str) -> Result<Vec<String>, BccError> {
-        crate::core::kprobe::get_kprobe_functions(event_re)
+        crate::kprobe::get_kprobe_functions(event_re)
     }
 
     pub fn ksymname(&mut self, name: &str) -> Result<u64, BccError> {
@@ -365,7 +359,7 @@ impl BPF {
     where
         F: Fn() -> Box<dyn FnMut(&[u8]) + Send>,
     {
-        let perf_map = perf::init_perf_map(table, cb)?;
+        let perf_map = crate::perf_event::init_perf_map(table, cb)?;
         self.perf_readers.extend(perf_map.readers);
         Ok(())
     }

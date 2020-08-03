@@ -2,8 +2,8 @@ extern crate bcc;
 extern crate byteorder;
 extern crate libc;
 
-use bcc::core::{UserspaceProbe, BPF};
 use bcc::BccError;
+use bcc::{Uprobe, BPF};
 use byteorder::{NativeEndian, ReadBytesExt};
 
 use core::sync::atomic::{AtomicBool, Ordering};
@@ -33,7 +33,7 @@ int count(struct pt_regs *ctx) {
 };
     ";
     let mut module = BPF::new(code)?;
-    UserspaceProbe::new()
+    Uprobe::new()
         .name("count")
         .binary("/lib/x86_64-linux-gnu/libc.so.6")
         .symbol("strlen")

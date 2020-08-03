@@ -1,5 +1,5 @@
-use bcc::core::{TracepointProbe, BPF};
 use bcc::BccError;
+use bcc::{Tracepoint, BPF};
 use clap::{App, Arg};
 
 use core::sync::atomic::{AtomicBool, Ordering};
@@ -116,12 +116,12 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     let mut module = BPF::new(code)?;
 
     // tracepoints!
-    TracepointProbe::new()
+    Tracepoint::new()
         .name("softirq_entry")
         .subsystem("irq")
         .tracepoint("softirq_entry")
         .attach(&mut module)?;
-    TracepointProbe::new()
+    Tracepoint::new()
         .name("softirq_exit")
         .subsystem("irq")
         .tracepoint("softirq_exit")
