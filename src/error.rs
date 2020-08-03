@@ -23,16 +23,16 @@ pub enum BccError {
     Compilation,
     #[error("io error")]
     IoError(#[from] std::io::Error),
-    #[error("kernel probe has incomplete configuration: {message}")]
-    IncompleteKernelProbe { message: String },
-    #[error("perf event probe has incomplete configuration: {message}")]
-    IncompletePerfEventProbe { message: String },
-    #[error("raw tracepoint probe has incomplete configuration: {message}")]
-    IncompleteRawTracepointProbe { message: String },
-    #[error("tracepoint probe has incomplete configuration: {message}")]
-    IncompleteTracepointProbe { message: String },
-    #[error("userspace probe has incomplete configuration: {message}")]
-    IncompleteUserspaceProbe { message: String },
+    #[error("kernel probe has invalid configuration: {message}")]
+    InvalidKprobe { message: String },
+    #[error("perf event probe has invalid configuration: {message}")]
+    InvalidPerfEvent { message: String },
+    #[error("raw tracepoint probe has invalid configuration: {message}")]
+    InvalidRawTracepoint { message: String },
+    #[error("tracepoint probe has invalid configuration: {message}")]
+    InvalidTracepoint { message: String },
+    #[error("userspace probe has invalid configuration: {message}")]
+    InvalidUprobe { message: String },
     #[error("error initializing perf map")]
     InitializePerfMap,
     #[error("invalid cpu range ({range})")]
