@@ -15,7 +15,7 @@ use std::path::{Path, PathBuf};
 /// struct to be useful.
 pub struct Uprobe {
     binary: Option<PathBuf>,
-    name: Option<String>,
+    handler: Option<String>,
     pid: Option<pid_t>,
     symbol: Option<String>,
 }
@@ -29,8 +29,8 @@ impl Uprobe {
 
     /// Specify the name of the probe handler within the BPF code. This is a
     /// required item.
-    pub fn name(mut self, name: &str) -> Self {
-        self.name = Some(name.to_owned());
+    pub fn handler(mut self, name: &str) -> Self {
+        self.handler = Some(name.to_owned());
         self
     }
 
@@ -56,9 +56,9 @@ impl Uprobe {
     /// error if there is a incomplete configuration or error while loading or
     /// attaching the probe.
     pub fn attach(self, bpf: &mut BPF) -> Result<(), BccError> {
-        if self.name.is_none() {
+        if self.handler.is_none() {
             return Err(BccError::IncompleteUserspaceProbe {
-                message: "name is required".to_string(),
+                message: "handler is required".to_string(),
             });
         }
         if self.binary.is_none() {
@@ -80,13 +80,13 @@ impl Uprobe {
         let binary = binary.unwrap();
         let symbol = self.symbol.unwrap();
         let pid = self.pid.unwrap_or(-1);
-        let name = self.name.unwrap();
+        let handler = self.handler.unwrap();
 
         let (path, addr) = crate::symbol::resolve_symbol_path(&binary, &symbol, 0x0, pid)?;
         let alpha_path = make_alphanumeric(&path);
         let ev_name = format!("r_{}_0x{:x}", &alpha_path, addr);
 
-        let code_fd = bpf.load(&name, BPF_PROG_TYPE_KPROBE, 0, 0)?;
+        let code_fd = bpf.load(&handler, BPF_PROG_TYPE_KPROBE, 0, 0)?;
 
         let uprobe =
             crate::core::Uprobe::new(&ev_name, BPF_PROBE_ENTRY, &path, addr, code_fd, pid)?;
