@@ -10,21 +10,29 @@ pub struct RawTracepoint {
 }
 
 impl RawTracepoint {
+    /// Create a new probe with the defaults. Further initialization is required
+    /// before attaching.
     pub fn new() -> Self {
         Default::default()
     }
 
+    /// Specify the name of the probe handler within the BPF code. This is a
+    /// required item.
     pub fn handler(mut self, name: &str) -> Self {
         self.handler = Some(name.to_owned());
         self
     }
 
+    /// Specify the name of the raw tracepoint to probe.
     pub fn tracepoint(mut self, name: &str) -> Self {
         self.tracepoint = Some(name.to_owned());
         self
     }
 
     #[cfg(any(feature = "v0_4_0", feature = "v0_5_0",))]
+    /// Consumes the probe and attaches it. May return an error if there is a
+    /// incomplete or invalid configuration or other error while loading or
+    /// attaching the probe.
     pub fn attach(self, bpf: &mut BPF) -> Result<(), BccError> {
         BccError::BccVersionTooLow {
             cause: "raw tracepoints".to_owned(),
@@ -46,14 +54,17 @@ impl RawTracepoint {
         feature = "v0_15_0",
         not(feature = "specific"),
     ))]
+    /// Consumes the probe and attaches it. May return an error if there is a
+    /// incomplete or invalid configuration or other error while loading or
+    /// attaching the probe.
     pub fn attach(self, bpf: &mut BPF) -> Result<(), BccError> {
         if self.handler.is_none() {
-            return Err(BccError::IncompleteRawTracepointProbe {
+            return Err(BccError::InvalidRawTracepoint {
                 message: "handler is required".to_string(),
             });
         }
         if self.tracepoint.is_none() {
-            return Err(BccError::IncompleteRawTracepointProbe {
+            return Err(BccError::InvalidRawTracepoint {
                 message: "tracepoint is required".to_string(),
             });
         }

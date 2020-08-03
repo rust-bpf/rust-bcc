@@ -35,22 +35,22 @@ impl Tracepoint {
         self
     }
 
-    /// Consumes the probe and attaches it to the `BPF` struct. May return an
-    /// error if there is a incomplete configuration or error while loading or
+    /// Consumes the probe and attaches it. May return an error if there is a
+    /// incomplete or invalid configuration or other error while loading or
     /// attaching the probe.
     pub fn attach(self, bpf: &mut BPF) -> Result<(), BccError> {
         if self.handler.is_none() {
-            return Err(BccError::IncompleteTracepointProbe {
+            return Err(BccError::InvalidTracepoint {
                 message: "handler is required".to_string(),
             });
         }
         if self.subsystem.is_none() {
-            return Err(BccError::IncompleteTracepointProbe {
+            return Err(BccError::InvalidTracepoint {
                 message: "subsystem is required".to_string(),
             });
         }
         if self.tracepoint.is_none() {
-            return Err(BccError::IncompleteTracepointProbe {
+            return Err(BccError::InvalidTracepoint {
                 message: "tracepoint is required".to_string(),
             });
         }

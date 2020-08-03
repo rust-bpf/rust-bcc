@@ -11,9 +11,8 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 
 #[derive(Default)]
-/// A `KernelProbe` is used to configure and then attach a kprobe to a kernel
-/// function on entry into that function. Must be attached to a `BPF` struct to
-/// be useful.
+/// A `Kprobe` is used to configure and then attach a probe to a kernel function
+/// which runs on entry into that function. Must be attached to be useful.
 pub struct Kprobe {
     handler: Option<String>,
     function: Option<String>,
@@ -40,17 +39,17 @@ impl Kprobe {
         self
     }
 
-    /// Consumes the probe and attaches it to the `BPF` struct. May return an
-    /// error if there is a incomplete configuration or error while loading or
+    /// Consumes the probe and attaches it. May return an error if there is a
+    /// incomplete or invalid configuration or other error while loading or
     /// attaching the probe.
     pub fn attach(self, bpf: &mut BPF) -> Result<(), BccError> {
         if self.handler.is_none() {
-            return Err(BccError::IncompleteKernelProbe {
+            return Err(BccError::InvalidKprobe {
                 message: "handler is required".to_string(),
             });
         }
         if self.function.is_none() {
-            return Err(BccError::IncompleteKernelProbe {
+            return Err(BccError::InvalidKprobe {
                 message: "function is required".to_string(),
             });
         }
@@ -66,8 +65,8 @@ impl Kprobe {
 
 #[derive(Default)]
 /// A `Kretprobe` is used to configure and then attach a probe to a kernel
-/// function on return from that function. Must be attached to a `BPF` struct to
-/// be useful.
+/// function which runs on return from that function. Must be attached to be
+/// useful.
 pub struct Kretprobe {
     handler: Option<String>,
     function: Option<String>,
@@ -94,17 +93,17 @@ impl Kretprobe {
         self
     }
 
-    /// Consumes the probe and attaches it to the `BPF` struct. May return an
-    /// error if there is a incomplete configuration or error while loading or
+    /// Consumes the probe and attaches it. May return an error if there is a
+    /// incomplete or invalid configuration or other error while loading or
     /// attaching the probe.
     pub fn attach(self, bpf: &mut BPF) -> Result<(), BccError> {
         if self.handler.is_none() {
-            return Err(BccError::IncompleteKernelProbe {
+            return Err(BccError::InvalidKprobe {
                 message: "handler is required".to_string(),
             });
         }
         if self.function.is_none() {
-            return Err(BccError::IncompleteKernelProbe {
+            return Err(BccError::InvalidKprobe {
                 message: "function is required".to_string(),
             });
         }
