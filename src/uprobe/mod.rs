@@ -10,9 +10,9 @@ use bcc_sys::bccapi::pid_t;
 use std::path::{Path, PathBuf};
 
 #[derive(Default)]
-/// A `UserspaceProbe` is used to configure and then attach a uprobe to a
-/// userspace function on entry into that function. Must be attached to a `BPF`
-/// struct to be useful.
+/// A `Uprobe` is used to configure and then attach a uprobe to a userspace
+/// function on entry into that function. Must be attached to a `BPF` struct to
+/// be useful.
 pub struct Uprobe {
     binary: Option<PathBuf>,
     handler: Option<String>,
@@ -57,23 +57,23 @@ impl Uprobe {
     /// attaching the probe.
     pub fn attach(self, bpf: &mut BPF) -> Result<(), BccError> {
         if self.handler.is_none() {
-            return Err(BccError::IncompleteUserspaceProbe {
+            return Err(BccError::InvalidUprobe {
                 message: "handler is required".to_string(),
             });
         }
         if self.binary.is_none() {
-            return Err(BccError::IncompleteUserspaceProbe {
+            return Err(BccError::InvalidUprobe {
                 message: "binary is required".to_string(),
             });
         }
         let binary = self.binary.unwrap().to_str().map(|v| v.to_owned());
         if binary.is_none() {
-            return Err(BccError::IncompleteUserspaceProbe {
+            return Err(BccError::InvalidUprobe {
                 message: "binary path is invalid".to_string(),
             });
         }
         if self.symbol.is_none() {
-            return Err(BccError::IncompleteUserspaceProbe {
+            return Err(BccError::InvalidUprobe {
                 message: "symbol is required".to_string(),
             });
         }
@@ -143,23 +143,23 @@ impl Uretprobe {
     /// attaching the probe.
     pub fn attach(self, bpf: &mut BPF) -> Result<(), BccError> {
         if self.handler.is_none() {
-            return Err(BccError::IncompleteUserspaceProbe {
+            return Err(BccError::InvalidUprobe {
                 message: "handler is required".to_string(),
             });
         }
         if self.binary.is_none() {
-            return Err(BccError::IncompleteUserspaceProbe {
+            return Err(BccError::InvalidUprobe {
                 message: "binary is required".to_string(),
             });
         }
         let binary = self.binary.unwrap().to_str().map(|v| v.to_owned());
         if binary.is_none() {
-            return Err(BccError::IncompleteUserspaceProbe {
+            return Err(BccError::InvalidUprobe {
                 message: "binary path is invalid".to_string(),
             });
         }
         if self.symbol.is_none() {
-            return Err(BccError::IncompleteUserspaceProbe {
+            return Err(BccError::InvalidUprobe {
                 message: "symbol is required".to_string(),
             });
         }

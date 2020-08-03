@@ -17,6 +17,7 @@ impl Table {
         Table { id, p }
     }
 
+    /// Returns the size, in bytes, of keys in the `Table`
     pub fn key_size(&mut self) -> usize {
         unsafe { bpf_table_key_size_id(self.p, self.id) }
     }
@@ -25,10 +26,12 @@ impl Table {
         unsafe { bpf_table_fd_id(self.p, self.id) }
     }
 
+    /// Returns the size, in bytes, of leaf nodes in the `Table`
     pub fn leaf_size(&mut self) -> usize {
         unsafe { bpf_table_leaf_size_id(self.p, self.id) }
     }
 
+    /// Returns the name of the `Table`
     pub fn name(&mut self) -> String {
         unsafe {
             let cs = bpf_table_name(self.p, self.id);
@@ -36,6 +39,7 @@ impl Table {
         }
     }
 
+    /// Delete the provided key and associated leaf node from the `Table`
     pub fn delete(&mut self, key: &mut [u8]) -> Result<(), BccError> {
         let fd = self.fd();
         let res = unsafe { bpf_delete_elem(fd, key.as_mut_ptr() as MutPointer) };
@@ -45,6 +49,7 @@ impl Table {
         }
     }
 
+    /// Delete all keys and associated leaf nodes from the `Table`
     pub fn delete_all(&mut self) -> Result<(), BccError> {
         for mut e in self.iter() {
             self.delete(&mut e.key)?;
@@ -52,6 +57,7 @@ impl Table {
         Ok(())
     }
 
+    /// Get the leaf node associated with the provided key
     pub fn get(&mut self, key: &mut [u8]) -> Result<Vec<u8>, BccError> {
         let mut leaf = vec![0; self.leaf_size()];
         let res = unsafe {
@@ -67,6 +73,7 @@ impl Table {
         }
     }
 
+    /// Store the provided leaf node for the provided key
     pub fn set(&mut self, key: &mut [u8], leaf: &mut [u8]) -> Result<(), BccError> {
         let res = unsafe {
             bpf_update_elem(
@@ -83,6 +90,7 @@ impl Table {
         }
     }
 
+    /// Create an iterator for key/leaf pairs in the `Table`
     pub fn iter(&self) -> EntryIter {
         EntryIter {
             current: None,

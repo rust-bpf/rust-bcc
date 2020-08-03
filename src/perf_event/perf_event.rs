@@ -16,8 +16,7 @@ pub struct PerfEvent {
 }
 
 /// A `PerfEvent` is used to configure a BPF probe which instruments a hardware
-/// or software event. This structure must be attached to the `BPF` structure to
-/// be useful.
+/// or software performance event. Must be attached to be useful.
 impl PerfEvent {
     /// Creates a new `PerfEvent` with the defaults. There are several mandatory
     /// fields which must be configured before attaching.
@@ -25,8 +24,8 @@ impl PerfEvent {
         Default::default()
     }
 
-    /// This corresponds to the function name in the BPF code which will be
-    /// called when the probe fires. This is required.
+    /// Specify the name of the probe handler within the BPF code. This is a
+    /// required item.
     pub fn handler(mut self, name: &str) -> Self {
         self.handler = Some(name.to_owned());
         self
@@ -81,16 +80,17 @@ impl PerfEvent {
         self
     }
 
-    /// Consumes the probe and attaches it to the `BPF` struct. May return an
-    /// error if there is an underlying failure when attaching the probe.
+    /// Consumes the probe and attaches it. May return an error if there is a
+    /// incomplete or invalid configuration or other error while loading or
+    /// attaching the probe.
     pub fn attach(self, bpf: &mut BPF) -> Result<(), BccError> {
         if self.event.is_none() {
-            return Err(BccError::IncompletePerfEventProbe {
+            return Err(BccError::InvalidPerfEvent {
                 message: "event is required".to_string(),
             });
         }
         if self.handler.is_none() {
-            return Err(BccError::IncompletePerfEventProbe {
+            return Err(BccError::InvalidPerfEvent {
                 message: "handler is required".to_string(),
             });
         }
@@ -98,7 +98,7 @@ impl PerfEvent {
             ^ (self.sample_frequency.unwrap_or(0) == 0) as i32
             == 0
         {
-            return Err(BccError::IncompletePerfEventProbe {
+            return Err(BccError::InvalidPerfEvent {
                 message: "exactly one of sample period or sample frequency is required".to_string(),
             });
         }

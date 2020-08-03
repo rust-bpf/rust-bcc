@@ -36,6 +36,9 @@ const SYSCALL_PREFIXES: [&str; 7] = [
 ];
 
 #[derive(Debug)]
+/// The `BPF` struct contains the compiled BPF code, any probes or programs that
+/// have been attached, and can provide access to a userspace view of the
+/// results of the running BPF programs.
 pub struct BPF {
     p: AtomicPtr<c_void>,
     pub(crate) kprobes: HashSet<Kprobe>,
@@ -47,6 +50,7 @@ pub struct BPF {
     sym_caches: HashMap<pid_t, SymbolCache>,
 }
 
+// helper function that converts non-alphanumeric characters to underscores
 pub(crate) fn make_alphanumeric(s: &str) -> String {
     s.replace(
         |c| !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')),
@@ -54,6 +58,7 @@ pub(crate) fn make_alphanumeric(s: &str) -> String {
     )
 }
 
+// create a mutable pointer from a vector of bytes
 fn null_or_mut_ptr<T>(s: &mut Vec<u8>) -> *mut T {
     if s.capacity() == 0 {
         ptr::null_mut()
@@ -63,7 +68,6 @@ fn null_or_mut_ptr<T>(s: &mut Vec<u8>) -> *mut T {
 }
 
 impl BPF {
-    /// `code` is a string containing C code. See https://github.com/iovisor/bcc for examples
     #[cfg(any(
         feature = "v0_4_0",
         feature = "v0_5_0",
@@ -72,6 +76,7 @@ impl BPF {
         feature = "v0_7_0",
         feature = "v0_8_0",
     ))]
+    /// `code` is a string containing C code. See https://github.com/iovisor/bcc for examples
     pub fn new(code: &str) -> Result<BPF, BccError> {
         let cs = CString::new(code)?;
         let ptr = unsafe { bpf_module_create_c_from_string(cs.as_ptr(), 2, ptr::null_mut(), 0) };
@@ -93,6 +98,7 @@ impl BPF {
 
     // 0.9.0 changes the API for bpf_module_create_c_from_string()
     #[cfg(any(feature = "v0_9_0", feature = "v0_10_0",))]
+    /// `code` is a string containing C code. See https://github.com/iovisor/bcc for examples
     pub fn new(code: &str) -> Result<BPF, BccError> {
         let cs = CString::new(code)?;
         let ptr =
@@ -122,6 +128,7 @@ impl BPF {
         feature = "v0_15_0",
         not(feature = "specific"),
     ))]
+    /// `code` is a string containing C code. See https://github.com/iovisor/bcc for examples
     pub fn new(code: &str) -> Result<BPF, BccError> {
         let cs = CString::new(code)?;
         let ptr = unsafe {
@@ -150,10 +157,12 @@ impl BPF {
         })
     }
 
+    // get access to the interal pointer for the bpf module
     fn ptr(&self) -> *mut c_void {
         self.p.load(Ordering::SeqCst)
     }
 
+    /// Get access to a named table within the running BPF program.
     pub fn table(&self, name: &str) -> Table {
         // TODO: clean up this unwrap (and all the rest in this file)
         let cname = CString::new(name).unwrap();
@@ -161,11 +170,14 @@ impl BPF {
         Table::new(id, self.ptr())
     }
 
+    /// Load a network traffic-control action which has the provided name within
+    /// the BPF program
     pub fn load_net(&mut self, name: &str) -> Result<File, BccError> {
         self.load(name, bpf_prog_type_BPF_PROG_TYPE_SCHED_ACT, 0, 0)
     }
 
     #[cfg(feature = "v0_4_0")]
+    /// load the named BPF program from within the compiled BPF code
     pub fn load(
         &mut self,
         name: &str,
@@ -214,6 +226,7 @@ impl BPF {
         feature = "v0_7_0",
         feature = "v0_8_0"
     ))]
+    /// load the named BPF program from within the compiled BPF code
     pub fn load(
         &mut self,
         name: &str,
@@ -267,6 +280,7 @@ impl BPF {
         feature = "v0_15_0",
         not(feature = "specific"),
     ))]
+    /// load the named BPF program from within the compiled BPF code
     pub fn load(
         &mut self,
         name: &str,
@@ -310,6 +324,7 @@ impl BPF {
         }
     }
 
+    /// Returns the syscall prefix for the running kernel
     pub fn get_syscall_prefix(&mut self) -> String {
         for prefix in SYSCALL_PREFIXES.iter() {
             if self.ksymname(prefix).is_ok() {
@@ -320,14 +335,18 @@ impl BPF {
         SYSCALL_PREFIXES[0].to_string()
     }
 
+    /// Converts a syscall function name to a fully-qualified function name
     pub fn get_syscall_fnname(&mut self, name: &str) -> String {
         self.get_syscall_prefix() + name
     }
 
+    /// Returns a list of kernel functions matching a provided regular
+    /// expression
     pub fn get_kprobe_functions(&mut self, event_re: &str) -> Result<Vec<String>, BccError> {
         crate::kprobe::get_kprobe_functions(event_re)
     }
 
+    /// Resulves the name to a kernel symbol
     pub fn ksymname(&mut self, name: &str) -> Result<u64, BccError> {
         self.sym_caches
             .entry(-1)
@@ -350,6 +369,7 @@ impl BPF {
         feature = "v0_15_0",
         not(feature = "specific"),
     ))]
+    /// Returns true if raw tracepoints are supported by the running kernel
     pub fn support_raw_tracepoint(&mut self) -> bool {
         self.ksymname("bpf_find_raw_tracepoint").is_ok()
             || self.ksymname("bpf_get_raw_tracepoint").is_ok()
