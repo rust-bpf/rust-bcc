@@ -56,7 +56,7 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     // compile the above BPF code!
     let mut bpf = BPF::new(&code)?;
     Kprobe::new()
-        .name("trace_retransmit")
+        .handler("trace_retransmit")
         .function("tcp_retransmit_skb")
         .attach(&mut bpf)?;
 

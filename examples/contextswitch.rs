@@ -96,7 +96,7 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
 
     let mut bpf = BPF::new(&code)?;
     PerfEvent::new()
-        .name("do_count")
+        .handler("do_count")
         .event(Event::Software(SoftwareEvent::ContextSwitches))
         .sample_period(sample_period)
         .sample_frequency(sample_frequency)

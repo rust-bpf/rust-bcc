@@ -34,7 +34,7 @@ int count(struct pt_regs *ctx) {
     ";
     let mut module = BPF::new(code)?;
     Uprobe::new()
-        .name("count")
+        .handler("count")
         .binary("/lib/x86_64-linux-gnu/libc.so.6")
         .symbol("strlen")
         .attach(&mut module)?;

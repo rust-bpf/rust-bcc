@@ -54,12 +54,12 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     let code = include_str!("llcstat.c").to_string();
     let mut bpf = BPF::new(&code)?;
     PerfEvent::new()
-        .name("on_cache_miss")
+        .handler("on_cache_miss")
         .event(Event::Hardware(HardwareEvent::CacheMisses))
         .sample_period(Some(sample_period))
         .attach(&mut bpf)?;
     PerfEvent::new()
-        .name("on_cache_ref")
+        .handler("on_cache_ref")
         .event(Event::Hardware(HardwareEvent::CacheReferences))
         .sample_period(Some(sample_period))
         .attach(&mut bpf)?;

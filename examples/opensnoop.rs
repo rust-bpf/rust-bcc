@@ -50,11 +50,11 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     let mut module = BPF::new(code)?;
     // load + attach kprobes!
     Kprobe::new()
-        .name("trace_entry")
+        .handler("trace_entry")
         .function("do_sys_open")
         .attach(&mut module)?;
     Kretprobe::new()
-        .name("trace_return")
+        .handler("trace_return")
         .function("do_sys_open")
         .attach(&mut module)?;
 
