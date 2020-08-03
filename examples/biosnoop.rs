@@ -57,21 +57,21 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
 
     // attach kprobes
     Kprobe::new()
-        .name("trace_pid_start")
+        .handler("trace_pid_start")
         .function("blk_account_io_start")
         .attach(&mut bpf)?;
     Kprobe::new()
-        .name("trace_req_start")
+        .handler("trace_req_start")
         .function("blk_mq_start_request")
         .attach(&mut bpf)?;
     Kprobe::new()
-        .name("trace_req_completion")
+        .handler("trace_req_completion")
         .function("blk_account_io_completion")
         .attach(&mut bpf)?;
     if let Ok(funcs) = bpf.get_kprobe_functions("blk_start_request") {
         if funcs.len() > 0 {
             Kprobe::new()
-                .name("trace_req_start")
+                .handler("trace_req_start")
                 .function("blk_start_request")
                 .attach(&mut bpf)?;
         }

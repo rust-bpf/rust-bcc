@@ -15,7 +15,7 @@ mod tests {
         // compile the above BPF code!
         let mut module = BPF::new(code).unwrap();
         if Kprobe::new()
-            .name("trace_return")
+            .handler("trace_return")
             .function("do_sys_open")
             .attach(&mut module)
             .is_ok()

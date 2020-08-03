@@ -31,30 +31,30 @@ fn attach_events(bpf: &mut BPF) -> Result<(), BccError> {
 fn attach_events(bpf: &mut BPF) -> Result<(), BccError> {
     if bpf.support_raw_tracepoint() {
         RawTracepoint::new()
-            .name("raw_tp__sched_wakeup")
+            .handler("raw_tp__sched_wakeup")
             .tracepoint("sched_wakeup")
             .attach(bpf)?;
         RawTracepoint::new()
-            .name("raw_tp__sched_wakeup_new")
+            .handler("raw_tp__sched_wakeup_new")
             .tracepoint("sched_wakeup_new")
             .attach(bpf)?;
         RawTracepoint::new()
-            .name("raw_tp__sched_switch")
+            .handler("raw_tp__sched_switch")
             .tracepoint("sched_switch")
             .attach(bpf)?;
         Ok(())
     } else {
         // load + attach kprobes!
         Kprobe::new()
-            .name("trace_run")
+            .handler("trace_run")
             .function("finish_task_switch")
             .attach(bpf)?;
         Kprobe::new()
-            .name("trace_ttwu_do_wakeup")
+            .handler("trace_ttwu_do_wakeup")
             .function("ttwu_do_wakeup")
             .attach(bpf)?;
         Kprobe::new()
-            .name("trace_wake_up_new_task")
+            .handler("trace_wake_up_new_task")
             .function("wake_up_new_task")
             .attach(bpf)?;
         Ok(())

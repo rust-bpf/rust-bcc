@@ -4,9 +4,9 @@ use bcc_sys::bccapi::bpf_prog_type_BPF_PROG_TYPE_TRACEPOINT as BPF_PROG_TYPE_TRA
 
 #[derive(Default)]
 pub struct Tracepoint {
+    handler: Option<String>,
     subsystem: Option<String>,
     tracepoint: Option<String>,
-    name: Option<String>,
 }
 
 impl Tracepoint {
@@ -18,20 +18,20 @@ impl Tracepoint {
 
     /// Specify the name of the probe handler within the BPF code. This is a
     /// required item.
-    pub fn name(mut self, name: &str) -> Self {
-        self.name = Some(name.to_owned());
+    pub fn handler(mut self, name: &str) -> Self {
+        self.handler = Some(name.to_owned());
         self
     }
 
     /// Specify the name of the tracepoint subsystem. This is a required item.
-    pub fn subsystem(mut self, subsystem: &str) -> Self {
-        self.subsystem = Some(subsystem.to_owned());
+    pub fn subsystem(mut self, name: &str) -> Self {
+        self.subsystem = Some(name.to_owned());
         self
     }
 
     /// Specify the specific tracepoint for this probe. This is a required item.
-    pub fn tracepoint(mut self, tracepoint: &str) -> Self {
-        self.tracepoint = Some(tracepoint.to_owned());
+    pub fn tracepoint(mut self, name: &str) -> Self {
+        self.tracepoint = Some(name.to_owned());
         self
     }
 
@@ -39,9 +39,9 @@ impl Tracepoint {
     /// error if there is a incomplete configuration or error while loading or
     /// attaching the probe.
     pub fn attach(self, bpf: &mut BPF) -> Result<(), BccError> {
-        if self.name.is_none() {
+        if self.handler.is_none() {
             return Err(BccError::IncompleteTracepointProbe {
-                message: "name is required".to_string(),
+                message: "handler is required".to_string(),
             });
         }
         if self.subsystem.is_none() {
@@ -54,11 +54,11 @@ impl Tracepoint {
                 message: "tracepoint is required".to_string(),
             });
         }
-        let name = self.name.unwrap();
+        let handler = self.handler.unwrap();
         let subsystem = self.subsystem.unwrap();
         let tracepoint = self.tracepoint.unwrap();
 
-        let code_fd = bpf.load(&name, BPF_PROG_TYPE_TRACEPOINT, 0, 0)?;
+        let code_fd = bpf.load(&handler, BPF_PROG_TYPE_TRACEPOINT, 0, 0)?;
         let tracepoint = crate::core::Tracepoint::new(&subsystem, &tracepoint, code_fd)?;
         bpf.tracepoints.insert(tracepoint);
         Ok(())

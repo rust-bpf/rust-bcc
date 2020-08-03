@@ -6,7 +6,7 @@ use bcc_sys::bccapi::bpf_prog_type_BPF_PROG_TYPE_PERF_EVENT as BPF_PROG_TYPE_PER
 
 #[derive(Default)]
 pub struct PerfEvent {
-    name: Option<String>,
+    handler: Option<String>,
     event: Option<Event>,
     sample_period: Option<u64>,
     sample_frequency: Option<u64>,
@@ -27,8 +27,8 @@ impl PerfEvent {
 
     /// This corresponds to the function name in the BPF code which will be
     /// called when the probe fires. This is required.
-    pub fn name(mut self, name: &str) -> Self {
-        self.name = Some(name.to_owned());
+    pub fn handler(mut self, name: &str) -> Self {
+        self.handler = Some(name.to_owned());
         self
     }
 
@@ -89,9 +89,9 @@ impl PerfEvent {
                 message: "event is required".to_string(),
             });
         }
-        if self.name.is_none() {
+        if self.handler.is_none() {
             return Err(BccError::IncompletePerfEventProbe {
-                message: "name is required".to_string(),
+                message: "handler is required".to_string(),
             });
         }
         if (self.sample_period.unwrap_or(0) == 0) as i32
@@ -102,10 +102,10 @@ impl PerfEvent {
                 message: "exactly one of sample period or sample frequency is required".to_string(),
             });
         }
-        let name = self.name.unwrap();
+        let handler = self.handler.unwrap();
         let event = self.event.unwrap();
 
-        let code_fd = bpf.load(&name, BPF_PROG_TYPE_PERF_EVENT, 0, 0)?;
+        let code_fd = bpf.load(&handler, BPF_PROG_TYPE_PERF_EVENT, 0, 0)?;
 
         let ev_type = match event {
             Event::Hardware(_) => EventType::Hardware,

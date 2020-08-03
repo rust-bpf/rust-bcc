@@ -6,7 +6,7 @@ use bcc_sys::bccapi::bpf_prog_type_BPF_PROG_TYPE_RAW_TRACEPOINT as BPF_PROG_TYPE
 #[derive(Default)]
 pub struct RawTracepoint {
     tracepoint: Option<String>,
-    name: Option<String>,
+    handler: Option<String>,
 }
 
 impl RawTracepoint {
@@ -14,13 +14,13 @@ impl RawTracepoint {
         Default::default()
     }
 
-    pub fn name(mut self, name: &str) -> Self {
-        self.name = Some(name.to_owned());
+    pub fn handler(mut self, name: &str) -> Self {
+        self.handler = Some(name.to_owned());
         self
     }
 
-    pub fn tracepoint(mut self, tracepoint: &str) -> Self {
-        self.tracepoint = Some(tracepoint.to_owned());
+    pub fn tracepoint(mut self, name: &str) -> Self {
+        self.tracepoint = Some(name.to_owned());
         self
     }
 
@@ -47,9 +47,9 @@ impl RawTracepoint {
         not(feature = "specific"),
     ))]
     pub fn attach(self, bpf: &mut BPF) -> Result<(), BccError> {
-        if self.name.is_none() {
+        if self.handler.is_none() {
             return Err(BccError::IncompleteRawTracepointProbe {
-                message: "name is required".to_string(),
+                message: "handler is required".to_string(),
             });
         }
         if self.tracepoint.is_none() {
@@ -57,12 +57,12 @@ impl RawTracepoint {
                 message: "tracepoint is required".to_string(),
             });
         }
-        let name = self.name.unwrap();
+        let handler = self.handler.unwrap();
         let tracepoint = self.tracepoint.unwrap();
-        let code_fd = bpf.load(&name, BPF_PROG_TYPE_RAW_TRACEPOINT, 0, 0)?;
+        let code_fd = bpf.load(&handler, BPF_PROG_TYPE_RAW_TRACEPOINT, 0, 0)?;
 
-        let tracepoint = crate::core::RawTracepoint::new(&tracepoint, code_fd)?;
-        bpf.raw_tracepoints.insert(tracepoint);
+        let raw_tracepoint = crate::core::RawTracepoint::new(&tracepoint, code_fd)?;
+        bpf.raw_tracepoints.insert(raw_tracepoint);
         Ok(())
     }
 }

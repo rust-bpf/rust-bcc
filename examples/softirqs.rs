@@ -117,12 +117,12 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
 
     // tracepoints!
     Tracepoint::new()
-        .name("softirq_entry")
+        .handler("softirq_entry")
         .subsystem("irq")
         .tracepoint("softirq_entry")
         .attach(&mut module)?;
     Tracepoint::new()
-        .name("softirq_exit")
+        .handler("softirq_exit")
         .subsystem("irq")
         .tracepoint("softirq_exit")
         .attach(&mut module)?;

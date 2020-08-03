@@ -15,7 +15,7 @@ use std::io::{BufRead, BufReader};
 /// function on entry into that function. Must be attached to a `BPF` struct to
 /// be useful.
 pub struct Kprobe {
-    name: Option<String>,
+    handler: Option<String>,
     function: Option<String>,
 }
 
@@ -28,15 +28,15 @@ impl Kprobe {
 
     /// Specify the name of the probe handler within the BPF code. This is a
     /// required item.
-    pub fn name(mut self, name: &str) -> Self {
-        self.name = Some(name.to_owned());
+    pub fn handler(mut self, name: &str) -> Self {
+        self.handler = Some(name.to_owned());
         self
     }
 
     /// Specify the name of the kernel function to be probed. This is a required
     /// function.
-    pub fn function(mut self, function: &str) -> Self {
-        self.function = Some(function.to_owned());
+    pub fn function(mut self, name: &str) -> Self {
+        self.function = Some(name.to_owned());
         self
     }
 
@@ -44,9 +44,9 @@ impl Kprobe {
     /// error if there is a incomplete configuration or error while loading or
     /// attaching the probe.
     pub fn attach(self, bpf: &mut BPF) -> Result<(), BccError> {
-        if self.name.is_none() {
+        if self.handler.is_none() {
             return Err(BccError::IncompleteKernelProbe {
-                message: "name is required".to_string(),
+                message: "handler is required".to_string(),
             });
         }
         if self.function.is_none() {
@@ -54,11 +54,11 @@ impl Kprobe {
                 message: "function is required".to_string(),
             });
         }
-        let name = self.name.unwrap();
+        let handler = self.handler.unwrap();
         let function = self.function.unwrap();
-        let code_fd = bpf.load(&name, BPF_PROG_TYPE_KPROBE, 0, 0)?;
-        let name = format!("p_{}", &make_alphanumeric(&function));
-        let kprobe = crate::core::Kprobe::new(&name, BPF_PROBE_ENTRY, &function, code_fd)?;
+        let code_fd = bpf.load(&handler, BPF_PROG_TYPE_KPROBE, 0, 0)?;
+        let handler = format!("p_{}", &make_alphanumeric(&function));
+        let kprobe = crate::core::Kprobe::new(&handler, BPF_PROBE_ENTRY, &function, code_fd)?;
         bpf.kprobes.insert(kprobe);
         Ok(())
     }
@@ -69,7 +69,7 @@ impl Kprobe {
 /// function on return from that function. Must be attached to a `BPF` struct to
 /// be useful.
 pub struct Kretprobe {
-    name: Option<String>,
+    handler: Option<String>,
     function: Option<String>,
 }
 
@@ -82,15 +82,15 @@ impl Kretprobe {
 
     /// Specify the name of the probe handler within the BPF code. This is a
     /// required item.
-    pub fn name(mut self, name: &str) -> Self {
-        self.name = Some(name.to_owned());
+    pub fn handler(mut self, name: &str) -> Self {
+        self.handler = Some(name.to_owned());
         self
     }
 
     /// Specify the name of the kernel function to be probed. This is a required
     /// function.
-    pub fn function(mut self, function: &str) -> Self {
-        self.function = Some(function.to_owned());
+    pub fn function(mut self, name: &str) -> Self {
+        self.function = Some(name.to_owned());
         self
     }
 
@@ -98,9 +98,9 @@ impl Kretprobe {
     /// error if there is a incomplete configuration or error while loading or
     /// attaching the probe.
     pub fn attach(self, bpf: &mut BPF) -> Result<(), BccError> {
-        if self.name.is_none() {
+        if self.handler.is_none() {
             return Err(BccError::IncompleteKernelProbe {
-                message: "name is required".to_string(),
+                message: "handler is required".to_string(),
             });
         }
         if self.function.is_none() {
@@ -108,11 +108,11 @@ impl Kretprobe {
                 message: "function is required".to_string(),
             });
         }
-        let name = self.name.unwrap();
+        let handler = self.handler.unwrap();
         let function = self.function.unwrap();
-        let code_fd = bpf.load(&name, BPF_PROG_TYPE_KPROBE, 0, 0)?;
-        let name = format!("r_{}", &make_alphanumeric(&function));
-        let kprobe = crate::core::Kprobe::new(&name, BPF_PROBE_RETURN, &function, code_fd)?;
+        let code_fd = bpf.load(&handler, BPF_PROG_TYPE_KPROBE, 0, 0)?;
+        let handler = format!("r_{}", &make_alphanumeric(&function));
+        let kprobe = crate::core::Kprobe::new(&handler, BPF_PROBE_RETURN, &function, code_fd)?;
         bpf.kprobes.insert(kprobe);
         Ok(())
     }
