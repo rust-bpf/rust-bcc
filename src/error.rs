@@ -1,4 +1,4 @@
-use crate::perf::Event;
+use crate::perf_event::Event;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -17,6 +17,8 @@ pub enum BccError {
     AttachUprobe { name: String },
     #[error("failed to attach uretprobe ({name})")]
     AttachUretprobe { name: String },
+    #[error("{cause} requires bcc >= ({min_version})")]
+    BccVersionTooLow { cause: String, min_version: String },
     #[error("error compiling bpf")]
     Compilation,
     #[error("io error")]
@@ -25,6 +27,12 @@ pub enum BccError {
     IncompleteKernelProbe { message: String },
     #[error("perf event probe has incomplete configuration: {message}")]
     IncompletePerfEventProbe { message: String },
+    #[error("raw tracepoint probe has incomplete configuration: {message}")]
+    IncompleteRawTracepointProbe { message: String },
+    #[error("tracepoint probe has incomplete configuration: {message}")]
+    IncompleteTracepointProbe { message: String },
+    #[error("userspace probe has incomplete configuration: {message}")]
+    IncompleteUserspaceProbe { message: String },
     #[error("error initializing perf map")]
     InitializePerfMap,
     #[error("invalid cpu range ({range})")]

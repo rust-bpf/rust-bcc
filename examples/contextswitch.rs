@@ -2,9 +2,9 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use bcc::core::{PerfEventProbe, BPF};
-use bcc::perf::{Event, SoftwareEvent};
+use bcc::perf_event::{Event, SoftwareEvent};
 use bcc::BccError;
+use bcc::{PerfEvent, BPF};
 use clap::{App, Arg};
 
 use core::sync::atomic::{AtomicBool, Ordering};
@@ -95,8 +95,8 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     }
 
     let mut bpf = BPF::new(&code)?;
-    PerfEventProbe::new()
-        .name("do_count")
+    PerfEvent::new()
+        .handler("do_count")
         .event(Event::Software(SoftwareEvent::ContextSwitches))
         .sample_period(sample_period)
         .sample_frequency(sample_frequency)

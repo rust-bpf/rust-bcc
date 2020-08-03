@@ -1,6 +1,6 @@
-use bcc::core::{KernelProbe, BPF};
-use bcc::perf::init_perf_map;
+use bcc::perf_event::init_perf_map;
 use bcc::BccError;
+use bcc::{Kprobe, BPF};
 use clap::{App, Arg};
 
 use core::sync::atomic::{AtomicBool, Ordering};
@@ -56,22 +56,22 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     let mut bpf = BPF::new(&code)?;
 
     // attach kprobes
-    KernelProbe::new()
-        .name("trace_pid_start")
+    Kprobe::new()
+        .handler("trace_pid_start")
         .function("blk_account_io_start")
         .attach(&mut bpf)?;
-    KernelProbe::new()
-        .name("trace_req_start")
+    Kprobe::new()
+        .handler("trace_req_start")
         .function("blk_mq_start_request")
         .attach(&mut bpf)?;
-    KernelProbe::new()
-        .name("trace_req_completion")
+    Kprobe::new()
+        .handler("trace_req_completion")
         .function("blk_account_io_completion")
         .attach(&mut bpf)?;
     if let Ok(funcs) = bpf.get_kprobe_functions("blk_start_request") {
         if funcs.len() > 0 {
-            KernelProbe::new()
-                .name("trace_req_start")
+            Kprobe::new()
+                .handler("trace_req_start")
                 .function("blk_start_request")
                 .attach(&mut bpf)?;
         }

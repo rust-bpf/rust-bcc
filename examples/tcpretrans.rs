@@ -1,5 +1,5 @@
-use bcc::core::{KernelProbe, BPF};
 use bcc::BccError;
+use bcc::{Kprobe, BPF};
 use chrono::Utc;
 use clap::{App, Arg};
 
@@ -55,8 +55,8 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     let code = include_str!("tcpretrans.c");
     // compile the above BPF code!
     let mut bpf = BPF::new(&code)?;
-    KernelProbe::new()
-        .name("trace_retransmit")
+    Kprobe::new()
+        .handler("trace_retransmit")
         .function("tcp_retransmit_skb")
         .attach(&mut bpf)?;
 

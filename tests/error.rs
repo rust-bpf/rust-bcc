@@ -7,15 +7,15 @@ mod tests {
 
     extern crate bcc;
 
-    use bcc::core::{KernelProbe, BPF};
+    use bcc::{Kprobe, BPF};
 
     #[test]
     fn error_handling() {
         let code = include_str!("error.c");
         // compile the above BPF code!
         let mut module = BPF::new(code).unwrap();
-        if KernelProbe::new()
-            .name("trace_return")
+        if Kprobe::new()
+            .handler("trace_return")
             .function("do_sys_open")
             .attach(&mut module)
             .is_ok()

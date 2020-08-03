@@ -2,8 +2,8 @@ extern crate bcc;
 extern crate byteorder;
 extern crate libc;
 
-use bcc::core::BPF;
 use bcc::BccError;
+use bcc::{Uprobe, BPF};
 use byteorder::{NativeEndian, ReadBytesExt};
 
 use core::sync::atomic::{AtomicBool, Ordering};
@@ -33,13 +33,11 @@ int count(struct pt_regs *ctx) {
 };
     ";
     let mut module = BPF::new(code)?;
-    let uprobe_code = module.load_uprobe("count")?;
-    module.attach_uprobe(
-        "/lib/x86_64-linux-gnu/libc.so.6",
-        "strlen",
-        uprobe_code,
-        -1, /* all PIDs */
-    )?;
+    Uprobe::new()
+        .handler("count")
+        .binary("/lib/x86_64-linux-gnu/libc.so.6")
+        .symbol("strlen")
+        .attach(&mut module)?;
     let table = module.table("counts");
     while runnable.load(Ordering::SeqCst) {
         std::thread::sleep(std::time::Duration::from_millis(1000));

@@ -4,17 +4,14 @@ mod raw_tracepoint;
 mod tracepoint;
 mod uprobe;
 
-pub use crate::core::kprobe::{KernelProbe, KernelReturnProbe};
-pub use crate::core::perf_event::PerfEventProbe;
-
 use bcc_sys::bccapi::*;
 
-use self::kprobe::Kprobe;
-use self::perf_event::PerfEvent;
-use self::raw_tracepoint::RawTracepoint;
-use self::tracepoint::Tracepoint;
-use self::uprobe::Uprobe;
-use crate::perf::{self, PerfReader};
+pub(crate) use self::kprobe::Kprobe;
+pub(crate) use self::perf_event::PerfEvent;
+pub(crate) use self::raw_tracepoint::RawTracepoint;
+pub(crate) use self::tracepoint::Tracepoint;
+pub(crate) use self::uprobe::Uprobe;
+use crate::perf_event::PerfReader;
 use crate::symbol::SymbolCache;
 use crate::table::Table;
 use crate::BccError;
@@ -41,16 +38,16 @@ const SYSCALL_PREFIXES: [&str; 7] = [
 #[derive(Debug)]
 pub struct BPF {
     p: AtomicPtr<c_void>,
-    kprobes: HashSet<Kprobe>,
-    uprobes: HashSet<Uprobe>,
-    tracepoints: HashSet<Tracepoint>,
-    raw_tracepoints: HashSet<RawTracepoint>,
-    perf_events: HashSet<PerfEvent>,
+    pub(crate) kprobes: HashSet<Kprobe>,
+    pub(crate) uprobes: HashSet<Uprobe>,
+    pub(crate) tracepoints: HashSet<Tracepoint>,
+    pub(crate) raw_tracepoints: HashSet<RawTracepoint>,
+    pub(crate) perf_events: HashSet<PerfEvent>,
     perf_readers: Vec<PerfReader>,
     sym_caches: HashMap<pid_t, SymbolCache>,
 }
 
-fn make_alphanumeric(s: &str) -> String {
+pub(crate) fn make_alphanumeric(s: &str) -> String {
     s.replace(
         |c| !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')),
         "_",
@@ -166,33 +163,6 @@ impl BPF {
 
     pub fn load_net(&mut self, name: &str) -> Result<File, BccError> {
         self.load(name, bpf_prog_type_BPF_PROG_TYPE_SCHED_ACT, 0, 0)
-    }
-
-    pub fn load_uprobe(&mut self, name: &str) -> Result<File, BccError> {
-        // it's BPF_PROG_TYPE_KPROBE even though it's a uprobe, it's weird
-        self.load(name, bpf_prog_type_BPF_PROG_TYPE_KPROBE, 0, 0)
-    }
-
-    pub fn load_tracepoint(&mut self, name: &str) -> Result<File, BccError> {
-        self.load(name, bpf_prog_type_BPF_PROG_TYPE_TRACEPOINT, 0, 0)
-    }
-
-    #[cfg(any(
-        feature = "v0_6_0",
-        feature = "v0_6_1",
-        feature = "v0_7_0",
-        feature = "v0_8_0",
-        feature = "v0_9_0",
-        feature = "v0_10_0",
-        feature = "v0_11_0",
-        feature = "v0_12_0",
-        feature = "v0_13_0",
-        feature = "v0_14_0",
-        feature = "v0_15_0",
-        not(feature = "specific"),
-    ))]
-    pub fn load_raw_tracepoint(&mut self, name: &str) -> Result<File, BccError> {
-        self.load(name, bpf_prog_type_BPF_PROG_TYPE_RAW_TRACEPOINT, 0, 0)
     }
 
     #[cfg(feature = "v0_4_0")]
@@ -354,63 +324,8 @@ impl BPF {
         self.get_syscall_prefix() + name
     }
 
-    pub fn attach_uretprobe(
-        &mut self,
-        binary_path: &str,
-        symbol: &str,
-        file: File,
-        pid: pid_t,
-    ) -> Result<(), BccError> {
-        let uprobe = Uprobe::attach_uretprobe(binary_path, symbol, file, pid)?;
-        self.uprobes.insert(uprobe);
-        Ok(())
-    }
-
     pub fn get_kprobe_functions(&mut self, event_re: &str) -> Result<Vec<String>, BccError> {
-        crate::core::kprobe::get_kprobe_functions(event_re)
-    }
-
-    pub fn attach_uprobe(
-        &mut self,
-        binary_path: &str,
-        symbol: &str,
-        file: File,
-        pid: pid_t,
-    ) -> Result<(), BccError> {
-        let uprobe = Uprobe::attach_uprobe(binary_path, symbol, file, pid)?;
-        self.uprobes.insert(uprobe);
-        Ok(())
-    }
-
-    pub fn attach_tracepoint(
-        &mut self,
-        subsys: &str,
-        name: &str,
-        file: File,
-    ) -> Result<(), BccError> {
-        let tracepoint = Tracepoint::attach_tracepoint(subsys, name, file)?;
-        self.tracepoints.insert(tracepoint);
-        Ok(())
-    }
-
-    #[cfg(any(
-        feature = "v0_6_0",
-        feature = "v0_6_1",
-        feature = "v0_7_0",
-        feature = "v0_8_0",
-        feature = "v0_9_0",
-        feature = "v0_10_0",
-        feature = "v0_11_0",
-        feature = "v0_12_0",
-        feature = "v0_13_0",
-        feature = "v0_14_0",
-        feature = "v0_15_0",
-        not(feature = "specific"),
-    ))]
-    pub fn attach_raw_tracepoint(&mut self, name: &str, file: File) -> Result<(), BccError> {
-        let raw_tracepoint = RawTracepoint::attach_raw_tracepoint(name, file)?;
-        self.raw_tracepoints.insert(raw_tracepoint);
-        Ok(())
+        crate::kprobe::get_kprobe_functions(event_re)
     }
 
     pub fn ksymname(&mut self, name: &str) -> Result<u64, BccError> {
@@ -444,7 +359,7 @@ impl BPF {
     where
         F: Fn() -> Box<dyn FnMut(&[u8]) + Send>,
     {
-        let perf_map = perf::init_perf_map(table, cb)?;
+        let perf_map = crate::perf_event::init_perf_map(table, cb)?;
         self.perf_readers.extend(perf_map.readers);
         Ok(())
     }
