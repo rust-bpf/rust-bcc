@@ -1,5 +1,17 @@
 # [Unreleased]
 
+# [0.0.22] - 2020-08-03
+## Added
+- Support for attaching probes to perf events and related examples.
+- Implementation of `get_syscall_fnname` to support in resolving system calls to
+  function names.
+
+## Changed
+- Converted probe construction to a builder-style pattern with new public types
+  to initialize and attach probes.
+- Changed `bcc::core` to now be internal only. Public interface to core
+  functionality is now in the root of the module.
+
 # [0.0.21] - 2020-07-24
 ## Fixed
 - Iterating on an empty table would improperly return an entry (#100)
@@ -120,10 +132,12 @@
 
 Initial release.
 
-[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/0.0.20...HEAD
-[0.0.19]: https://github.com/rust-bpf/rust-bcc/compare/0.0.19...0.0.20
-[0.0.19]: https://github.com/rust-bpf/rust-bcc/compare/0.0.18...0.0.19
-[0.0.18]: https://github.com/rust-bpf/rust-bcc/compare/0.0.17...0.0.18
+[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.22...HEAD
+[0.0.22]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.21...v0.0.22
+[0.0.21]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.20...v0.0.21
+[0.0.20]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.19...v0.0.20
+[0.0.19]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.18...v0.0.19
+[0.0.18]: https://github.com/rust-bpf/rust-bcc/compare/0.0.17...v0.0.18
 [0.0.17]: https://github.com/rust-bpf/rust-bcc/compare/0.0.16...0.0.17
 [0.0.16]: https://github.com/rust-bpf/rust-bcc/compare/0.0.15...0.0.16
 [0.0.15]: https://github.com/rust-bpf/rust-bcc/compare/0.0.14...0.0.15
