@@ -1,6 +1,5 @@
 extern crate bcc;
 extern crate byteorder;
-extern crate failure;
 extern crate libc;
 extern crate multimap;
 
