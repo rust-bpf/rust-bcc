@@ -10,7 +10,7 @@ pub struct PerfEventArray {
 }
 
 /// A `PerfEventArray` is used to configure a BPF `PERF_EVENT_ARRAY` such that a call
-/// `table.perf_read(CUR_CPU_IDENTIFIER) returns the hardware counter of the event 
+/// `table.perf_read(CUR_CPU_IDENTIFIER) returns the hardware counter of the event
 /// on the local cpu.
 impl PerfEventArray {
     /// Creates a new `PerfEventArray` with defaults.There are several mandatory
@@ -77,7 +77,9 @@ impl PerfEventArray {
         };
 
         let mut event_array = crate::core::PerfEventArray::new(table, ev_type, ev_config, table_fd);
-        event_array.open_all_cpu().map_err(|_| BccError::OpenPerfEvent { event })?;
+        event_array
+            .open_all_cpu()
+            .map_err(|_| BccError::OpenPerfEvent { event })?;
 
         bpf.perf_events_array.insert(event_array);
         Ok(())

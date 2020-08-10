@@ -22,7 +22,7 @@ mod uprobe;
 pub use crate::core::BPF;
 pub use error::BccError;
 pub use kprobe::{Kprobe, Kretprobe};
-pub use perf_event::{PerfEvent, PerfMap};
+pub use perf_event::{PerfEvent, PerfEventArray, PerfMap};
 pub use raw_tracepoint::RawTracepoint;
 pub use tracepoint::Tracepoint;
 pub use uprobe::{Uprobe, Uretprobe};

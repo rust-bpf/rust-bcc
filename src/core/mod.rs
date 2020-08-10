@@ -94,7 +94,7 @@ impl BPF {
             tracepoints: HashSet::new(),
             raw_tracepoints: HashSet::new(),
             perf_events: HashSet::new(),
-            perf_events_array: HashSet(),
+            perf_events_array: HashSet::new(),
             perf_readers: Vec::new(),
             sym_caches: HashMap::new(),
         })
@@ -176,7 +176,7 @@ impl BPF {
         Table::new(id, self.ptr())
     }
 
-    // Get the table file descriptor 
+    // Get the table file descriptor
     pub(crate) fn table_fd(&self, name: &str) -> i32 {
         let cname = CString::new(name).unwrap();
         unsafe { bpf_table_fd(self.ptr(), cname.as_ptr()) }

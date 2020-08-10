@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 
 #[derive(Debug)]
-pub struct PerfEventArray { 
+pub struct PerfEventArray {
     name: String,
     ev_type: u32,
     ev_config: u32,
@@ -32,7 +32,7 @@ impl PerfEventArray {
             if *v < 0 {
                 unsafe { bpf_close_perf_event_fd(*v) };
             }
-            
+
             false
         });
 
@@ -71,7 +71,8 @@ impl PerfEventArray {
             return Err(());
         }
 
-        let fd = unsafe { bpf_open_perf_event(self.ev_type, self.ev_config.into(), -1, cpu as i32) };
+        let fd =
+            unsafe { bpf_open_perf_event(self.ev_type, self.ev_config.into(), -1, cpu as i32) };
 
         if fd < 0 {
             return Err(());
@@ -89,7 +90,6 @@ impl PerfEventArray {
     fn update(&self, cpu: usize, fd: i32) -> bool {
         (unsafe { bpf_update_elem(self.table_fd, cpu as *mut c_void, fd as *mut c_void, 0) }) >= 0
     }
-
 }
 
 impl Drop for PerfEventArray {
