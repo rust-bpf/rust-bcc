@@ -1,5 +1,6 @@
 mod kprobe;
 mod perf_event;
+mod perf_event_array;
 mod raw_tracepoint;
 mod tracepoint;
 mod uprobe;
@@ -8,6 +9,7 @@ use bcc_sys::bccapi::*;
 
 pub(crate) use self::kprobe::Kprobe;
 pub(crate) use self::perf_event::PerfEvent;
+pub(crate) use self::perf_event_array::PerfEventArray;
 pub(crate) use self::raw_tracepoint::RawTracepoint;
 pub(crate) use self::tracepoint::Tracepoint;
 pub(crate) use self::uprobe::Uprobe;
@@ -46,6 +48,7 @@ pub struct BPF {
     pub(crate) tracepoints: HashSet<Tracepoint>,
     pub(crate) raw_tracepoints: HashSet<RawTracepoint>,
     pub(crate) perf_events: HashSet<PerfEvent>,
+    pub(crate) perf_events_array: HashSet<PerfEventArray>,
     perf_readers: Vec<PerfReader>,
     sym_caches: HashMap<pid_t, SymbolCache>,
 }
@@ -91,6 +94,7 @@ impl BPF {
             tracepoints: HashSet::new(),
             raw_tracepoints: HashSet::new(),
             perf_events: HashSet::new(),
+            perf_events_array: HashSet(),
             perf_readers: Vec::new(),
             sym_caches: HashMap::new(),
         })
@@ -114,6 +118,7 @@ impl BPF {
             tracepoints: HashSet::new(),
             raw_tracepoints: HashSet::new(),
             perf_events: HashSet::new(),
+            perf_events_array: HashSet::new(),
             perf_readers: Vec::new(),
             sym_caches: HashMap::new(),
         })
@@ -152,6 +157,7 @@ impl BPF {
             tracepoints: HashSet::new(),
             raw_tracepoints: HashSet::new(),
             perf_events: HashSet::new(),
+            perf_events_array: HashSet::new(),
             perf_readers: Vec::new(),
             sym_caches: HashMap::new(),
         })
@@ -168,6 +174,12 @@ impl BPF {
         let cname = CString::new(name).unwrap();
         let id = unsafe { bpf_table_id(self.ptr(), cname.as_ptr()) };
         Table::new(id, self.ptr())
+    }
+
+    // Get the table file descriptor 
+    pub(crate) fn table_fd(&self, name: &str) -> i32 {
+        let cname = CString::new(name).unwrap();
+        unsafe { bpf_table_fd(self.ptr(), cname.as_ptr()) }
     }
 
     /// Load a network traffic-control action which has the provided name within

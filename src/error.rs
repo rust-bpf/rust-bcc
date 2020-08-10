@@ -43,6 +43,8 @@ pub enum BccError {
     NullString(#[from] std::ffi::NulError),
     #[error("error opening perf buffer")]
     OpenPerfBuffer,
+    #[error("error opening perf event: ({event:?})")]
+    OpenPerfEvent {event: Event },
     #[error("failed to delete key from table")]
     DeleteTableValue,
     #[error("failed to get value from table")]
