@@ -10,17 +10,11 @@ use clap::{App, Arg};
 use core::sync::atomic::{AtomicBool, Ordering};
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::{ptr, thread, time};
+use std::{thread, time};
 
 // Both consants are arbitrary
 const DEFAULT_SAMPLE_FREQ: u64 = 50; // Hertz
 const DEFAULT_DURATION: u64 = 120; // Seconds
-
-#[repr(C)]
-struct key_t {
-    cpu: i32,
-    pid: i32,
-}
 
 fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     let matches = App::new("cpi")
@@ -152,10 +146,6 @@ fn parse_u64(x: Vec<u8>) -> u64 {
     }
 
     u64::from_ne_bytes(v)
-}
-
-fn parse_struct(x: &[u8]) -> key_t {
-    unsafe { ptr::read(x.as_ptr() as *const key_t) }
 }
 
 fn main() {

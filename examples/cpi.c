@@ -24,7 +24,7 @@ int do_count(struct bpf_perf_event_data *ctx) {
         return 0;
 
     cycle.increment(cpu, cycle_cnt);
-    insrt.increment(cpu, instr_cnt);
+    instr.increment(cpu, instr_cnt);
 
     return 0;
 }

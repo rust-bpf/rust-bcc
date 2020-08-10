@@ -79,7 +79,7 @@ impl PerfEventArray {
         let mut event_array = crate::core::PerfEventArray::new(table, ev_type, ev_config, table_fd);
         event_array
             .open_all_cpu()
-            .map_err(|_| BccError::OpenPerfEvent { event })?;
+            .map_err(|e| BccError::OpenPerfEvent { event, message: e })?;
 
         bpf.perf_events_array.insert(event_array);
         Ok(())

@@ -27,7 +27,7 @@ impl PerfEventArray {
         }
     }
 
-    pub fn close_all_cpu(&mut self) -> Result<(), ()> {
+    pub fn close_all_cpu(&mut self) {
         self.cpu_fd.retain(|_, v| {
             if *v < 0 {
                 unsafe { bpf_close_perf_event_fd(*v) };
@@ -35,30 +35,25 @@ impl PerfEventArray {
 
             false
         });
-
-        Ok(())
     }
 
-    pub fn close_on_cpu(&mut self, cpu: usize) -> Result<(), ()> {
+    pub fn close_on_cpu(&mut self, cpu: usize) {
         let fd = self.cpu_fd.remove(&cpu);
-        if fd.is_none() {
-            return Ok(());
+        if fd.is_some() {
+            unsafe { bpf_close_perf_event_fd(fd.unwrap()) };
         }
-
-        unsafe { bpf_close_perf_event_fd(fd.unwrap()) };
-        Ok(())
     }
 
-    pub fn open_all_cpu(&mut self) -> Result<(), ()> {
+    pub fn open_all_cpu(&mut self) -> Result<(), String> {
         let cpus = cpuonline::get();
 
         if let Ok(cpus) = cpus {
             for cpu in cpus {
                 let result = self.open_on_cpu(cpu);
 
-                if let Err(_) = result {
-                    // Close all cpus
-                    return Err(());
+                if let Err(e) = result {
+                    self.close_all_cpu();
+                    return Err(e);
                 }
             }
         }
@@ -66,21 +61,21 @@ impl PerfEventArray {
         Ok(())
     }
 
-    pub fn open_on_cpu(&mut self, cpu: usize) -> Result<(), ()> {
+    pub fn open_on_cpu(&mut self, cpu: usize) -> Result<(), String> {
         if self.cpu_fd.get(&cpu).is_some() {
-            return Err(());
+            return Err("perf event is already open for cpu".to_string());
         }
 
         let fd =
             unsafe { bpf_open_perf_event(self.ev_type, self.ev_config.into(), -1, cpu as i32) };
 
         if fd < 0 {
-            return Err(());
+            return Err("failed to open perf on cpu".to_string());
         }
 
         if !self.update(cpu, fd) {
             unsafe { bpf_close_perf_event_fd(fd) };
-            return Err(());
+            return Err("failed to update table".to_string());
         }
         self.cpu_fd.insert(cpu, fd);
 
