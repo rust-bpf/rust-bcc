@@ -32,11 +32,21 @@ int do_count(struct bpf_perf_event_data *ctx) {
     u64* cyc_prev = cycle_prev.lookup(&cpu);
     u64* ins_prev = instr_prev.lookup(&cpu);
 
-    cycle.increment(cpu, (cycle_cnt - *cyc_prev));
-    instr.increment(cpu, (instr_cnt - *ins_prev));
+    u64 vCyc = 0;
+    if (cyc_prev) {
+        vCyc = cycle_cnt - *cyc_prev;
+    }
+
+    u64 vIns = 0;
+    if (ins_prev) {
+        vIns = instr_cnt - *ins_prev;
+    }
 
     cycle_prev.update(&cpu, &cycle_cnt);
     instr_prev.update(&cpu, &instr_cnt);
+
+    cycle.increment(cpu, vCyc);
+    instr.increment(cpu, vIns);
 
     return 0;
 }

@@ -94,7 +94,11 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     for i in 0..cpus {
         let instrs = instructions_map.get(&i).unwrap_or(&0);
         let cycles = cycles_map.get(&i).unwrap_or(&0);
-        let cpi = *cycles as f32 / *instrs as f32;
+        let cpi = if *instrs > 0 {
+            *cycles as f32 / *instrs as f32
+        } else {
+            *cycles as f32
+        };
 
         total_instr += *instrs;
         total_cycles += *cycles;
