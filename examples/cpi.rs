@@ -28,7 +28,7 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
         .arg(
             Arg::with_name("cpu")
                 .long("cpu")
-                .help("Number of cpus in your system. Required")
+                .help("Number of cpus in the system. Required")
                 .takes_value(true)
                 .required(true),
         )
@@ -53,13 +53,13 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
 
     let mut bpf = BPF::new(&code)?;
     PerfEventArray::new()
-        .table("cycle_perf")
-        .event(Event::Hardware(HardwareEvent::Instructions))
-        .open(&mut bpf)?;
-    PerfEventArray::new()
         .table("instr_perf")
+        .event(Event::Hardware(HardwareEvent::Instructions))
+        .attach(&mut bpf)?;
+    PerfEventArray::new()
+        .table("cycle_perf")
         .event(Event::Hardware(HardwareEvent::RefCpuCycles))
-        .open(&mut bpf)?;
+        .attach(&mut bpf)?;
     PerfEvent::new()
         .handler("do_count")
         .event(Event::Software(SoftwareEvent::CpuClock))

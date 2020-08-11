@@ -1,6 +1,6 @@
 use crate::core::BPF;
 use crate::error::BccError;
-use crate::perf_event::{Event, EventType};
+use crate::perf_event::Event;
 
 #[derive(Default)]
 pub struct PerfEventArray {
@@ -44,7 +44,7 @@ impl PerfEventArray {
     /// Consumes the perf event and opens it. May return an error if there is a
     /// incomplete or invalid configuration or other error while loading or
     /// opening the event.
-    pub fn open(self, bpf: &mut BPF) -> Result<(), BccError> {
+    pub fn attach(self, bpf: &mut BPF) -> Result<(), BccError> {
         if self.event.is_none() {
             return Err(BccError::InvalidPerfEvent {
                 message: "event is required".to_string(),
@@ -62,19 +62,8 @@ impl PerfEventArray {
 
         let table_fd = bpf.table_fd(&table);
 
-        let ev_type = match event {
-            Event::Hardware(_) => EventType::Hardware,
-            Event::Software(_) => EventType::Software,
-            Event::HardwareCache(_, _, _) => EventType::HardwareCache,
-        } as u32;
-
-        let ev_config = match event {
-            Event::Hardware(hw_event) => hw_event as u32,
-            Event::Software(sw_event) => sw_event as u32,
-            Event::HardwareCache(id, op, result) => {
-                ((result as u32) << 16) | ((op as u32) << 8) | (id as u32)
-            }
-        };
+        let ev_type = event.ev_type();
+        let ev_config = event.ev_config();
 
         let mut event_array = crate::core::PerfEventArray::new(table, ev_type, ev_config, table_fd);
         event_array

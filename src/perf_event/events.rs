@@ -86,3 +86,23 @@ pub enum CacheResult {
     Access = 0,
     Miss = 1,
 }
+
+impl Event {
+    pub fn ev_type(self) -> u32 {
+        (match self {
+            Event::Hardware(_) => EventType::Hardware,
+            Event::Software(_) => EventType::Software,
+            Event::HardwareCache(_, _, _) => EventType::HardwareCache,
+        }) as u32
+    }
+
+    pub fn ev_config(self) -> u32 {
+        match self {
+            Event::Hardware(hw_event) => hw_event as u32,
+            Event::Software(sw_event) => sw_event as u32,
+            Event::HardwareCache(id, op, result) => {
+                ((result as u32) << 16) | ((op as u32) << 8) | (id as u32)
+            }
+        }
+    }
+}

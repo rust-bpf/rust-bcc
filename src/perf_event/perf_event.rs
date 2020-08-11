@@ -1,6 +1,6 @@
 use crate::core::BPF;
 use crate::error::BccError;
-use crate::perf_event::{Event, EventType};
+use crate::perf_event::Event;
 
 use bcc_sys::bccapi::bpf_prog_type_BPF_PROG_TYPE_PERF_EVENT as BPF_PROG_TYPE_PERF_EVENT;
 
@@ -107,19 +107,9 @@ impl PerfEvent {
 
         let code_fd = bpf.load(&handler, BPF_PROG_TYPE_PERF_EVENT, 0, 0)?;
 
-        let ev_type = match event {
-            Event::Hardware(_) => EventType::Hardware,
-            Event::Software(_) => EventType::Software,
-            Event::HardwareCache(_, _, _) => EventType::HardwareCache,
-        } as u32;
+        let ev_type = event.ev_type();
+        let ev_config = event.ev_config();
 
-        let ev_config = match event {
-            Event::Hardware(hw_event) => hw_event as u32,
-            Event::Software(sw_event) => sw_event as u32,
-            Event::HardwareCache(id, op, result) => {
-                ((result as u32) << 16) | ((op as u32) << 8) | (id as u32)
-            }
-        };
         let perf_event = crate::core::PerfEvent::new(
             code_fd,
             ev_type,

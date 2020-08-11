@@ -71,8 +71,8 @@ impl PerfEventArray {
         if fd < 0 {
             return Err("failed to open perf on cpu".to_string());
         }
-        let mut cpu_bytes: [u8; 8] = unsafe { std::mem::transmute(cpu.to_le()) };
-        let mut fd_bytes: [u8; 4] = unsafe { std::mem::transmute(fd.to_le()) };
+        let mut cpu_bytes: [u8; 8] = cpu.to_ne_bytes();
+        let mut fd_bytes: [u8; 4] = fd.to_ne_bytes();
 
         let errno = self.update(&mut cpu_bytes, &mut fd_bytes);
         if errno < 0 {
