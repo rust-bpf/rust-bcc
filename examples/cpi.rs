@@ -13,7 +13,7 @@ use std::sync::Arc;
 use std::{thread, time};
 
 // Both consants are arbitrary
-const DEFAULT_SAMPLE_FREQ: u64 = 50; // Hertz
+const DEFAULT_SAMPLE_FREQ: u64 = 99; // Hertz
 const DEFAULT_DURATION: u64 = 10; // Seconds
 
 fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {

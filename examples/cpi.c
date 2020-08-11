@@ -5,7 +5,7 @@
 #include <linux/ptrace.h>
 #include <uapi/linux/bpf_perf_event.h>
 
-// Must provide the number of CPUs in the server
+// Must provide the number of CPUs on the machine
 BPF_PERF_ARRAY(cycle_perf, NUM_CPU);
 BPF_PERF_ARRAY(instr_perf, NUM_CPU);
 
