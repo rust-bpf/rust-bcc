@@ -1,8 +1,7 @@
 use crate::cpuonline;
+use crate::types::MutPointer;
 
 use bcc_sys::bccapi::*;
-
-use core::ffi::c_void;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 
@@ -72,18 +71,31 @@ impl PerfEventArray {
         if fd < 0 {
             return Err("failed to open perf on cpu".to_string());
         }
+        let mut cpu_bytes: [u8; 8] = unsafe { std::mem::transmute(cpu.to_le()) };
+        let mut fd_bytes: [u8; 4] = unsafe { std::mem::transmute(fd.to_le()) };
 
-        if !self.update(cpu, fd) {
+        let errno = self.update(&mut cpu_bytes, &mut fd_bytes);
+        if errno < 0 {
             unsafe { bpf_close_perf_event_fd(fd) };
-            return Err("failed to update table".to_string());
+            return Err(format!(
+                "Unable to open perf event on CPU `{}`, errno {}",
+                cpu, errno
+            ));
         }
         self.cpu_fd.insert(cpu, fd);
 
         Ok(())
     }
 
-    fn update(&self, cpu: usize, fd: i32) -> bool {
-        (unsafe { bpf_update_elem(self.table_fd, cpu as *mut c_void, fd as *mut c_void, 0) }) >= 0
+    fn update(&mut self, key: &mut [u8], val: &mut [u8]) -> i32 {
+        unsafe {
+            bpf_update_elem(
+                self.table_fd,
+                key.as_mut_ptr() as MutPointer,
+                val.as_mut_ptr() as MutPointer,
+                0,
+            )
+        }
     }
 }
 
