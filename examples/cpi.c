@@ -9,11 +9,13 @@
 BPF_PERF_ARRAY(cycle_perf, NUM_CPU);
 BPF_PERF_ARRAY(instr_perf, NUM_CPU);
 
+// Previously seen values
+BPF_ARRAY(cycle_prev, u64, NUM_CPU);
+BPF_ARRAY(instr_prev, u64, NUM_CPU);
+
+// Tables which are read in user space
 BPF_HASH(cycle, u32);
 BPF_HASH(instr, u32);
-
-BPF_HASH(cyc_tot, u64, 1);
-BPF_HASH(ins_tot, u64, 1);
 
 int do_count(struct bpf_perf_event_data *ctx) {
     u32 cpu = bpf_get_smp_processor_id();
@@ -27,11 +29,14 @@ int do_count(struct bpf_perf_event_data *ctx) {
     if (((s64)instr_cnt < 0) && ((s64)instr_cnt > -256))
         return 0;
 
-    cyc_tot.update(&zero, cycle_cnt);
-    ins_tot.update(&zero, instr_cnt);
+    u64* cyc_prev = cycle_prev.lookup(&cpu);
+    u64* ins_prev = instr_prev.lookup(&cpu);
 
-    cycle.update(&cpu, cycle_cnt);
-    instr.update(&cpu, instr_cnt);
+    cycle.increment(cpu, (cycle_cnt - *cyc_prev));
+    instr.increment(cpu, (instr_cnt - *ins_prev));
+
+    cycle_prev.update(&cpu, &cycle_cnt);
+    instr_prev.update(&cpu, &instr_cnt);
 
     return 0;
 }
