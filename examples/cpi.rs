@@ -14,7 +14,7 @@ use std::{thread, time};
 
 // Both consants are arbitrary
 const DEFAULT_SAMPLE_FREQ: u64 = 50; // Hertz
-const DEFAULT_DURATION: u64 = 120; // Seconds
+const DEFAULT_DURATION: u64 = 10; // Seconds
 
 fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     let matches = App::new("cpi")
@@ -86,22 +86,20 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
 
     let mut total_instr = 0;
     let mut total_cycles = 0;
+    
     println!(
         "{:<-4} {:>12} {:>12} {:>8}",
         "CPU", "CYCLES", "INSTR", "CPI"
     );
-    for (key, value) in instructions_map.iter() {
-        if *value == 0 {
-            continue;
-        }
+    for i in 0..cpus {
+        let instrs = instructions_map.get(&i).unwrap_or(&0);
+        let cycles = cycles_map.get(&i).unwrap_or(&0);
+        let cpi = *cycles as f32 / *instrs as f32;
 
-        let cycles = cycles_map.get(&key).unwrap_or(&0);
-        let cpi = *cycles as f32 / *value as f32;
-
-        total_instr += *value;
+        total_instr += *instrs;
         total_cycles += *cycles;
 
-        println!("{:<-4} {:>12} {:>12} {:>8}", key, cycles, value, cpi);
+        println!("{:<-4} {:>12} {:>12} {:>8}", i, cycles, instrs, cpi);
     }
     println!(
         "\n{:<-12} {:<-12} {:<-12}",
