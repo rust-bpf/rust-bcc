@@ -86,7 +86,7 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
 
     let mut total_instr = 0;
     let mut total_cycles = 0;
-    
+
     println!(
         "{:<-4} {:>12} {:>12} {:>8}",
         "CPU", "CYCLES", "INSTR", "CPI"
@@ -99,7 +99,7 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
         total_instr += *instrs;
         total_cycles += *cycles;
 
-        println!("{:<-4} {:>12} {:>12} {:>8}", i, cycles, instrs, cpi);
+        println!("{:<-4} {:>12} {:>12} {:>8.1}", i, cycles, instrs, cpi);
     }
     println!(
         "\n{:<-12} {:<-12} {:<-12}",
