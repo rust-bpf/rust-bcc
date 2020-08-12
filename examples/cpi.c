@@ -19,12 +19,10 @@ BPF_HASH(instr, u32);
 
 int do_count(struct bpf_perf_event_data *ctx) {
     u32 cpu = bpf_get_smp_processor_id();
-    int zero = 0;
 
     u64 cycle_cnt = cycle_perf.perf_read(CUR_CPU_IDENTIFIER);
     if (((s64)cycle_cnt < 0) && ((s64)cycle_cnt > -256))
         return 0;
-
     u64 instr_cnt = instr_perf.perf_read(CUR_CPU_IDENTIFIER);
     if (((s64)instr_cnt < 0) && ((s64)instr_cnt > -256))
         return 0;

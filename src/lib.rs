@@ -8,7 +8,7 @@
 //! * see <https://github.com/rust-bpf/rust-bcc/tree/master/examples>
 
 mod core;
-mod cpuonline;
+pub mod cpuonline;
 mod error;
 mod kprobe;
 pub mod perf_event;

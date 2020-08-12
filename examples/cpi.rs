@@ -25,13 +25,6 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
                 .help("How long to run this trace for (in seconds)")
                 .takes_value(true),
         )
-        .arg(
-            Arg::with_name("cpu")
-                .long("cpu")
-                .help("Number of cpus in the system. Required")
-                .takes_value(true)
-                .required(true),
-        )
         .get_matches();
 
     let duration: u64 = matches
@@ -39,11 +32,7 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
         .map(|v| v.parse().expect("Invalid duration"))
         .unwrap_or(DEFAULT_DURATION);
 
-    let cpus: u32 = matches
-        .value_of("cpu")
-        .unwrap()
-        .parse()
-        .expect("cpu attribute is required");
+    let cpus = bcc::cpuonline::get()?.len() as u32;
 
     let code = format!(
         "{}\n{}",

@@ -36,6 +36,7 @@ impl PerfEventArray {
         });
     }
 
+    #[allow(dead_code)]
     pub fn close_on_cpu(&mut self, cpu: usize) {
         let fd = self.cpu_fd.remove(&cpu);
         if fd.is_some() {

@@ -26,7 +26,7 @@ impl PerfEvent {
         cpu: Option<usize>,
         group_fd: i32,
     ) -> Result<Self, ()> {
-        let vec: Vec<i32> = vec![];
+        let mut vec: Vec<i32> = vec![];
 
         if let Some(cpu) = cpu {
             let ptr = unsafe {
@@ -45,6 +45,7 @@ impl PerfEvent {
             if ptr < 0 {
                 return Err(());
             }
+            vec.push(ptr);
         } else if let Ok(cpus) = cpuonline::get() {
             for i in cpus {
                 let ptr = unsafe {
@@ -63,6 +64,7 @@ impl PerfEvent {
                 if ptr < 0 {
                     return Err(());
                 }
+                vec.push(ptr);
             }
         }
 
