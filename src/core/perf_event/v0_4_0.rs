@@ -43,6 +43,7 @@ impl PerfEvent {
             };
 
             if ptr < 0 {
+                Self::close_all_events(&mut vec);
                 return Err(());
             }
             vec.push(ptr);
@@ -62,6 +63,7 @@ impl PerfEvent {
                 };
 
                 if ptr < 0 {
+                    Self::close_all_events(&mut vec);
                     return Err(());
                 }
                 vec.push(ptr);
@@ -75,15 +77,20 @@ impl PerfEvent {
             code_fd: code,
         })
     }
+
+    fn close_all_events(vec: &mut Vec<i32>) {
+        vec.retain(|v| {
+            unsafe {
+                bpf_close_perf_event_fd(*v);
+            }
+            false
+        });
+    }
 }
 
 impl Drop for PerfEvent {
     fn drop(&mut self) {
-        for i in &self.p {
-            unsafe {
-                bpf_close_perf_event_fd(*i);
-            }
-        }
+        Self::close_all_events(&mut self.p);
     }
 }
 
