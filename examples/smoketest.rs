@@ -30,6 +30,7 @@ fn main() {
         .is_ok());
     let entries: Vec<Entry> = table.iter().collect();
     assert_eq!(entries.len(), 1);
+    assert_eq!(entries[0].value, [0, 0, 0, 0, 0, 0, 0, 42]);
     assert!(table.delete_all().is_ok());
     let entries: Vec<Entry> = table.iter().collect();
     assert_eq!(entries.len(), 0);

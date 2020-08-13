@@ -14,8 +14,8 @@ BPF_ARRAY(cycle_prev, u64, NUM_CPU);
 BPF_ARRAY(instr_prev, u64, NUM_CPU);
 
 // Tables which are read in user space
-BPF_HASH(cycle, u32);
-BPF_HASH(instr, u32);
+BPF_ARRAY(cycle, u64, NUM_CPU);
+BPF_ARRAY(instr, u64, NUM_CPU);
 
 int do_count(struct bpf_perf_event_data *ctx) {
     u32 cpu = bpf_get_smp_processor_id();
