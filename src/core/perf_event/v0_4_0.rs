@@ -26,7 +26,7 @@ impl PerfEvent {
         cpu: Option<usize>,
         group_fd: i32,
     ) -> Result<Self, ()> {
-        let vec: Vec<i32> = vec![];
+        let mut vec: Vec<i32> = vec![];
 
         if let Some(cpu) = cpu {
             let ptr = unsafe {
@@ -43,8 +43,10 @@ impl PerfEvent {
             };
 
             if ptr < 0 {
+                Self::close_all_events(&mut vec);
                 return Err(());
             }
+            vec.push(ptr);
         } else if let Ok(cpus) = cpuonline::get() {
             for i in cpus {
                 let ptr = unsafe {
@@ -61,8 +63,10 @@ impl PerfEvent {
                 };
 
                 if ptr < 0 {
+                    Self::close_all_events(&mut vec);
                     return Err(());
                 }
+                vec.push(ptr);
             }
         }
 
@@ -73,15 +77,20 @@ impl PerfEvent {
             code_fd: code,
         })
     }
+
+    fn close_all_events(vec: &mut Vec<i32>) {
+        vec.retain(|v| {
+            unsafe {
+                bpf_close_perf_event_fd(*v);
+            }
+            false
+        });
+    }
 }
 
 impl Drop for PerfEvent {
     fn drop(&mut self) {
-        for i in &self.p {
-            unsafe {
-                bpf_close_perf_event_fd(*i);
-            }
-        }
+        Self::close_all_events(&mut self.p);
     }
 }
 

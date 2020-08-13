@@ -1,6 +1,7 @@
 mod callback;
 mod events;
 mod perf_event;
+mod perf_event_array;
 mod perf_map;
 mod perf_reader;
 
@@ -9,6 +10,7 @@ use crate::types::MutPointer;
 pub use callback::*;
 pub use events::*;
 pub use perf_event::*;
+pub use perf_event_array::*;
 pub use perf_map::*;
 pub use perf_reader::*;
 

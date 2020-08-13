@@ -133,14 +133,14 @@ pub struct EntryIter {
 }
 
 impl EntryIter {
-    pub fn entry_ptrs(&mut self) -> Option<(*mut std::os::raw::c_void, *mut std::os::raw::c_void)> {
+    pub fn entry_ptrs(&mut self) -> Option<(MutPointer, MutPointer)> {
         match self.current.as_mut() {
             Some(&mut Entry {
                 ref mut key,
                 ref mut value,
             }) => Some((
-                key.as_mut_ptr() as *mut u8 as *mut std::os::raw::c_void,
-                value.as_mut_ptr() as *mut u8 as *mut std::os::raw::c_void,
+                key.as_mut_ptr() as MutPointer,
+                value.as_mut_ptr() as MutPointer,
             )),
             None => None,
         }
@@ -156,9 +156,11 @@ impl EntryIter {
         };
         self.current = Some(entry);
         unsafe {
-            let (k, _) = self.entry_ptrs().unwrap();
+            let (k, v) = self.entry_ptrs().unwrap();
             if bpf_get_first_key(self.fd.unwrap(), k, key_size) < 0 {
                 self.current = None;
+            } else {
+                bpf_lookup_elem(self.fd.unwrap(), k, v);
             }
         }
         self.current.clone()
