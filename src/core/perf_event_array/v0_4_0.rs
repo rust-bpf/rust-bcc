@@ -44,19 +44,15 @@ impl PerfEventArray {
     }
 
     pub fn open_all_cpu(&mut self) -> Result<(), String> {
-        let cpus = cpuonline::get();
+        let cpus = cpuonline::get().map_err(|e| e.to_string())?;
+        for cpu in cpus {
+            let result = self.open_on_cpu(cpu);
 
-        if let Ok(cpus) = cpus {
-            for cpu in cpus {
-                let result = self.open_on_cpu(cpu);
-
-                if let Err(e) = result {
-                    self.close_all_cpu();
-                    return Err(e);
-                }
+            if let Err(e) = result {
+                self.close_all_cpu();
+                return Err(e);
             }
         }
-
         Ok(())
     }
 
@@ -78,7 +74,7 @@ impl PerfEventArray {
         if errno < 0 {
             unsafe { bpf_close_perf_event_fd(fd) };
             return Err(format!(
-                "Unable to open perf event on CPU `{}`, errno {}",
+                "unable to open perf event on cpu `{}`, errno {}",
                 cpu, errno
             ));
         }

@@ -156,11 +156,11 @@ impl EntryIter {
         };
         self.current = Some(entry);
         unsafe {
-            let (k, l) = self.entry_ptrs().unwrap();
+            let (k, v) = self.entry_ptrs().unwrap();
             if bpf_get_first_key(self.fd.unwrap(), k, key_size) < 0 {
                 self.current = None;
             } else {
-                bpf_lookup_elem(self.fd.unwrap(), k, l);
+                bpf_lookup_elem(self.fd.unwrap(), k, v);
             }
         }
         self.current.clone()
