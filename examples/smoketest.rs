@@ -41,16 +41,10 @@ fn main() {
     let entries: Vec<Entry> = table.iter().collect();
     assert_eq!(entries.len(), 64);
     assert!(table
-        .set(
-            &mut [0, 0, 0, 0],
-            &mut [0, 0, 0, 0, 0, 0, 0, 42]
-        )
+        .set(&mut [0, 0, 0, 0], &mut [0, 0, 0, 0, 0, 0, 0, 42])
         .is_ok());
     assert!(table
-        .set(
-            &mut [1, 0, 0, 0],
-            &mut [0, 0, 0, 0, 0, 0, 13, 37]
-        )
+        .set(&mut [1, 0, 0, 0], &mut [0, 0, 0, 0, 0, 0, 13, 37])
         .is_ok());
     let entries: Vec<Entry> = table.iter().collect();
     assert_eq!(entries.get(1).unwrap().value, [0, 0, 0, 0, 0, 0, 13, 37]);
