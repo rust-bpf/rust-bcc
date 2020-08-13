@@ -30,10 +30,31 @@ fn main() {
         .is_ok());
     let entries: Vec<Entry> = table.iter().collect();
     assert_eq!(entries.len(), 1);
-    assert_eq!(entries[0].value, [0, 0, 0, 0, 0, 0, 0, 42]);
+    assert_eq!(entries.get(0).unwrap().value, [0, 0, 0, 0, 0, 0, 0, 42]);
     assert!(table.delete_all().is_ok());
     let entries: Vec<Entry> = table.iter().collect();
     assert_eq!(entries.len(), 0);
+
+    println!("smoketest: array");
+    let bpf = BPF::new("BPF_ARRAY(dist, u64, 64);").unwrap();
+    let mut table = bpf.table("dist");
+    let entries: Vec<Entry> = table.iter().collect();
+    assert_eq!(entries.len(), 64);
+    assert!(table
+        .set(
+            &mut [0, 0, 0, 0],
+            &mut [0, 0, 0, 0, 0, 0, 0, 42]
+        )
+        .is_ok());
+    assert!(table
+        .set(
+            &mut [1, 0, 0, 0],
+            &mut [0, 0, 0, 0, 0, 0, 13, 37]
+        )
+        .is_ok());
+    let entries: Vec<Entry> = table.iter().collect();
+    assert_eq!(entries.get(1).unwrap().value, [0, 0, 0, 0, 0, 0, 13, 37]);
+    assert_eq!(entries.get(0).unwrap().value, [0, 0, 0, 0, 0, 0, 0, 42]);
 
     println!("smoketest passed");
 }
