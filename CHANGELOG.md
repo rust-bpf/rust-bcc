@@ -1,5 +1,14 @@
 # [Unreleased]
 
+# [0.0.23] - 2020-08-13
+## Added
+- Support for `BPF_PERF_ARRAY`.
+
+## Fixed
+- `PerfEvent`s are not properly closed on drop.
+- BPF `Table` now returns the value for the first entry instead of always
+  returning zero for the first entry.
+
 # [0.0.22] - 2020-08-03
 ## Added
 - Support for attaching probes to perf events and related examples.
@@ -132,7 +141,8 @@
 
 Initial release.
 
-[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.22...HEAD
+[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.23...HEAD
+[0.0.23]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.22...v0.0.23
 [0.0.22]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.21...v0.0.22
 [0.0.21]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.20...v0.0.21
 [0.0.20]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.19...v0.0.20
