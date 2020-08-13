@@ -10,7 +10,7 @@ use clap::{App, Arg};
 use core::sync::atomic::{AtomicBool, Ordering};
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::{thread, time};
+use std::{io, thread, time};
 
 // Both consants are arbitrary
 const DEFAULT_SAMPLE_FREQ: u64 = 99; // Hertz
@@ -45,15 +45,33 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
         .table("instr_perf")
         .event(Event::Hardware(HardwareEvent::Instructions))
         .attach(&mut bpf)?;
-    PerfEventArray::new()
-        .table("cycle_perf")
-        .event(Event::Hardware(HardwareEvent::RefCpuCycles))
-        .attach(&mut bpf)?;
     PerfEvent::new()
         .handler("do_count")
         .event(Event::Software(SoftwareEvent::CpuClock))
         .sample_frequency(Some(DEFAULT_SAMPLE_FREQ))
         .attach(&mut bpf)?;
+
+    let result = PerfEventArray::new()
+        .table("cycle_perf")
+        .event(Event::Hardware(HardwareEvent::RefCpuCycles))
+        .attach(&mut bpf);
+
+    if let Err(_) = result {
+        println!("Failed to attach ref-cpu-cycles perf.\nFallback to cpu-cycles? [Y/n]");
+        let mut input = String::new();
+        match io::stdin().read_line(&mut input) {
+            Ok(_) => match input.to_lowercase().as_str() {
+                "y" => {
+                    PerfEventArray::new()
+                        .table("cycle_perf")
+                        .event(Event::Hardware(HardwareEvent::CpuCycles))
+                        .attach(&mut bpf)?;
+                }
+                _ => return Ok(()),
+            },
+            Err(_) => return Ok(()),
+        }
+    }
 
     println!("Running for {} seconds", duration);
 

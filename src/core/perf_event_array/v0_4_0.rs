@@ -38,9 +38,8 @@ impl PerfEventArray {
 
     #[allow(dead_code)]
     pub fn close_on_cpu(&mut self, cpu: usize) {
-        let fd = self.cpu_fd.remove(&cpu);
-        if fd.is_some() {
-            unsafe { bpf_close_perf_event_fd(fd.unwrap()) };
+        if let Some(fd) = self.cpu_fd.remove(&cpu) {
+            unsafe { bpf_close_perf_event_fd(fd) };
         }
     }
 
@@ -62,7 +61,7 @@ impl PerfEventArray {
     }
 
     pub fn open_on_cpu(&mut self, cpu: usize) -> Result<(), String> {
-        if self.cpu_fd.get(&cpu).is_some() {
+        if self.cpu_fd.contains_key(&cpu) {
             return Err("perf event is already open for cpu".to_string());
         }
 
