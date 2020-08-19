@@ -53,6 +53,7 @@ impl Kprobe {
 impl Drop for Kprobe {
     fn drop(&mut self) {
         unsafe {
+            bpf_close_perf_event_fd(self.p);
             bpf_detach_kprobe(self.name.as_ptr());
         }
     }
