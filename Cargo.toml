@@ -1,6 +1,6 @@
 [package]
 name = "bcc"
-version = "0.0.24-alpha.0"
+version = "0.0.24"
 authors = ["Julia Evans <julia@jvns.ca>", "Brian Martin <bmartin@twitter.com>"]
 description = "Idiomatic Rust bindings for BPF Compiler Collection (BCC)"
 keywords = ["bpf", "bindings", "bcc"]
