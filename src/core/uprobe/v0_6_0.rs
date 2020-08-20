@@ -60,6 +60,7 @@ impl Uprobe {
 impl Drop for Uprobe {
     fn drop(&mut self) {
         unsafe {
+            bpf_close_perf_event_fd(self.p);
             bpf_detach_uprobe(self.name.as_ptr());
         }
     }
