@@ -50,5 +50,11 @@ fn main() {
     assert_eq!(entries.get(1).unwrap().value, [0, 0, 0, 0, 0, 0, 13, 37]);
     assert_eq!(entries.get(0).unwrap().value, [0, 0, 0, 0, 0, 0, 0, 42]);
 
+    println!("smoketest: cflags");
+    BPF::new_with_cflags(
+        "int main() { return AMAZING_RETURN_CODE; }",
+        vec!["-DAMAZING_RETURN_CODE=0"],
+    )
+    .unwrap();
     println!("smoketest passed");
 }

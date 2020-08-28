@@ -23,7 +23,9 @@ use core::sync::atomic::{AtomicPtr, Ordering};
 use std::collections::{HashMap, HashSet};
 use std::ffi::CString;
 use std::fs::File;
+use std::mem;
 use std::ops::Drop;
+use std::os::raw::{c_char, c_int};
 use std::os::unix::prelude::*;
 use std::ptr;
 
@@ -70,22 +72,78 @@ fn null_or_mut_ptr<T>(s: &mut Vec<u8>) -> *mut T {
     }
 }
 
+#[cfg(any(
+    feature = "v0_4_0",
+    feature = "v0_5_0",
+    feature = "v0_6_0",
+    feature = "v0_6_1",
+    feature = "v0_7_0",
+    feature = "v0_8_0",
+))]
+/// `code` is a string containing C code. See https://github.com/iovisor/bcc for examples
+fn module_create(code: &str, cflags: Vec<&str>) -> Result<*mut c_void, BccError> {
+    let ptr = unsafe { bpf_module_create_c_from_string(cs.as_ptr(), 2, ptr::null_mut(), 0) };
+    if ptr.is_null() {
+        return Err(BccError::Compilation);
+    }
+
+    Ok(ptr)
+}
+
+// 0.9.0 changes the API for bpf_module_create_c_from_string()
+#[cfg(any(feature = "v0_9_0", feature = "v0_10_0",))]
+/// `code` is a string containing C code. See https://github.com/iovisor/bcc for examples
+fn module_create(code: &str, cflags: Vec<&str>) -> Result<*mut c_void, BccError> {
+    let ptr = unsafe { bpf_module_create_c_from_string(cs.as_ptr(), 2, ptr::null_mut(), 0, true) };
+    if ptr.is_null() {
+        return Err(BccError::Compilation);
+    }
+
+    Ok(ptr)
+}
+
+// 0.11.0 changes the API for bpf_module_create_c_from_string()
+#[cfg(any(
+    feature = "v0_11_0",
+    feature = "v0_12_0",
+    feature = "v0_13_0",
+    feature = "v0_14_0",
+    feature = "v0_15_0",
+    not(feature = "specific"),
+))]
+/// `code` is a string containing C code. See https://github.com/iovisor/bcc for examples
+fn module_create(code: &str, cflags: Vec<&str>) -> Result<*mut c_void, BccError> {
+    let cs = CString::new(code)?;
+
+    let mut c_cflags: Vec<*const c_char> = vec![];
+    for f in cflags {
+        let cstring = CString::new(f)?;
+        c_cflags.push(cstring.as_ptr());
+        mem::forget(cstring);
+    }
+
+    let ptr = unsafe {
+        bpf_module_create_c_from_string(
+            cs.as_ptr(),
+            2,
+            c_cflags.as_mut_ptr() as *mut *const c_char,
+            c_cflags.len() as c_int,
+            true,
+            ptr::null_mut(),
+        )
+    };
+    mem::forget(c_cflags);
+
+    if ptr.is_null() {
+        return Err(BccError::Compilation);
+    }
+
+    Ok(ptr)
+}
+
 impl BPF {
-    #[cfg(any(
-        feature = "v0_4_0",
-        feature = "v0_5_0",
-        feature = "v0_6_0",
-        feature = "v0_6_1",
-        feature = "v0_7_0",
-        feature = "v0_8_0",
-    ))]
-    /// `code` is a string containing C code. See https://github.com/iovisor/bcc for examples
     pub fn new(code: &str) -> Result<BPF, BccError> {
-        let cs = CString::new(code)?;
-        let ptr = unsafe { bpf_module_create_c_from_string(cs.as_ptr(), 2, ptr::null_mut(), 0) };
-        if ptr.is_null() {
-            return Err(BccError::Compilation);
-        }
+        let ptr = module_create(code, vec![])?;
 
         Ok(BPF {
             p: AtomicPtr::new(ptr),
@@ -100,55 +158,8 @@ impl BPF {
         })
     }
 
-    // 0.9.0 changes the API for bpf_module_create_c_from_string()
-    #[cfg(any(feature = "v0_9_0", feature = "v0_10_0",))]
-    /// `code` is a string containing C code. See https://github.com/iovisor/bcc for examples
-    pub fn new(code: &str) -> Result<BPF, BccError> {
-        let cs = CString::new(code)?;
-        let ptr =
-            unsafe { bpf_module_create_c_from_string(cs.as_ptr(), 2, ptr::null_mut(), 0, true) };
-        if ptr.is_null() {
-            return Err(BccError::Compilation);
-        }
-
-        Ok(BPF {
-            p: AtomicPtr::new(ptr),
-            uprobes: HashSet::new(),
-            kprobes: HashSet::new(),
-            tracepoints: HashSet::new(),
-            raw_tracepoints: HashSet::new(),
-            perf_events: HashSet::new(),
-            perf_events_array: HashSet::new(),
-            perf_readers: Vec::new(),
-            sym_caches: HashMap::new(),
-        })
-    }
-
-    // 0.11.0 changes the API for bpf_module_create_c_from_string()
-    #[cfg(any(
-        feature = "v0_11_0",
-        feature = "v0_12_0",
-        feature = "v0_13_0",
-        feature = "v0_14_0",
-        feature = "v0_15_0",
-        not(feature = "specific"),
-    ))]
-    /// `code` is a string containing C code. See https://github.com/iovisor/bcc for examples
-    pub fn new(code: &str) -> Result<BPF, BccError> {
-        let cs = CString::new(code)?;
-        let ptr = unsafe {
-            bpf_module_create_c_from_string(
-                cs.as_ptr(),
-                2,
-                ptr::null_mut(),
-                0,
-                true,
-                ptr::null_mut(),
-            )
-        };
-        if ptr.is_null() {
-            return Err(BccError::Compilation);
-        }
+    pub fn new_with_cflags(code: &str, cflags: Vec<&str>) -> Result<BPF, BccError> {
+        let ptr = module_create(code, cflags)?;
 
         Ok(BPF {
             p: AtomicPtr::new(ptr),
