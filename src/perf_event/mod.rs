@@ -26,6 +26,7 @@ const BPF_PERF_READER_PAGE_CNT: i32 = 64;
 fn open_perf_buffer(
     cpu: usize,
     raw_cb: Box<dyn FnMut(&[u8]) + Send>,
+    page_count: i32,
 ) -> Result<PerfReader, BccError> {
     let callback = Box::new(PerfCallback::new(raw_cb));
     let reader = unsafe {
@@ -35,7 +36,7 @@ fn open_perf_buffer(
             Box::into_raw(callback) as MutPointer,
             -1, /* pid */
             cpu as i32,
-            BPF_PERF_READER_PAGE_CNT,
+            page_count,
         )
     };
     if reader.is_null() {
