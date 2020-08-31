@@ -53,7 +53,6 @@ pub struct BPF {
     pub(crate) perf_events_array: HashSet<PerfEventArray>,
     perf_readers: Vec<PerfReader>,
     sym_caches: HashMap<pid_t, SymbolCache>,
-    cflags: Vec<CString>,
 }
 
 // helper function that converts non-alphanumeric characters to underscores
@@ -113,11 +112,13 @@ impl BPFBuilder {
         let cflags = if self.cflags.is_empty() {
             ptr::null_mut()
         } else {
-            self.cflags
+            let mut cflags = self.cflags
                 .iter()
-                .map(|v| v.as_ptr())
-                .collect::<Vec<*const c_char>>()
-                .as_mut_ptr()
+                .map(|v| { std::mem::forget(v); v.as_ptr() })
+                .collect::<Vec<*const c_char>>();
+            let ptr = cflags.as_mut_ptr();
+            std::mem::forget(cflags);
+            ptr
         };
 
         let ptr = unsafe {
@@ -143,7 +144,6 @@ impl BPFBuilder {
             perf_events_array: HashSet::new(),
             perf_readers: Vec::new(),
             sym_caches: HashMap::new(),
-            cflags: self.cflags, // included to keep the pointers valid
         })
     }
 
@@ -154,11 +154,13 @@ impl BPFBuilder {
         let cflags = if self.cflags.is_empty() {
             ptr::null_mut()
         } else {
-            self.cflags
+            let mut cflags = self.cflags
                 .iter()
-                .map(|v| v.as_ptr())
-                .collect::<Vec<*const c_char>>()
-                .as_mut_ptr()
+                .map(|v| { std::mem::forget(v); v.as_ptr() })
+                .collect::<Vec<*const c_char>>();
+            let ptr = cflags.as_mut_ptr();
+            std::mem::forget(cflags);
+            ptr
         };
 
         let ptr = unsafe {
@@ -185,7 +187,6 @@ impl BPFBuilder {
             perf_events_array: HashSet::new(),
             perf_readers: Vec::new(),
             sym_caches: HashMap::new(),
-            cflags: self.cflags, // included to keep the pointers valid
         })
     }
 
@@ -203,11 +204,13 @@ impl BPFBuilder {
         let cflags = if self.cflags.is_empty() {
             ptr::null_mut()
         } else {
-            self.cflags
+            let mut cflags = self.cflags
                 .iter()
-                .map(|v| v.as_ptr())
-                .collect::<Vec<*const c_char>>()
-                .as_mut_ptr()
+                .map(|v| { std::mem::forget(v); v.as_ptr() })
+                .collect::<Vec<*const c_char>>();
+            let ptr = cflags.as_mut_ptr();
+            std::mem::forget(cflags);
+            ptr
         };
 
         let ptr = unsafe {
@@ -235,7 +238,6 @@ impl BPFBuilder {
             perf_events_array: HashSet::new(),
             perf_readers: Vec::new(),
             sym_caches: HashMap::new(),
-            cflags: self.cflags, // included to keep the pointers valid
         })
     }
 }
@@ -267,7 +269,6 @@ impl BPF {
             perf_events_array: HashSet::new(),
             perf_readers: Vec::new(),
             sym_caches: HashMap::new(),
-            cflags: Vec::new(),
         })
     }
 
@@ -292,7 +293,6 @@ impl BPF {
             perf_events_array: HashSet::new(),
             perf_readers: Vec::new(),
             sym_caches: HashMap::new(),
-            cflags: Vec::new(),
         })
     }
 
@@ -332,7 +332,6 @@ impl BPF {
             perf_events_array: HashSet::new(),
             perf_readers: Vec::new(),
             sym_caches: HashMap::new(),
-            cflags: Vec::new(),
         })
     }
 
