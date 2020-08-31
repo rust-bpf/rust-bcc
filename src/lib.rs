@@ -19,7 +19,7 @@ mod tracepoint;
 mod types;
 mod uprobe;
 
-pub use crate::core::BPF;
+pub use crate::core::{BPFBuilder, BPF};
 pub use error::BccError;
 pub use kprobe::{Kprobe, Kretprobe};
 pub use perf_event::{PerfEvent, PerfEventArray, PerfMap};
