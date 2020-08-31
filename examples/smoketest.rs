@@ -1,5 +1,5 @@
 use bcc::table::Entry;
-use bcc::BPF;
+use bcc::{BPFBuilder, BPF};
 
 fn main() {
     println!("smoketest: empty table");
@@ -49,6 +49,14 @@ fn main() {
     let entries: Vec<Entry> = table.iter().collect();
     assert_eq!(entries.get(1).unwrap().value, [0, 0, 0, 0, 0, 0, 13, 37]);
     assert_eq!(entries.get(0).unwrap().value, [0, 0, 0, 0, 0, 0, 0, 42]);
+
+    println!("smoketest: cflags");
+    assert!(BPFBuilder::new("int main() { return RETURN_CODE; }")
+        .unwrap()
+        .cflags(&["-DRETURN_CODE=0"])
+        .unwrap()
+        .build()
+        .is_ok());
 
     println!("smoketest passed");
 }
