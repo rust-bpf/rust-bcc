@@ -1,5 +1,6 @@
 mod callback;
 mod events;
+#[allow(clippy::module_inception)]
 mod perf_event;
 mod perf_event_array;
 mod perf_map;

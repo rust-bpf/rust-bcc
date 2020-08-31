@@ -112,9 +112,10 @@ impl BPFBuilder {
         let cflags = if self.cflags.is_empty() {
             ptr::null_mut()
         } else {
-            let mut cflags = self.cflags
+            let mut cflags = self
+                .cflags
                 .iter()
-                .map(|v| { std::mem::forget(v); v.as_ptr() })
+                .map(|v| v.as_ptr())
                 .collect::<Vec<*const c_char>>();
             let ptr = cflags.as_mut_ptr();
             std::mem::forget(cflags);
@@ -154,9 +155,10 @@ impl BPFBuilder {
         let cflags = if self.cflags.is_empty() {
             ptr::null_mut()
         } else {
-            let mut cflags = self.cflags
+            let mut cflags = self
+                .cflags
                 .iter()
-                .map(|v| { std::mem::forget(v); v.as_ptr() })
+                .map(|v| v.as_ptr())
                 .collect::<Vec<*const c_char>>();
             let ptr = cflags.as_mut_ptr();
             std::mem::forget(cflags);
@@ -204,9 +206,10 @@ impl BPFBuilder {
         let cflags = if self.cflags.is_empty() {
             ptr::null_mut()
         } else {
-            let mut cflags = self.cflags
+            let mut cflags = self
+                .cflags
                 .iter()
-                .map(|v| { std::mem::forget(v); v.as_ptr() })
+                .map(|v| v.as_ptr())
                 .collect::<Vec<*const c_char>>();
             let ptr = cflags.as_mut_ptr();
             std::mem::forget(cflags);
