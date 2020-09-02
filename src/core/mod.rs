@@ -257,7 +257,7 @@ impl BPF {
         BPFBuilder::new(code)?.build()
     }
 
-    // get access to the interal pointer for the bpf module
+    // get access to the internal pointer for the bpf module
     fn ptr(&self) -> *mut c_void {
         self.p.load(Ordering::SeqCst)
     }
