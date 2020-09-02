@@ -24,6 +24,7 @@ use std::collections::{HashMap, HashSet};
 use std::convert::TryInto;
 use std::ffi::CString;
 use std::fs::File;
+use std::io::Error;
 use std::ops::Drop;
 use std::os::raw::c_char;
 use std::os::unix::prelude::*;

@@ -45,12 +45,12 @@ pub enum BccError {
     OpenPerfBuffer,
     #[error("error opening perf event: ({event:?}), reason `{message}`")]
     OpenPerfEvent { event: Event, message: String },
-    #[error("failed to delete key from table")]
-    DeleteTableValue,
-    #[error("failed to get value from table")]
-    GetTableValue,
-    #[error("failed to set value in table")]
-    SetTableValue,
+    #[error("failed to delete key from table: {message}")]
+    DeleteTableValue { message: String },
+    #[error("failed to get value from table: {message}")]
+    GetTableValue { message: String },
+    #[error("failed to set value in table: {message}")]
+    SetTableValue { message: String },
     #[error("table has wrong size for key or leaf")]
     TableInvalidSize,
     #[error("unknown symbol ({name}) in module ({module})")]
