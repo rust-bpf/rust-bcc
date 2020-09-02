@@ -223,6 +223,19 @@ impl BPFBuilder {
     }
 }
 
+/// Get a CString from a regular string, if possible
+fn to_cstring(s: &str) -> Result<CString, BccError> {
+    match CString::new(s) {
+        Ok(name) => Ok(name),
+        Err(_) => {
+            return Err(BccError::Loading {
+                name: s.to_string(),
+                message: String::from("The probe name contains an interior null byte"),
+            })
+        }
+    }
+}
+
 impl BPF {
     #[cfg(any(
         feature = "v0_4_0",
