@@ -302,6 +302,7 @@ impl BPF {
             if start.is_null() {
                 return Err(BccError::Loading {
                     name: name.to_string(),
+                    message: String::from("start instruction is null"),
                 });
             }
             let mut log_buf: Vec<u8> = Vec::with_capacity(log_size as usize);
@@ -320,6 +321,7 @@ impl BPF {
             if fd < 0 {
                 return Err(BccError::Loading {
                     name: name.to_string(),
+                    message: Error::last_os_error().to_string(),
                 });
             }
             Ok(File::from_raw_fd(fd))
@@ -351,6 +353,7 @@ impl BPF {
             if start.is_null() {
                 return Err(BccError::Loading {
                     name: name.to_string(),
+                    message: String::from("start instruction is null"),
                 });
             }
             let mut log_buf: Vec<u8> = Vec::with_capacity(log_size as usize);
@@ -371,6 +374,7 @@ impl BPF {
             if fd < 0 {
                 return Err(BccError::Loading {
                     name: name.to_string(),
+                    message: Error::last_os_error().to_string(),
                 });
             }
             Ok(File::from_raw_fd(fd))
@@ -405,6 +409,7 @@ impl BPF {
             if start.is_null() {
                 return Err(BccError::Loading {
                     name: name.to_string(),
+                    message: String::from("start instruction is null"),
                 });
             }
             let mut log_buf: Vec<u8> = Vec::with_capacity(log_size as usize);
@@ -425,6 +430,7 @@ impl BPF {
             if fd < 0 {
                 return Err(BccError::Loading {
                     name: name.to_string(),
+                    message: Error::last_os_error().to_string(),
                 });
             }
             Ok(File::from_raw_fd(fd))

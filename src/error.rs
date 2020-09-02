@@ -37,8 +37,8 @@ pub enum BccError {
     InitializePerfMap,
     #[error("invalid cpu range ({range})")]
     InvalidCpuRange { range: String },
-    #[error("error loading bpf probe ({name})")]
-    Loading { name: String },
+    #[error("error loading bpf probe ({name}): {message}")]
+    Loading { name: String, message: String },
     #[error("null string")]
     NullString(#[from] std::ffi::NulError),
     #[error("error opening perf buffer")]
