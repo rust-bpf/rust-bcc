@@ -115,7 +115,7 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     }
 
     // Count misses
-    let count_table = bpf.table("count");
+    let count_table = bpf.table("count")?;
 
     if matches.is_present("percpu") {
         println!("{:<-8} {:<-4} {:>12}", "PID", "CPU", "COUNT");

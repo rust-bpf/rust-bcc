@@ -127,7 +127,7 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
         .tracepoint("softirq_exit")
         .attach(&mut module)?;
 
-    let table = module.table("dist");
+    let table = module.table("dist")?;
     let mut window = 0;
 
     while runnable.load(Ordering::SeqCst) {

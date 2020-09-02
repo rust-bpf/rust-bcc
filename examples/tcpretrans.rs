@@ -60,9 +60,9 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
         .function("tcp_retransmit_skb")
         .attach(&mut bpf)?;
 
-    let table = bpf.table("ipv4_events");
+    let table = bpf.table("ipv4_events")?;
     bpf.init_perf_map(table, print_ipv4_event)?;
-    let table = bpf.table("ipv6_events");
+    let table = bpf.table("ipv6_events")?;
     bpf.init_perf_map(table, print_ipv6_event)?;
 
     println!(

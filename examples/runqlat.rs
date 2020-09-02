@@ -98,7 +98,7 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     let mut bpf = BPF::new(&code)?;
     attach_events(&mut bpf)?;
 
-    let table = bpf.table("dist");
+    let table = bpf.table("dist")?;
     let mut window = 0;
 
     while runnable.load(Ordering::SeqCst) {

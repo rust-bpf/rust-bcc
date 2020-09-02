@@ -277,17 +277,16 @@ impl BPF {
     }
 
     /// Get access to a named table within the running BPF program.
-    pub fn table(&self, name: &str) -> Table {
-        // TODO: clean up this unwrap (and all the rest in this file)
-        let cname = CString::new(name).unwrap();
+    pub fn table(&self, name: &str) -> Result<Table, std::ffi::NulError> {
+        let cname = CString::new(name)?;
         let id = unsafe { bpf_table_id(self.ptr(), cname.as_ptr()) };
-        Table::new(id, self.ptr())
+        Ok(Table::new(id, self.ptr()))
     }
 
     // Get the table file descriptor
-    pub(crate) fn table_fd(&self, name: &str) -> i32 {
+    pub(crate) fn table_fd(&self, name: &str) -> Result<i32, std::ffi::NulError> {
         let cname = CString::new(name).unwrap();
-        unsafe { bpf_table_fd(self.ptr(), cname.as_ptr()) }
+        Ok(unsafe { bpf_table_fd(self.ptr(), cname.as_ptr()) })
     }
 
     /// Load a network traffic-control action which has the provided name within
@@ -305,7 +304,7 @@ impl BPF {
         _log_level: i32,
         log_size: u32,
     ) -> Result<File, BccError> {
-        let cname = CString::new(name).unwrap();
+        let cname = to_cstring(name)?;
         unsafe {
             let start: *mut bpf_insn =
                 bpf_function_start(self.ptr(), cname.as_ptr()) as *mut bpf_insn;
@@ -356,7 +355,7 @@ impl BPF {
         log_level: i32,
         log_size: u32,
     ) -> Result<File, BccError> {
-        let cname = CString::new(name).unwrap();
+        let cname = to_cstring(name)?;
         unsafe {
             let start: *mut bpf_insn =
                 bpf_function_start(self.ptr(), cname.as_ptr()) as *mut bpf_insn;
@@ -412,7 +411,7 @@ impl BPF {
         log_level: i32,
         log_size: u32,
     ) -> Result<File, BccError> {
-        let cname = CString::new(name).unwrap();
+        let cname = to_cstring(name)?;
         unsafe {
             let start: *mut bpf_insn =
                 bpf_function_start(self.ptr(), cname.as_ptr()) as *mut bpf_insn;
