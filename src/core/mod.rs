@@ -53,6 +53,8 @@ pub struct BPF {
     pub(crate) perf_events_array: HashSet<PerfEventArray>,
     perf_readers: Vec<PerfReader>,
     sym_caches: HashMap<pid_t, SymbolCache>,
+    cflags: Vec<CString>,
+    cflags_ptrs: Vec<*const c_char>,
 }
 
 // helper function that converts non-alphanumeric characters to underscores
@@ -109,24 +111,23 @@ impl BPFBuilder {
     ))]
     /// Try constructing a BPF module from the builder
     pub fn build(self) -> Result<BPF, BccError> {
-        let cflags = if self.cflags.is_empty() {
+        let mut cflags_ptrs = self
+            .cflags
+            .iter()
+            .map(|v| v.as_ptr())
+            .collect::<Vec<*const c_char>>();
+
+        let cflags_ptr = if self.cflags.is_empty() {
             ptr::null_mut()
         } else {
-            let mut cflags = self
-                .cflags
-                .iter()
-                .map(|v| v.as_ptr())
-                .collect::<Vec<*const c_char>>();
-            let ptr = cflags.as_mut_ptr();
-            std::mem::forget(cflags);
-            ptr
+            cflags_ptrs.as_mut_ptr()
         };
 
         let ptr = unsafe {
             bpf_module_create_c_from_string(
                 self.code.as_ptr(),
                 2,
-                cflags,
+                cflags_ptr,
                 self.cflags.len().try_into().unwrap(),
             )
         };
@@ -145,6 +146,8 @@ impl BPFBuilder {
             perf_events_array: HashSet::new(),
             perf_readers: Vec::new(),
             sym_caches: HashMap::new(),
+            cflags: self.cflags,
+            cflags_ptrs: cflags_ptrs,
         })
     }
 
@@ -152,24 +155,23 @@ impl BPFBuilder {
     #[cfg(any(feature = "v0_9_0", feature = "v0_10_0"))]
     /// Try constructing a BPF module from the builder
     pub fn build(self) -> Result<BPF, BccError> {
-        let cflags = if self.cflags.is_empty() {
+        let mut cflags_ptrs = self
+            .cflags
+            .iter()
+            .map(|v| v.as_ptr())
+            .collect::<Vec<*const c_char>>();
+
+        let cflags_ptr = if self.cflags.is_empty() {
             ptr::null_mut()
         } else {
-            let mut cflags = self
-                .cflags
-                .iter()
-                .map(|v| v.as_ptr())
-                .collect::<Vec<*const c_char>>();
-            let ptr = cflags.as_mut_ptr();
-            std::mem::forget(cflags);
-            ptr
+            cflags_ptrs.as_mut_ptr()
         };
 
         let ptr = unsafe {
             bpf_module_create_c_from_string(
                 self.code.as_ptr(),
                 2,
-                cflags,
+                cflags_ptr,
                 self.cflags.len().try_into().unwrap(),
                 true,
             )
@@ -189,6 +191,8 @@ impl BPFBuilder {
             perf_events_array: HashSet::new(),
             perf_readers: Vec::new(),
             sym_caches: HashMap::new(),
+            cflags: self.cflags,
+            cflags_ptrs: cflags_ptrs,
         })
     }
 
@@ -203,24 +207,23 @@ impl BPFBuilder {
     ))]
     /// Try constructing a BPF module from the builder
     pub fn build(self) -> Result<BPF, BccError> {
-        let cflags = if self.cflags.is_empty() {
+        let mut cflags_ptrs = self
+            .cflags
+            .iter()
+            .map(|v| v.as_ptr())
+            .collect::<Vec<*const c_char>>();
+
+        let cflags_ptr = if self.cflags.is_empty() {
             ptr::null_mut()
         } else {
-            let mut cflags = self
-                .cflags
-                .iter()
-                .map(|v| v.as_ptr())
-                .collect::<Vec<*const c_char>>();
-            let ptr = cflags.as_mut_ptr();
-            std::mem::forget(cflags);
-            ptr
+            cflags_ptrs.as_mut_ptr()
         };
 
         let ptr = unsafe {
             bpf_module_create_c_from_string(
                 self.code.as_ptr(),
                 2,
-                cflags,
+                cflags_ptr,
                 self.cflags.len().try_into().unwrap(),
                 true,
                 ptr::null_mut(),
@@ -241,6 +244,8 @@ impl BPFBuilder {
             perf_events_array: HashSet::new(),
             perf_readers: Vec::new(),
             sym_caches: HashMap::new(),
+            cflags: self.cflags,
+            cflags_ptrs: cflags_ptrs,
         })
     }
 }
@@ -256,47 +261,14 @@ impl BPF {
     ))]
     /// `code` is a string containing C code. See https://github.com/iovisor/bcc for examples
     pub fn new(code: &str) -> Result<BPF, BccError> {
-        let cs = CString::new(code)?;
-        let ptr = unsafe { bpf_module_create_c_from_string(cs.as_ptr(), 2, ptr::null_mut(), 0) };
-        if ptr.is_null() {
-            return Err(BccError::Compilation);
-        }
-
-        Ok(BPF {
-            p: AtomicPtr::new(ptr),
-            uprobes: HashSet::new(),
-            kprobes: HashSet::new(),
-            tracepoints: HashSet::new(),
-            raw_tracepoints: HashSet::new(),
-            perf_events: HashSet::new(),
-            perf_events_array: HashSet::new(),
-            perf_readers: Vec::new(),
-            sym_caches: HashMap::new(),
-        })
+        BPFBuilder::new(code)?.build()
     }
 
     // 0.9.0 changes the API for bpf_module_create_c_from_string()
     #[cfg(any(feature = "v0_9_0", feature = "v0_10_0",))]
     /// `code` is a string containing C code. See https://github.com/iovisor/bcc for examples
     pub fn new(code: &str) -> Result<BPF, BccError> {
-        let cs = CString::new(code)?;
-        let ptr =
-            unsafe { bpf_module_create_c_from_string(cs.as_ptr(), 2, ptr::null_mut(), 0, true) };
-        if ptr.is_null() {
-            return Err(BccError::Compilation);
-        }
-
-        Ok(BPF {
-            p: AtomicPtr::new(ptr),
-            uprobes: HashSet::new(),
-            kprobes: HashSet::new(),
-            tracepoints: HashSet::new(),
-            raw_tracepoints: HashSet::new(),
-            perf_events: HashSet::new(),
-            perf_events_array: HashSet::new(),
-            perf_readers: Vec::new(),
-            sym_caches: HashMap::new(),
-        })
+        BPFBuilder::new(code)?.build()
     }
 
     // 0.11.0 changes the API for bpf_module_create_c_from_string()
@@ -310,32 +282,7 @@ impl BPF {
     ))]
     /// `code` is a string containing C code. See https://github.com/iovisor/bcc for examples
     pub fn new(code: &str) -> Result<BPF, BccError> {
-        let cs = CString::new(code)?;
-        let ptr = unsafe {
-            bpf_module_create_c_from_string(
-                cs.as_ptr(),
-                2,
-                ptr::null_mut(),
-                0,
-                true,
-                ptr::null_mut(),
-            )
-        };
-        if ptr.is_null() {
-            return Err(BccError::Compilation);
-        }
-
-        Ok(BPF {
-            p: AtomicPtr::new(ptr),
-            uprobes: HashSet::new(),
-            kprobes: HashSet::new(),
-            tracepoints: HashSet::new(),
-            raw_tracepoints: HashSet::new(),
-            perf_events: HashSet::new(),
-            perf_events_array: HashSet::new(),
-            perf_readers: Vec::new(),
-            sym_caches: HashMap::new(),
-        })
+        BPFBuilder::new(code)?.build()
     }
 
     // get access to the interal pointer for the bpf module
