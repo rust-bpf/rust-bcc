@@ -147,7 +147,7 @@ impl BPFBuilder {
             perf_readers: Vec::new(),
             sym_caches: HashMap::new(),
             cflags: self.cflags,
-            cflags_ptrs: cflags_ptrs,
+            cflags_ptrs,
         })
     }
 
@@ -192,7 +192,7 @@ impl BPFBuilder {
             perf_readers: Vec::new(),
             sym_caches: HashMap::new(),
             cflags: self.cflags,
-            cflags_ptrs: cflags_ptrs,
+            cflags_ptrs,
         })
     }
 
@@ -245,7 +245,7 @@ impl BPFBuilder {
             perf_readers: Vec::new(),
             sym_caches: HashMap::new(),
             cflags: self.cflags,
-            cflags_ptrs: cflags_ptrs,
+            cflags_ptrs,
         })
     }
 }
