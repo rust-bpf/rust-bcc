@@ -120,7 +120,7 @@ impl BPFBuilder {
             bpf_module_create_c_from_string(
                 self.code.as_ptr(),
                 2,
-                self.cflags.as_ptr() as *mut *const c_char,
+                cflags_ptr,
                 self.cflags.len().try_into().unwrap(),
             )
         };
