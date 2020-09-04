@@ -192,7 +192,6 @@ impl BPFBuilder {
     ))]
     /// Try constructing a BPF module from the builder
     pub fn build(self) -> Result<BPF, BccError> {
-
         let cflags_ptr = if self.cflags.is_empty() {
             ptr::null_mut()
         } else {
