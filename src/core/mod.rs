@@ -54,7 +54,6 @@ pub struct BPF {
     perf_readers: Vec<PerfReader>,
     sym_caches: HashMap<pid_t, SymbolCache>,
     cflags: Vec<CString>,
-    cflags_ptrs: Vec<*const c_char>,
 }
 
 // helper function that converts non-alphanumeric characters to underscores
@@ -111,23 +110,17 @@ impl BPFBuilder {
     ))]
     /// Try constructing a BPF module from the builder
     pub fn build(self) -> Result<BPF, BccError> {
-        let mut cflags_ptrs = self
-            .cflags
-            .iter()
-            .map(|v| v.as_ptr())
-            .collect::<Vec<*const c_char>>();
-
         let cflags_ptr = if self.cflags.is_empty() {
             ptr::null_mut()
         } else {
-            cflags_ptrs.as_mut_ptr()
+            self.cflags.as_ptr() as *mut *const c_char
         };
 
         let ptr = unsafe {
             bpf_module_create_c_from_string(
                 self.code.as_ptr(),
                 2,
-                cflags_ptr,
+                self.cflags.as_ptr() as *mut *const c_char,
                 self.cflags.len().try_into().unwrap(),
             )
         };
@@ -147,7 +140,6 @@ impl BPFBuilder {
             perf_readers: Vec::new(),
             sym_caches: HashMap::new(),
             cflags: self.cflags,
-            cflags_ptrs,
         })
     }
 
@@ -155,16 +147,10 @@ impl BPFBuilder {
     #[cfg(any(feature = "v0_9_0", feature = "v0_10_0"))]
     /// Try constructing a BPF module from the builder
     pub fn build(self) -> Result<BPF, BccError> {
-        let mut cflags_ptrs = self
-            .cflags
-            .iter()
-            .map(|v| v.as_ptr())
-            .collect::<Vec<*const c_char>>();
-
         let cflags_ptr = if self.cflags.is_empty() {
             ptr::null_mut()
         } else {
-            cflags_ptrs.as_mut_ptr()
+            self.cflags.as_ptr() as *mut *const c_char
         };
 
         let ptr = unsafe {
@@ -192,7 +178,6 @@ impl BPFBuilder {
             perf_readers: Vec::new(),
             sym_caches: HashMap::new(),
             cflags: self.cflags,
-            cflags_ptrs,
         })
     }
 
@@ -207,16 +192,11 @@ impl BPFBuilder {
     ))]
     /// Try constructing a BPF module from the builder
     pub fn build(self) -> Result<BPF, BccError> {
-        let mut cflags_ptrs = self
-            .cflags
-            .iter()
-            .map(|v| v.as_ptr())
-            .collect::<Vec<*const c_char>>();
 
         let cflags_ptr = if self.cflags.is_empty() {
             ptr::null_mut()
         } else {
-            cflags_ptrs.as_mut_ptr()
+            self.cflags.as_ptr() as *mut *const c_char
         };
 
         let ptr = unsafe {
@@ -245,7 +225,6 @@ impl BPFBuilder {
             perf_readers: Vec::new(),
             sym_caches: HashMap::new(),
             cflags: self.cflags,
-            cflags_ptrs,
         })
     }
 }
