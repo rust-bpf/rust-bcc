@@ -8,6 +8,7 @@ use core::sync::atomic::{AtomicPtr, Ordering};
 use std::ffi::CStr;
 use std::ffi::CString;
 use std::mem;
+use std::os::raw::c_char;
 use std::ptr;
 
 pub fn resolve_symbol_path(
@@ -51,7 +52,7 @@ pub fn resolve_symname(
         })
     } else {
         let module = unsafe {
-            CStr::from_ptr(symbol.module as *mut i8)
+            CStr::from_ptr(symbol.module as *mut c_char)
                 .to_str()?
                 .to_string()
         };
