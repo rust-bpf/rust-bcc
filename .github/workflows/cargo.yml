@@ -197,6 +197,19 @@ jobs:
     - uses: actions/checkout@v2
     - name: Run CI
       run: bash -e build/ci.sh
+  focal-llvm_9-bcc_v0_16_0:
+    name: focal / llvm 9 / bcc 0.16.0
+    runs-on: ubuntu-20.04
+    env:
+      BCC: "0.16.0"
+      DIST: focal
+      FEATURES: v0_16_0
+      LLVM: "9"
+      STATIC: true
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run CI
+      run: bash -e build/ci.sh
   rustfmt:
     runs-on: ubuntu-latest
     steps:
