@@ -1,0 +1,54 @@
+{
+   <supress_NULL_key_in_bpf_syscall_attr>
+   Memcheck:Param
+   bpf(attr->key)
+   fun:syscall
+   ...
+   fun:bpf_get_first_key
+   ...
+}
+
+{
+   <clang_if_parser>
+   Memcheck:Cond
+   fun:_ZN5clang6Parser16ParseIfStatementEPNS_14SourceLocationE
+   ...
+}
+
+
+{
+   <specific_llvm_dwarf_range_span>
+   Memcheck:Cond
+   fun:_ZN4llvm16DwarfCompileUnit8addRangeENS_9RangeSpanE
+   fun:_ZN4llvm10DwarfDebug15endFunctionImplEPKNS_15MachineFunctionE
+   fun:_ZN4llvm16DebugHandlerBase11endFunctionEPKNS_15MachineFunctionE
+   fun:_ZN4llvm10AsmPrinter16EmitFunctionBodyEv
+   fun:_ZN4llvm10AsmPrinter20runOnMachineFunctionERNS_15MachineFunctionE
+   fun:_ZN4llvm19MachineFunctionPass13runOnFunctionERNS_8FunctionE
+   fun:_ZN4llvm13FPPassManager13runOnFunctionERNS_8FunctionE
+   fun:_ZN4llvm13FPPassManager11runOnModuleERNS_6ModuleE
+   fun:runOnModule
+   fun:_ZN4llvm6legacy15PassManagerImpl3runERNS_6ModuleE
+   fun:_ZN4llvm5MCJIT10emitObjectEPNS_6ModuleE
+   fun:_ZN4llvm5MCJIT21generateCodeForModuleEPNS_6ModuleE
+   fun:_ZN4llvm5MCJIT14finalizeObjectEv
+}
+
+
+{
+   <ebpf_clang_probe_visitor_assigns_ext_otr>
+   Memcheck:Cond
+   fun:_ZN4ebpf12ProbeVisitor12VisitVarDeclEPN5clang7VarDeclE
+   fun:_ZN5clang19RecursiveASTVisitorIN4ebpf12ProbeVisitorEE12TraverseDeclEPNS_4DeclE
+   fun:_ZN5clang19RecursiveASTVisitorIN4ebpf12ProbeVisitorEE16dataTraverseNodeEPNS_4StmtEPN4llvm15SmallVectorImplINS6_14PointerIntPairIS5_Lj1EbNS6_21PointerLikeTypeTraitsIS5_EENS6_18PointerIntPairInfoIS5_Lj1ESA_EEEEEE
+   fun:_ZN4ebpf12ProbeVisitor12TraverseStmtEPN5clang4StmtE
+   ...
+}
+
+{
+   <ebpf_clang_probe_visitor_visit_var_decl>
+   Memcheck:Cond
+   fun:_ZN4ebpf12ProbeVisitor13assignsExtPtrEPN5clang4ExprEPi
+   fun:_ZN4ebpf12ProbeVisitor12VisitVarDeclEPN5clang7VarDeclE
+   ...
+}
