@@ -53,7 +53,7 @@ fn main() {
     println!("smoketest: cflags");
     assert!(BPFBuilder::new("int main() { return RETURN_CODE; }")
         .unwrap()
-        .cflags(&["-DRETURN_CODE=0"])
+        .cflags(&["-DRETURN_CODE=0", "-DUNUSED_DEFINE=1"])
         .unwrap()
         .build()
         .is_ok());

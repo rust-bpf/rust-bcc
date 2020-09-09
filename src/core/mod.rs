@@ -110,17 +110,15 @@ impl BPFBuilder {
     ))]
     /// Try constructing a BPF module from the builder
     pub fn build(self) -> Result<BPF, BccError> {
-        let cflags_ptr = if self.cflags.is_empty() {
-            ptr::null_mut()
-        } else {
-            self.cflags.as_ptr() as *mut *const c_char
-        };
-
         let ptr = unsafe {
             bpf_module_create_c_from_string(
                 self.code.as_ptr(),
                 2,
-                cflags_ptr,
+                self.cflags
+                    .iter()
+                    .map(|v| v.as_ptr())
+                    .collect::<Vec<*const c_char>>()
+                    .as_mut_ptr(),
                 self.cflags.len().try_into().unwrap(),
             )
         };
@@ -147,17 +145,15 @@ impl BPFBuilder {
     #[cfg(any(feature = "v0_9_0", feature = "v0_10_0"))]
     /// Try constructing a BPF module from the builder
     pub fn build(self) -> Result<BPF, BccError> {
-        let cflags_ptr = if self.cflags.is_empty() {
-            ptr::null_mut()
-        } else {
-            self.cflags.as_ptr() as *mut *const c_char
-        };
-
         let ptr = unsafe {
             bpf_module_create_c_from_string(
                 self.code.as_ptr(),
                 2,
-                cflags_ptr,
+                self.cflags
+                    .iter()
+                    .map(|v| v.as_ptr())
+                    .collect::<Vec<*const c_char>>()
+                    .as_mut_ptr(),
                 self.cflags.len().try_into().unwrap(),
                 true,
             )
@@ -192,17 +188,15 @@ impl BPFBuilder {
     ))]
     /// Try constructing a BPF module from the builder
     pub fn build(self) -> Result<BPF, BccError> {
-        let cflags_ptr = if self.cflags.is_empty() {
-            ptr::null_mut()
-        } else {
-            self.cflags.as_ptr() as *mut *const c_char
-        };
-
         let ptr = unsafe {
             bpf_module_create_c_from_string(
                 self.code.as_ptr(),
                 2,
-                cflags_ptr,
+                self.cflags
+                    .iter()
+                    .map(|v| v.as_ptr())
+                    .collect::<Vec<*const c_char>>()
+                    .as_mut_ptr(),
                 self.cflags.len().try_into().unwrap(),
                 true,
                 ptr::null_mut(),
