@@ -4,12 +4,14 @@ set -e
 
 ## Functions
 function test {
-    sudo target/release/examples/smoketest
-    sudo target/release/examples/runqlat --interval 1 --windows 5
-    sudo target/release/examples/opensnoop --duration 5
-    sudo target/release/examples/biosnoop --duration 5
-    sudo target/release/examples/tcpretrans --duration 5
-    sudo target/release/examples/contextswitch --duration 5
+    runner="$1"
+
+    sudo $runner target/release/examples/smoketest
+    sudo $runner target/release/examples/runqlat --interval 1 --windows 5
+    sudo $runner target/release/examples/opensnoop --duration 5
+    sudo $runner target/release/examples/biosnoop --duration 5
+    sudo $runner target/release/examples/tcpretrans --duration 5
+    sudo $runner target/release/examples/contextswitch --duration 5
 }
 
 ## Update apt
@@ -28,6 +30,17 @@ sudo apt-get remove *llvm* *clang*
 sudo apt-get --yes install clang-"${LLVM_PACKAGE}" \
     libclang-"${LLVM_PACKAGE}"-dev libelf-dev libfl-dev \
     llvm-"${LLVM_PACKAGE}"-dev libz-dev llvm-"${LLVM_PACKAGE}"
+
+## Install Valgrind and libc debugging symbols
+sudo apt-get --yes install libc6-dbg
+
+pushd /tmp
+curl -L -O https://sourceware.org/pub/valgrind/valgrind-3.16.1.tar.bz2
+tar xjf valgrind-3.16.1.tar.bz2
+cd valgrind-3.16.1
+./configure
+sudo make -j2 install
+popd
 
 # For static builds, we need to compile the following
 if [[ $STATIC == true ]]; then
@@ -151,3 +164,6 @@ if [[ $STATIC == true ]]; then
     fi
     test
 fi
+
+# Run tests with Valgrind
+test "valgrind --suppressions=build/valgrind-suppressions.supp --error-exitcode=1"
