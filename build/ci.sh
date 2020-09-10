@@ -125,7 +125,7 @@ fi
 mkdir -p _build
 cd _build
 cmake .. -DCMAKE_INSTALL_PREFIX=/usr
-make
+make -j2
 sudo make install
 find . -name "*.a" -exec sudo cp -v {} /usr/lib/ \;
 cd ../..
