@@ -145,6 +145,19 @@ jobs:
     - uses: actions/checkout@v2
     - name: Run CI
       run: bash -e build/ci.sh
+  xenial-llvm_8-bcc_v0_16_0:
+    name: xenial / llvm 8 / bcc 0.16.0
+    runs-on: ubuntu-16.04
+    env:
+      BCC: "0.16.0"
+      DIST: xenial
+      FEATURES: v0_16_0
+      LLVM: "8"
+      STATIC: true
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run CI
+      run: bash -e build/ci.sh
   focal-llvm_9-bcc_v0_12_0:
     name: focal / llvm 9 / bcc 0.12.0
     runs-on: ubuntu-20.04
@@ -191,6 +204,19 @@ jobs:
       BCC: "0.15.0"
       DIST: focal
       FEATURES: v0_15_0
+      LLVM: "9"
+      STATIC: true
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run CI
+      run: bash -e build/ci.sh
+  focal-llvm_9-bcc_v0_16_0:
+    name: focal / llvm 9 / bcc 0.16.0
+    runs-on: ubuntu-20.04
+    env:
+      BCC: "0.16.0"
+      DIST: focal
+      FEATURES: v0_16_0
       LLVM: "9"
       STATIC: true
     steps:

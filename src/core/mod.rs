@@ -184,6 +184,7 @@ impl BPFBuilder {
         feature = "v0_13_0",
         feature = "v0_14_0",
         feature = "v0_15_0",
+        feature = "v0_16_0",
         not(feature = "specific"),
     ))]
     /// Try constructing a BPF module from the builder
@@ -250,6 +251,7 @@ impl BPF {
         feature = "v0_13_0",
         feature = "v0_14_0",
         feature = "v0_15_0",
+        feature = "v0_16_0",
         not(feature = "specific"),
     ))]
     /// `code` is a string containing C code. See https://github.com/iovisor/bcc for examples
@@ -384,6 +386,7 @@ impl BPF {
         feature = "v0_13_0",
         feature = "v0_14_0",
         feature = "v0_15_0",
+        feature = "v0_16_0",
         not(feature = "specific"),
     ))]
     /// load the named BPF program from within the compiled BPF code
@@ -473,6 +476,7 @@ impl BPF {
         feature = "v0_13_0",
         feature = "v0_14_0",
         feature = "v0_15_0",
+        feature = "v0_16_0",
         not(feature = "specific"),
     ))]
     /// Returns true if raw tracepoints are supported by the running kernel
