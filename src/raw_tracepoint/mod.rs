@@ -52,6 +52,7 @@ impl RawTracepoint {
         feature = "v0_13_0",
         feature = "v0_14_0",
         feature = "v0_15_0",
+        feature = "v0_16_0",
         not(feature = "specific"),
     ))]
     /// Consumes the probe and attaches it. May return an error if there is a
