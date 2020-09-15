@@ -277,15 +277,15 @@ impl BPF {
     }
 
     /// Get access to a named table within the running BPF program.
-    pub fn table(&self, name: &str) -> Result<Table, std::ffi::NulError> {
-        let cname = CString::new(name)?;
+    pub fn table(&self, name: &str) -> Result<Table, BccError> {
+        let cname = to_cstring(name)?;
         let id = unsafe { bpf_table_id(self.ptr(), cname.as_ptr()) };
         Ok(Table::new(id, self.ptr()))
     }
 
     // Get the table file descriptor
-    pub(crate) fn table_fd(&self, name: &str) -> Result<i32, std::ffi::NulError> {
-        let cname = CString::new(name).unwrap();
+    pub(crate) fn table_fd(&self, name: &str) -> Result<i32, BccError> {
+        let cname = to_cstring(name)?;
         Ok(unsafe { bpf_table_fd(self.ptr(), cname.as_ptr()) })
     }
 
