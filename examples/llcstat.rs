@@ -76,9 +76,9 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     }
 
     // Count misses
-    let mut miss_table = bpf.table("miss_count");
+    let mut miss_table = bpf.table("miss_count")?;
     let miss_map = to_map(&mut miss_table);
-    let mut ref_table = bpf.table("ref_count");
+    let mut ref_table = bpf.table("ref_count")?;
     let ref_map = to_map(&mut ref_table);
 
     let mut total_hit = 0;

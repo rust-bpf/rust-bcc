@@ -5,6 +5,7 @@ use crate::types::MutPointer;
 use crate::BccError;
 
 use std::ffi::CStr;
+use std::io::Error;
 
 #[derive(Clone, Debug)]
 pub struct Table {
@@ -45,7 +46,9 @@ impl Table {
         let res = unsafe { bpf_delete_elem(fd, key.as_mut_ptr() as MutPointer) };
         match res {
             0 => Ok(()),
-            _ => Err(BccError::DeleteTableValue),
+            _ => Err(BccError::DeleteTableValue {
+                message: Error::last_os_error().to_string(),
+            }),
         }
     }
 
@@ -69,7 +72,9 @@ impl Table {
         };
         match res {
             0 => Ok(leaf),
-            _ => Err(BccError::GetTableValue),
+            _ => Err(BccError::GetTableValue {
+                message: Error::last_os_error().to_string(),
+            }),
         }
     }
 
@@ -83,10 +88,11 @@ impl Table {
                 0,
             )
         };
-        // TODO: maybe we can get an errno here to enhance the error message with?
         match res {
             0 => Ok(()),
-            _ => Err(BccError::SetTableValue),
+            _ => Err(BccError::SetTableValue {
+                message: Error::last_os_error().to_string(),
+            }),
         }
     }
 

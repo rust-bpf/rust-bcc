@@ -60,7 +60,7 @@ impl PerfEventArray {
         let table = self.table.unwrap();
         let event = self.event.unwrap();
 
-        let table_fd = bpf.table_fd(&table);
+        let table_fd = bpf.table_fd(&table)?;
 
         let ev_type = event.ev_type();
         let ev_config = event.ev_config();

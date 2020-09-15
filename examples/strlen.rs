@@ -38,7 +38,7 @@ int count(struct pt_regs *ctx) {
         .binary("/lib/x86_64-linux-gnu/libc.so.6")
         .symbol("strlen")
         .attach(&mut module)?;
-    let table = module.table("counts");
+    let table = module.table("counts")?;
     while runnable.load(Ordering::SeqCst) {
         std::thread::sleep(std::time::Duration::from_millis(1000));
         for e in &table {

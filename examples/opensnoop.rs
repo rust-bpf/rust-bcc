@@ -59,7 +59,7 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
         .attach(&mut module)?;
 
     // the "events" table is where the "open file" events get sent
-    let table = module.table("events");
+    let table = module.table("events")?;
     // install a callback to print out file open events when they happen
     let mut perf_map = init_perf_map(table, perf_data_callback)?;
     // print a header

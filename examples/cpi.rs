@@ -86,9 +86,9 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     }
 
     // Count misses
-    let mut cycles = bpf.table("cycle");
+    let mut cycles = bpf.table("cycle")?;
     let cycles_map = to_map(&mut cycles);
-    let mut instructions = bpf.table("instr");
+    let mut instructions = bpf.table("instr")?;
     let instructions_map = to_map(&mut instructions);
 
     let mut total_instr = 0;

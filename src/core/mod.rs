@@ -24,6 +24,7 @@ use std::collections::{HashMap, HashSet};
 use std::convert::TryInto;
 use std::ffi::CString;
 use std::fs::File;
+use std::io::Error;
 use std::ops::Drop;
 use std::os::raw::c_char;
 use std::os::unix::prelude::*;
@@ -223,6 +224,19 @@ impl BPFBuilder {
     }
 }
 
+/// Get a CString from a regular string, if possible
+fn to_cstring(s: &str) -> Result<CString, BccError> {
+    match CString::new(s) {
+        Ok(name) => Ok(name),
+        Err(_) => {
+            return Err(BccError::Loading {
+                name: s.to_string(),
+                message: String::from("The probe name contains an interior null byte"),
+            })
+        }
+    }
+}
+
 impl BPF {
     #[cfg(any(
         feature = "v0_4_0",
@@ -259,23 +273,22 @@ impl BPF {
         BPFBuilder::new(code)?.build()
     }
 
-    // get access to the interal pointer for the bpf module
+    // get access to the internal pointer for the bpf module
     fn ptr(&self) -> *mut c_void {
         self.p.load(Ordering::SeqCst)
     }
 
     /// Get access to a named table within the running BPF program.
-    pub fn table(&self, name: &str) -> Table {
-        // TODO: clean up this unwrap (and all the rest in this file)
-        let cname = CString::new(name).unwrap();
+    pub fn table(&self, name: &str) -> Result<Table, BccError> {
+        let cname = to_cstring(name)?;
         let id = unsafe { bpf_table_id(self.ptr(), cname.as_ptr()) };
-        Table::new(id, self.ptr())
+        Ok(Table::new(id, self.ptr()))
     }
 
     // Get the table file descriptor
-    pub(crate) fn table_fd(&self, name: &str) -> i32 {
-        let cname = CString::new(name).unwrap();
-        unsafe { bpf_table_fd(self.ptr(), cname.as_ptr()) }
+    pub(crate) fn table_fd(&self, name: &str) -> Result<i32, BccError> {
+        let cname = to_cstring(name)?;
+        Ok(unsafe { bpf_table_fd(self.ptr(), cname.as_ptr()) })
     }
 
     /// Load a network traffic-control action which has the provided name within
@@ -293,7 +306,7 @@ impl BPF {
         _log_level: i32,
         log_size: u32,
     ) -> Result<File, BccError> {
-        let cname = CString::new(name).unwrap();
+        let cname = to_cstring(name)?;
         unsafe {
             let start: *mut bpf_insn =
                 bpf_function_start(self.ptr(), cname.as_ptr()) as *mut bpf_insn;
@@ -303,6 +316,7 @@ impl BPF {
             if start.is_null() {
                 return Err(BccError::Loading {
                     name: name.to_string(),
+                    message: String::from("start instruction is null"),
                 });
             }
             let mut log_buf: Vec<u8> = Vec::with_capacity(log_size as usize);
@@ -321,6 +335,7 @@ impl BPF {
             if fd < 0 {
                 return Err(BccError::Loading {
                     name: name.to_string(),
+                    message: Error::last_os_error().to_string(),
                 });
             }
             Ok(File::from_raw_fd(fd))
@@ -342,7 +357,7 @@ impl BPF {
         log_level: i32,
         log_size: u32,
     ) -> Result<File, BccError> {
-        let cname = CString::new(name).unwrap();
+        let cname = to_cstring(name)?;
         unsafe {
             let start: *mut bpf_insn =
                 bpf_function_start(self.ptr(), cname.as_ptr()) as *mut bpf_insn;
@@ -352,6 +367,7 @@ impl BPF {
             if start.is_null() {
                 return Err(BccError::Loading {
                     name: name.to_string(),
+                    message: String::from("start instruction is null"),
                 });
             }
             let mut log_buf: Vec<u8> = Vec::with_capacity(log_size as usize);
@@ -372,6 +388,7 @@ impl BPF {
             if fd < 0 {
                 return Err(BccError::Loading {
                     name: name.to_string(),
+                    message: Error::last_os_error().to_string(),
                 });
             }
             Ok(File::from_raw_fd(fd))
@@ -397,7 +414,7 @@ impl BPF {
         log_level: i32,
         log_size: u32,
     ) -> Result<File, BccError> {
-        let cname = CString::new(name).unwrap();
+        let cname = to_cstring(name)?;
         unsafe {
             let start: *mut bpf_insn =
                 bpf_function_start(self.ptr(), cname.as_ptr()) as *mut bpf_insn;
@@ -407,6 +424,7 @@ impl BPF {
             if start.is_null() {
                 return Err(BccError::Loading {
                     name: name.to_string(),
+                    message: String::from("start instruction is null"),
                 });
             }
             let mut log_buf: Vec<u8> = Vec::with_capacity(log_size as usize);
@@ -427,6 +445,7 @@ impl BPF {
             if fd < 0 {
                 return Err(BccError::Loading {
                     name: name.to_string(),
+                    message: Error::last_os_error().to_string(),
                 });
             }
             Ok(File::from_raw_fd(fd))
