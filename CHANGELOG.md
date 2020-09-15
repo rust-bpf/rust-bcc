@@ -1,5 +1,22 @@
 # [Unreleased]
 
+# [0.0.25] - 2020-09-15
+## Added
+- Support for bcc 0.16.0
+- Builder-pattern construction of `BPF` struct.
+- Support for passing `CFLAGS` to BPF module creation.
+- Builder-pattern construction of `PerfMap`s.
+- Support for setting the size of the `PerfMap` ring buffer.
+
+## Changed
+- Default bcc version is now 0.16.0
+- Some function signatures now return `Result`s to enable better error handling
+  and reduce internal `unwrap()` usage.
+- Some error types now include additional messaging.
+
+## Fixed
+- Builds on `aarch64` by correcting the internal representation of `char` types.
+
 # [0.0.24] - 2020-08-20
 ## Fixed
 - `Kprobe`s and `Uprobe`s are now properly closed on drop. Fixed #44
@@ -145,7 +162,8 @@
 
 Initial release.
 
-[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.24...HEAD
+[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.25...HEAD
+[0.0.25]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.24...v0.0.25
 [0.0.24]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.23...v0.0.24
 [0.0.23]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.22...v0.0.23
 [0.0.22]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.21...v0.0.22
