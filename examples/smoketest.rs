@@ -35,6 +35,18 @@ fn main() {
     let entries: Vec<Entry> = table.iter().collect();
     assert_eq!(entries.len(), 0);
 
+    println!("smoketest: invalid hash usage");
+    assert!(bpf.table("invalid\0_table_name").is_err());
+    let mut table = bpf.table("does_not_exist").unwrap();
+    assert!(table.get(&mut [0, 0, 0, 0, 0, 0, 0, 1]).is_err());
+    assert!(table.delete(&mut [0, 0, 0, 0, 0, 0, 0, 1]).is_err());
+    assert!(table
+        .set(
+            &mut [0, 0, 0, 0, 0, 0, 0, 1],
+            &mut [0, 0, 0, 0, 0, 0, 0, 42]
+        )
+        .is_err());
+
     println!("smoketest: array");
     let bpf = BPF::new("BPF_ARRAY(dist, u64, 64);").unwrap();
     let mut table = bpf.table("dist").unwrap();
