@@ -12,14 +12,17 @@ struct start_timestamp_t {
     char host[80];
     u64 ts;
 };
+
 struct latency_event_t {
     u32 pid;
     u64 delta;
     char comm[TASK_COMM_LEN];
     char host[80];
 };
+
 BPF_HASH(start, u32, struct start_timestamp_t);
 BPF_PERF_OUTPUT(events);
+
 int do_entry(struct pt_regs *ctx) {
     if (!PT_REGS_PARM1(ctx))
         return 0;
@@ -34,6 +37,7 @@ int do_entry(struct pt_regs *ctx) {
     }
     return 0;
 }
+
 int do_return(struct pt_regs *ctx) {
     struct start_timestamp_t *start_timestamp;
     struct latency_event_t perf_event = {};
