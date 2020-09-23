@@ -84,7 +84,7 @@ impl Uprobe {
 
         let (path, addr) = crate::symbol::resolve_symbol_path(&binary, &symbol, 0x0, pid)?;
         let alpha_path = make_alphanumeric(&path);
-        let ev_name = format!("r_{}_0x{:x}", &alpha_path, addr);
+        let ev_name = format!("p_{}_0x{:x}", &alpha_path, addr);
 
         let code_fd = bpf.load(&handler, BPF_PROG_TYPE_KPROBE, 0, 0)?;
 
