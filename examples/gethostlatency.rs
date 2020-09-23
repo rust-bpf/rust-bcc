@@ -1,4 +1,4 @@
-use bcc::perf_event::init_perf_map;
+use bcc::perf_event::PerfMapBuilder;
 use bcc::BccError;
 use bcc::{Uprobe, Uretprobe, BPF};
 use clap::{App, Arg};
@@ -80,7 +80,7 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     // the "events" table is where the "function was called" events get sent
     let table = module.table("events")?;
     // install a callback to print out latency events when they happen
-    let mut perf_map = init_perf_map(table, perf_data_callback)?;
+    let mut perf_map = PerfMapBuilder::new(table, perf_data_callback).build()?;
     // print a header
     println!(
         "{:<9} {:<6} {:<16} {:>10} {}",
