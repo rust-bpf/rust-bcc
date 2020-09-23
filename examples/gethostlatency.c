@@ -1,5 +1,11 @@
 #include <uapi/linux/ptrace.h>
 #include <linux/sched.h>
+
+// This code is taken from: https://github.com/iovisor/bcc/blob/master/tools/gethostlatency.py
+//
+// Copyright 2016 Netflix, Inc.
+// Licensed under the Apache License, Version 2.0 (the "License")
+
 struct start_timestamp_t {
     u32 pid;
     char comm[TASK_COMM_LEN];
