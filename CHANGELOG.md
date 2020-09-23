@@ -1,5 +1,10 @@
 # [Unreleased]
 
+# [0.0.26] - 2020-09-23
+## Fixed
+- Resolved collisions between uprobes and uretprobes when the same symbol is
+  used for each.
+
 # [0.0.25] - 2020-09-15
 ## Added
 - Support for bcc 0.16.0
@@ -162,7 +167,8 @@
 
 Initial release.
 
-[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.25...HEAD
+[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.26...HEAD
+[0.0.26]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.25...v0.0.26
 [0.0.25]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.24...v0.0.25
 [0.0.24]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.23...v0.0.24
 [0.0.23]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.22...v0.0.23
