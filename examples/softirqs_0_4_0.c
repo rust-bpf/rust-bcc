@@ -1,6 +1,6 @@
 #include <uapi/linux/ptrace.h>
 
-// This code is taken from: https://github.com/iovisor/bcc/tools/softirqs.py
+// This code is taken from: https://github.com/iovisor/bcc/blob/master/tools/softirqs.py
 //
 // Copyright (c) 2015 Brendan Gregg.
 // Licensed under the Apache License, Version 2.0 (the "License")
