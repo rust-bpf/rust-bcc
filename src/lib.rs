@@ -22,7 +22,7 @@ mod uprobe;
 #[macro_use]
 extern crate bitflags;
 
-pub use crate::core::{BPFBuilder, BPF};
+pub use crate::core::{BPFBuilder, BpfProgType, BPF};
 pub use error::BccError;
 pub use kprobe::{Kprobe, Kretprobe};
 pub use perf_event::{PerfEvent, PerfEventArray, PerfMap};

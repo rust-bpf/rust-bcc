@@ -51,6 +51,14 @@ bitflags! {
     }
 }
 
+#[repr(u32)]
+pub enum BpfProgType {
+    Kprobe = bpf_prog_type_BPF_PROG_TYPE_KPROBE,
+    // Confusingly, Uprobes, internally are identified as Kprobes
+    Tracepoint = bpf_prog_type_BPF_PROG_TYPE_TRACEPOINT,
+    PerfEvent = bpf_prog_type_BPF_PROG_TYPE_PERF_EVENT,
+}
+
 #[derive(Debug)]
 /// The `BPF` struct contains the compiled BPF code, any probes or programs that
 /// have been attached, and can provide access to a userspace view of the
@@ -66,6 +74,7 @@ pub struct BPF {
     perf_readers: Vec<PerfReader>,
     sym_caches: HashMap<pid_t, SymbolCache>,
     cflags: Vec<CString>,
+    functions: HashMap<String, i32>,
     debug: BccDebug,
 }
 
@@ -159,6 +168,7 @@ impl BPFBuilder {
             perf_readers: Vec::new(),
             sym_caches: HashMap::new(),
             cflags: self.cflags,
+            functions: HashMap::new(),
             debug: self.debug,
         })
     }
@@ -196,6 +206,7 @@ impl BPFBuilder {
             perf_readers: Vec::new(),
             sym_caches: HashMap::new(),
             cflags: self.cflags,
+            functions: HashMap::new(),
             debug: self.debug,
         })
     }
@@ -242,6 +253,7 @@ impl BPFBuilder {
             perf_readers: Vec::new(),
             sym_caches: HashMap::new(),
             cflags: self.cflags,
+            functions: HashMap::new(),
             debug: self.debug,
         })
     }
@@ -306,6 +318,142 @@ impl BPF {
         let cname = to_cstring(name)?;
         let id = unsafe { bpf_table_id(self.ptr(), cname.as_ptr()) };
         Ok(Table::new(id, self.ptr()))
+    }
+
+    #[cfg(any(feature = "v0_9_0", feature = "v0_10_0",))]
+    unsafe fn load_func_impl(
+        &self,
+        program: *mut ::std::os::raw::c_void,
+        prog_type: ::std::os::raw::c_int,
+        name: *const ::std::os::raw::c_char,
+        insns: *const bpf_insn,
+        prog_len: ::std::os::raw::c_int,
+        license: *const ::std::os::raw::c_char,
+        kern_version: ::std::os::raw::c_uint,
+        log_level: ::std::os::raw::c_int,
+        log_buf: *mut ::std::os::raw::c_char,
+        log_buf_size: ::std::os::raw::c_uint,
+        _dev_name: *const ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int {
+        bcc_func_load(
+            program,
+            prog_type,
+            name,
+            insns,
+            prog_len,
+            license,
+            kern_version,
+            log_level,
+            log_buf,
+            log_buf_size,
+        )
+    }
+
+    #[cfg(any(
+        feature = "v0_11_0",
+        feature = "v0_12_0",
+        feature = "v0_13_0",
+        feature = "v0_14_0",
+        feature = "v0_15_0",
+        feature = "v0_16_0",
+        not(feature = "specific"),
+    ))]
+    unsafe fn load_func_impl(
+        &self,
+        program: *mut ::std::os::raw::c_void,
+        prog_type: ::std::os::raw::c_int,
+        name: *const ::std::os::raw::c_char,
+        insns: *const bpf_insn,
+        prog_len: ::std::os::raw::c_int,
+        license: *const ::std::os::raw::c_char,
+        kern_version: ::std::os::raw::c_uint,
+        log_level: ::std::os::raw::c_int,
+        log_buf: *mut ::std::os::raw::c_char,
+        log_buf_size: ::std::os::raw::c_uint,
+        dev_name: *const ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int {
+        bcc_func_load(
+            program,
+            prog_type,
+            name,
+            insns,
+            prog_len,
+            license,
+            kern_version,
+            log_level,
+            log_buf,
+            log_buf_size,
+            dev_name,
+        )
+    }
+
+    #[cfg(any(
+        feature = "v0_6_0",
+        feature = "v0_6_1",
+        feature = "v0_7_0",
+        feature = "v0_8_0",
+    ))]
+    pub fn load_func(&mut self, name: &str, bpf_prog_type: BpfProgType) -> Result<i32, BccError> {
+        Err(BccError::BccVersionTooLow {
+            cause: "load_func".to_owned(),
+            min_version: "0.9.0".to_owned(),
+        })
+    }
+
+    /// Load a BPF function and return its file descriptor. Useful in BPF tail-calls.
+    #[cfg(any(
+        feature = "v0_9_0",
+        feature = "v0_10_0",
+        feature = "v0_11_0",
+        feature = "v0_12_0",
+        feature = "v0_13_0",
+        feature = "v0_14_0",
+        feature = "v0_15_0",
+        feature = "v0_16_0",
+        not(feature = "specific"),
+    ))]
+    pub fn load_func(&mut self, name: &str, bpf_prog_type: BpfProgType) -> Result<i32, BccError> {
+        let name_cstring = CString::new(name).unwrap();
+        let name_ptr = name_cstring.as_ptr();
+
+        if let Some(fd) = self.functions.get(name) {
+            return Ok(*fd);
+        }
+
+        let log_level = if self.debug.contains(BccDebug::BPF_REGISTER_STATE) {
+            2
+        } else if self.debug.contains(BccDebug::BPF) {
+            1
+        } else {
+            0
+        };
+
+        unsafe {
+            let f_start = bpf_function_start(self.ptr(), name_ptr);
+            if f_start as usize == 0 {
+                return Err(BccError::Loading {
+                    name: name.to_string(),
+                    message: String::from("The specified function could not be found."),
+                });
+            }
+
+            let fd = self.load_func_impl(
+                self.ptr(),
+                bpf_prog_type as i32,
+                name_ptr,
+                f_start as *const bcc_sys::bccapi::bpf_insn,
+                bpf_function_size(self.ptr(), name_ptr).try_into().unwrap(),
+                bpf_module_license(self.ptr()),
+                bpf_module_kern_version(self.ptr()),
+                log_level,
+                ptr::null_mut(),
+                0,
+                ptr::null_mut(),
+            );
+
+            self.functions.insert(name.to_string(), fd);
+            Ok(fd)
+        }
     }
 
     // Get the table file descriptor
@@ -551,6 +699,9 @@ impl Drop for BPF {
     fn drop(&mut self) {
         unsafe {
             bpf_module_destroy(self.ptr());
+            for (_, fd) in self.functions.iter() {
+                File::from_raw_fd(*fd);
+            }
         };
     }
 }
