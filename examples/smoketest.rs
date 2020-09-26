@@ -70,5 +70,13 @@ fn main() {
         .build()
         .is_ok());
 
+    println!("smoketest: debug level");
+    assert!(BPFBuilder::new("")
+        .unwrap()
+        .debug(Default::default())
+        .unwrap()
+        .build()
+        .is_ok());
+
     println!("smoketest passed");
 }

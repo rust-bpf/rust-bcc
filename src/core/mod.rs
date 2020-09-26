@@ -25,7 +25,6 @@ use std::convert::TryInto;
 use std::ffi::CString;
 use std::fs::File;
 use std::io::Error;
-use std::ops::Drop;
 use std::os::raw::c_char;
 use std::os::unix::prelude::*;
 use std::ptr;
@@ -39,6 +38,18 @@ const SYSCALL_PREFIXES: [&str; 7] = [
     "__s390x_sys_",
     "__s390_sys_",
 ];
+
+bitflags! {
+    #[derive(Default)]
+    pub struct BccDebug: u32 {
+        const LLVM_IR = 0x1;
+        const BPF = 0x2;
+        const PREPROCESSOR = 0x4;
+        const SOURCE = 0x8;
+        const BPF_REGISTER_STATE = 0x10;
+        const BTF = 0x20;
+    }
+}
 
 #[derive(Debug)]
 /// The `BPF` struct contains the compiled BPF code, any probes or programs that
@@ -55,6 +66,7 @@ pub struct BPF {
     perf_readers: Vec<PerfReader>,
     sym_caches: HashMap<pid_t, SymbolCache>,
     cflags: Vec<CString>,
+    debug: BccDebug,
 }
 
 // helper function that converts non-alphanumeric characters to underscores
@@ -79,6 +91,7 @@ fn null_or_mut_ptr<T>(s: &mut Vec<u8>) -> *mut T {
 pub struct BPFBuilder {
     code: CString,
     cflags: Vec<CString>,
+    debug: BccDebug,
 }
 
 impl BPFBuilder {
@@ -88,6 +101,7 @@ impl BPFBuilder {
         Ok(Self {
             code,
             cflags: Vec::new(),
+            debug: Default::default(),
         })
     }
 
@@ -98,6 +112,12 @@ impl BPFBuilder {
             let cs = CString::new(f.as_ref())?;
             self.cflags.push(cs);
         }
+        Ok(self)
+    }
+
+    /// Set BCC's debug level
+    pub fn debug(mut self, debug: BccDebug) -> Result<Self, BccError> {
+        self.debug = debug;
         Ok(self)
     }
 
@@ -139,6 +159,7 @@ impl BPFBuilder {
             perf_readers: Vec::new(),
             sym_caches: HashMap::new(),
             cflags: self.cflags,
+            debug: self.debug,
         })
     }
 
@@ -175,6 +196,7 @@ impl BPFBuilder {
             perf_readers: Vec::new(),
             sym_caches: HashMap::new(),
             cflags: self.cflags,
+            debug: self.debug,
         })
     }
 
@@ -220,6 +242,7 @@ impl BPFBuilder {
             perf_readers: Vec::new(),
             sym_caches: HashMap::new(),
             cflags: self.cflags,
+            debug: self.debug,
         })
     }
 }

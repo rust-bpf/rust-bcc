@@ -19,6 +19,9 @@ mod tracepoint;
 mod types;
 mod uprobe;
 
+#[macro_use]
+extern crate bitflags;
+
 pub use crate::core::{BPFBuilder, BPF};
 pub use error::BccError;
 pub use kprobe::{Kprobe, Kretprobe};
