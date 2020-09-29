@@ -4,6 +4,7 @@ mod perf_event_array;
 mod raw_tracepoint;
 mod tracepoint;
 mod uprobe;
+mod xdp;
 
 use bcc_sys::bccapi::*;
 
@@ -13,6 +14,7 @@ pub(crate) use self::perf_event_array::PerfEventArray;
 pub(crate) use self::raw_tracepoint::RawTracepoint;
 pub(crate) use self::tracepoint::Tracepoint;
 pub(crate) use self::uprobe::Uprobe;
+pub(crate) use self::xdp::XDP;
 use crate::perf_event::PerfReader;
 use crate::symbol::SymbolCache;
 use crate::table::Table;
@@ -52,6 +54,7 @@ pub struct BPF {
     pub(crate) raw_tracepoints: HashSet<RawTracepoint>,
     pub(crate) perf_events: HashSet<PerfEvent>,
     pub(crate) perf_events_array: HashSet<PerfEventArray>,
+    pub(crate) xdp: HashSet<XDP>,
     perf_readers: Vec<PerfReader>,
     sym_caches: HashMap<pid_t, SymbolCache>,
     cflags: Vec<CString>,
@@ -79,6 +82,7 @@ fn null_or_mut_ptr<T>(s: &mut Vec<u8>) -> *mut T {
 pub struct BPFBuilder {
     code: CString,
     cflags: Vec<CString>,
+    device: Option<CString>,
 }
 
 impl BPFBuilder {
@@ -88,6 +92,7 @@ impl BPFBuilder {
         Ok(Self {
             code,
             cflags: Vec::new(),
+            device: None,
         })
     }
 
@@ -99,6 +104,15 @@ impl BPFBuilder {
             self.cflags.push(cs);
         }
         Ok(self)
+    }
+
+    /// Set the device to load the BPF program on, if applicable.
+    /// For example a network device if running XDP in hardware mode.
+    pub fn device<T: AsRef<str>>(self, device: T) -> Result<Self, BccError> {
+        Ok(Self {
+            device: Some(CString::new(device.as_ref())?),
+            ..self
+        })
     }
 
     #[cfg(any(
@@ -138,6 +152,7 @@ impl BPFBuilder {
             perf_events_array: HashSet::new(),
             perf_readers: Vec::new(),
             sym_caches: HashMap::new(),
+            xdp: HashSet::new(),
             cflags: self.cflags,
         })
     }
@@ -174,6 +189,7 @@ impl BPFBuilder {
             perf_events_array: HashSet::new(),
             perf_readers: Vec::new(),
             sym_caches: HashMap::new(),
+            xdp: HashSet::new(),
             cflags: self.cflags,
         })
     }
@@ -201,7 +217,10 @@ impl BPFBuilder {
                     .as_mut_ptr(),
                 self.cflags.len().try_into().unwrap(),
                 true,
-                ptr::null_mut(),
+                self.device
+                    .as_ref()
+                    .map(|name| name.as_ptr())
+                    .unwrap_or(ptr::null_mut()),
             )
         };
 
@@ -219,6 +238,7 @@ impl BPFBuilder {
             perf_events_array: HashSet::new(),
             perf_readers: Vec::new(),
             sym_caches: HashMap::new(),
+            xdp: HashSet::new(),
             cflags: self.cflags,
         })
     }

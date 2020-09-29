@@ -2,3 +2,4 @@ target/
 bcc-sys/src/bccapi.rs
 Cargo.lock
 *.swp
+.idea
