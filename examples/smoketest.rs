@@ -1,5 +1,6 @@
+use bcc::perf_event::{Event, SoftwareEvent};
 use bcc::table::Entry;
-use bcc::{BPFBuilder, BPF};
+use bcc::{BPFBuilder, BpfProgType, PerfEvent, BPF};
 
 fn main() {
     println!("smoketest: empty table");
@@ -70,5 +71,100 @@ fn main() {
         .build()
         .is_ok());
 
+    println!("smoketest: debug level");
+    assert!(BPFBuilder::new("")
+        .unwrap()
+        .debug(Default::default())
+        .unwrap()
+        .build()
+        .is_ok());
+
+    println!("smoketest: tail calls");
+    run_tail_calls();
+
     println!("smoketest passed");
+}
+#[cfg(any(
+    feature = "v0_6_0",
+    feature = "v0_6_1",
+    feature = "v0_7_0",
+    feature = "v0_8_0",
+))]
+fn run_tail_calls() {
+    let mut bpf = BPFBuilder::new(
+        "#include <uapi/linux/bpf_perf_event.h>
+        BPF_PROG_ARRAY(programs, 1);
+
+        int my_func(struct bpf_perf_event_data *ctx) {
+            return 0;
+        }
+        int on_event(struct bpf_perf_event_data *ctx){
+            programs.call(ctx, 0);
+            return 0;
+        }",
+    )
+    .unwrap()
+    .build()
+    .unwrap();
+
+    PerfEvent::new()
+        .handler("on_event")
+        .event(Event::Software(SoftwareEvent::CpuClock))
+        .sample_frequency(Some(99))
+        .attach(&mut bpf)
+        .unwrap();
+
+    let mut table = bpf.table("programs").unwrap();
+    let mut index = 0_u32.to_ne_bytes();
+
+    assert!(bpf.load_func("my_func", BpfProgType::PerfEvent).is_err())
+}
+
+#[cfg(any(
+    feature = "v0_9_0",
+    feature = "v0_10_0",
+    feature = "v0_11_0",
+    feature = "v0_12_0",
+    feature = "v0_13_0",
+    feature = "v0_14_0",
+    feature = "v0_15_0",
+    feature = "v0_16_0",
+    not(feature = "specific"),
+))]
+fn run_tail_calls() {
+    let mut bpf = BPFBuilder::new(
+        "#include <uapi/linux/bpf_perf_event.h>
+        BPF_PROG_ARRAY(programs, 1);
+
+        int my_func(struct bpf_perf_event_data *ctx) {
+            return 0;
+        }
+        int on_event(struct bpf_perf_event_data *ctx){
+            programs.call(ctx, 0);
+            return 0;
+        }",
+    )
+    .unwrap()
+    .build()
+    .unwrap();
+
+    PerfEvent::new()
+        .handler("on_event")
+        .event(Event::Software(SoftwareEvent::CpuClock))
+        .sample_frequency(Some(99))
+        .attach(&mut bpf)
+        .unwrap();
+
+    let mut table = bpf.table("programs").unwrap();
+    let mut index = 0_u32.to_ne_bytes();
+    let fd = bpf.load_func("my_func", BpfProgType::PerfEvent).unwrap();
+    let fd2 = bpf.load_func("my_func", BpfProgType::PerfEvent).unwrap();
+    assert_eq!(
+        fd, fd2,
+        "loading the same function more than once should return the same fd"
+    );
+    table.set(&mut index, &mut fd.to_ne_bytes()).unwrap();
+    assert!(bpf
+        .load_func("non_existent_func", BpfProgType::PerfEvent)
+        .is_err());
 }
