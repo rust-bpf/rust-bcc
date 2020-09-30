@@ -17,6 +17,8 @@ pub enum BccError {
     AttachUprobe { name: String },
     #[error("failed to attach uretprobe ({name})")]
     AttachUretprobe { name: String },
+    #[error("failed to attach XDP ({name}): code {code}")]
+    AttachXDP { name: String, code: i32 },
     #[error("{cause} requires bcc >= ({min_version})")]
     BccVersionTooLow { cause: String, min_version: String },
     #[error("error compiling bpf")]
@@ -57,4 +59,6 @@ pub enum BccError {
     UnknownSymbol { name: String, module: String },
     #[error("invalid utf8")]
     Utf8Error(#[from] std::str::Utf8Error),
+    #[error("XDP has invalid configuration: {message}")]
+    InvalidXDP { message: String },
 }

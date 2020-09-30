@@ -1,6 +1,6 @@
 use bcc::perf_event::{Event, SoftwareEvent};
 use bcc::table::Entry;
-use bcc::{BPFBuilder, BpfProgType, PerfEvent, BPF};
+use bcc::{BPFBuilder, BpfProgType, PerfEvent, XDPMode, BPF, XDP};
 
 fn main() {
     println!("smoketest: empty table");
@@ -81,6 +81,9 @@ fn main() {
 
     println!("smoketest: tail calls");
     run_tail_calls();
+
+    println!("smoketest: xdp forwarding");
+    run_xdp_forwarding();
 
     println!("smoketest passed");
 }
@@ -167,4 +170,23 @@ fn run_tail_calls() {
     assert!(bpf
         .load_func("non_existent_func", BpfProgType::PerfEvent)
         .is_err());
+}
+
+fn run_xdp_forwarding() {
+    let mut bpf = BPFBuilder::new(
+        "#include<uapi/linux/bpf.h>
+        int my_func(struct xdp_md *ctx) {
+            return XDP_PASS;
+        }",
+    )
+    .unwrap()
+    .build()
+    .unwrap();
+
+    XDP::new()
+        .device("lo")
+        .handler("my_func")
+        .mode(XDPMode::XDP_FLAGS_SKB_MODE)
+        .attach(&mut bpf)
+        .expect("failed to attach XDP program to device");
 }
