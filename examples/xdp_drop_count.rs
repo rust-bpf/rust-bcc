@@ -1,18 +1,12 @@
-extern crate bcc;
-
-use bcc::{
-    BPFBuilder, BccError,
-    XDPMode::{XDP_FLAGS_HW_MODE, XDP_FLAGS_SKB_MODE},
-    XDP,
-};
+use bcc::XDPMode::{XDP_FLAGS_HW_MODE, XDP_FLAGS_SKB_MODE};
+use bcc::{BPFBuilder, BccError, XDP};
 use byteorder::{LittleEndian, ReadBytesExt};
 use clap::{App, Arg};
-use std::collections::{hash_map::Entry, HashMap};
+use std::collections::hash_map::Entry;
+use std::collections::HashMap;
 use std::io::Cursor;
-use std::sync::{
-    atomic::{AtomicBool, Ordering},
-    Arc,
-};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 use std::thread::sleep;
 use std::time::Duration;
 

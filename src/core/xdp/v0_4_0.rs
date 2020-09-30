@@ -33,6 +33,8 @@ impl XDP {
 impl Drop for XDP {
     fn drop(&mut self) {
         unsafe {
+            // Providing an invalid -1 file descriptor to the BPF attach function
+            // unloads the program from the device.
             bpf_attach_xdp(self.device.as_ptr(), -1, self.flags);
         }
     }

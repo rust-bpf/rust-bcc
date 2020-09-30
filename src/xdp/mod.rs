@@ -55,25 +55,22 @@ impl XDP {
 
     /// Specify the name of the XDP handler within the BPF code.
     /// This is a required configuration.
-    pub fn handler<T: AsRef<str>>(self, name: T) -> Self {
-        Self {
-            handler: Some(name.as_ref().into()),
-            ..self
-        }
+    pub fn handler<T: AsRef<str>>(mut self, name: T) -> Self {
+        self.handler = Some(name.as_ref().into());
+        self
     }
 
     /// Specify the name of the network device on which to run the BPF program.
     /// This is a required configuration.
-    pub fn device<T: AsRef<str>>(self, name: T) -> Self {
-        Self {
-            device: Some(name.as_ref().into()),
-            ..self
-        }
+    pub fn device<T: AsRef<str>>(mut self, name: T) -> Self {
+        self.device = Some(name.as_ref().into());
+        self
     }
 
     /// Specify the XDP mode under which to run the BPF program.
-    pub fn mode(self, mode: Mode) -> Self {
-        Self { mode, ..self }
+    pub fn mode(mut self, mode: Mode) -> Self {
+        self.mode = mode;
+        self
     }
 
     /// Load the configured handler as an XDP program onto the configured device
