@@ -11,7 +11,7 @@ particularly idiomatic for Rust. Pull requests very much appreciated.
 
 ## Prerequisites
 
-* bcc v0.4.0-v0.15.0
+* bcc v0.4.0-v0.16.0
 
 ## Static linking
 

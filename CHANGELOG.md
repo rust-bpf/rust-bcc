@@ -1,5 +1,12 @@
 # [Unreleased]
 
+# [0.0.27] - 2020-10-01
+## Added
+- Support for loading BPF programs with `load_func()`, which enables BPF
+  tail-calls.
+- Support for setting BPF debug level.
+- Support for XDP programs, used for packet processing.
+
 # [0.0.26] - 2020-09-23
 ## Fixed
 - Resolved collisions between uprobes and uretprobes when the same symbol is
@@ -167,7 +174,8 @@
 
 Initial release.
 
-[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.26...HEAD
+[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.27...HEAD
+[0.0.26]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.26...v0.0.27
 [0.0.26]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.25...v0.0.26
 [0.0.25]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.24...v0.0.25
 [0.0.24]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.23...v0.0.24
