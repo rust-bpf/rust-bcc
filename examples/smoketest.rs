@@ -75,7 +75,6 @@ fn main() {
     assert!(BPFBuilder::new("")
         .unwrap()
         .debug(Default::default())
-        .unwrap()
         .build()
         .is_ok());
 
@@ -87,6 +86,7 @@ fn main() {
 
     println!("smoketest passed");
 }
+
 #[cfg(any(
     feature = "v0_6_0",
     feature = "v0_6_1",
