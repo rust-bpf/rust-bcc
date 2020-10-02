@@ -137,9 +137,9 @@ impl BPFBuilder {
     }
 
     /// Set BCC's debug level
-    pub fn debug(mut self, debug: BccDebug) -> Result<Self, BccError> {
+    pub fn debug(mut self, debug: BccDebug) -> Self {
         self.debug = debug;
-        Ok(self)
+        self
     }
 
     #[cfg(any(
@@ -155,7 +155,7 @@ impl BPFBuilder {
         let ptr = unsafe {
             bpf_module_create_c_from_string(
                 self.code.as_ptr(),
-                2,
+                self.debug.bits(),
                 self.cflags
                     .iter()
                     .map(|v| v.as_ptr())
@@ -193,7 +193,7 @@ impl BPFBuilder {
         let ptr = unsafe {
             bpf_module_create_c_from_string(
                 self.code.as_ptr(),
-                2,
+                self.debug.bits(),
                 self.cflags
                     .iter()
                     .map(|v| v.as_ptr())
@@ -240,7 +240,7 @@ impl BPFBuilder {
         let ptr = unsafe {
             bpf_module_create_c_from_string(
                 self.code.as_ptr(),
-                2,
+                self.debug.bits(),
                 self.cflags
                     .iter()
                     .map(|v| v.as_ptr())
