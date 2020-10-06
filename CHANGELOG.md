@@ -1,5 +1,13 @@
 # [Unreleased]
 
+# [0.0.28] - 2020-10-06
+## Added
+- Adds BPF debug level to remaining load methods.
+
+## Changed
+- Setting the debug level on the `BPFBuilder` no-longer returns a result, as it
+  cannot fail. Improves ergonomics.
+
 # [0.0.27] - 2020-10-01
 ## Added
 - Support for loading BPF programs with `load_func()`, which enables BPF
@@ -174,8 +182,9 @@
 
 Initial release.
 
-[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.27...HEAD
-[0.0.26]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.26...v0.0.27
+[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.28...HEAD
+[0.0.28]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.27...v0.0.28
+[0.0.27]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.26...v0.0.27
 [0.0.26]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.25...v0.0.26
 [0.0.25]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.24...v0.0.25
 [0.0.24]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.23...v0.0.24
