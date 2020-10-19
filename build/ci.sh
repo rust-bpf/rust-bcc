@@ -26,7 +26,7 @@ fi
 
 ## Install kernel headers and dependencies
 sudo apt-get install linux-headers-"$(uname -r)"
-sudo apt-get remove *llvm* *clang*
+sudo apt-get remove *llvm* *clang* *gtk*
 sudo apt-get --yes install clang-"${LLVM_PACKAGE}" \
     libclang-"${LLVM_PACKAGE}"-dev libelf-dev libfl-dev \
     llvm-"${LLVM_PACKAGE}"-dev libz-dev llvm-"${LLVM_PACKAGE}"
