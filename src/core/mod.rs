@@ -644,7 +644,7 @@ impl BPF {
     /// Returns the syscall prefix for the running kernel
     pub fn get_syscall_prefix(&mut self) -> String {
         for prefix in SYSCALL_PREFIXES.iter() {
-            if self.ksymname(prefix).is_ok() {
+            if self.ksymname(&format!("{}bpf", prefix)).is_ok() {
                 return (*prefix).to_string();
             }
         }
