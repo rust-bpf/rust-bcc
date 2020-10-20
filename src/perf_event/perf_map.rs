@@ -71,6 +71,10 @@ pub struct PerfMap {
 
 /// Convenience function to initialize a `PerfMap` without using the builder
 /// pattern. Will be deprecated in a future release.
+#[deprecated(
+    since = "0.0.30",
+    note = "Please use PerfMapBuilder to create a new PerfMap instead"
+)]
 pub fn init_perf_map<F>(table: Table, cb: F) -> Result<PerfMap, BccError>
 where
     F: Fn() -> Box<dyn FnMut(&[u8]) + Send>,
