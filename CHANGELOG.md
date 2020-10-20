@@ -1,5 +1,9 @@
 # [Unreleased]
 
+# [0.0.29] - 2020-10-20
+## Fixed
+- `get_syscall_fnname` now returns proper prefix.
+
 # [0.0.28] - 2020-10-06
 ## Added
 - Adds BPF debug level to remaining load methods.
@@ -182,7 +186,8 @@
 
 Initial release.
 
-[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.28...HEAD
+[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.29...HEAD
+[0.0.28]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.28...v0.0.29
 [0.0.28]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.27...v0.0.28
 [0.0.27]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.26...v0.0.27
 [0.0.26]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.25...v0.0.26
