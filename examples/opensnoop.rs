@@ -1,4 +1,4 @@
-use bcc::perf_event::init_perf_map;
+use bcc::perf_event::PerfMapBuilder;
 use bcc::BccError;
 use bcc::{Kprobe, Kretprobe, BPF};
 use clap::{App, Arg};
@@ -61,7 +61,7 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     // the "events" table is where the "open file" events get sent
     let table = module.table("events")?;
     // install a callback to print out file open events when they happen
-    let mut perf_map = init_perf_map(table, perf_data_callback)?;
+    let mut perf_map = PerfMapBuilder::new(table, perf_data_callback).build()?;
     // print a header
     println!("{:-7} {:-16} {}", "PID", "COMM", "FILENAME");
     let start = std::time::Instant::now();
