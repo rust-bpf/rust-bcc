@@ -1,4 +1,4 @@
-use bcc::perf_event::init_perf_map;
+use bcc::perf_event::PerfMapBuilder;
 use bcc::BccError;
 use bcc::{Kprobe, BPF};
 use clap::{App, Arg};
@@ -78,7 +78,7 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     }
     // the "events" table is where the "open file" events get sent
     let table = bpf.table("events")?;
-    let mut perf_map = init_perf_map(table, perf_data_callback)?;
+    let mut perf_map = PerfMapBuilder::new(table, perf_data_callback).build()?;
     // print a header
     println!(
         "{:<-11} {:<-14} {:<-6} {:<-7} {:<-1} {:<-10} {:>-7}",
