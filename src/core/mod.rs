@@ -15,7 +15,7 @@ pub(crate) use self::raw_tracepoint::RawTracepoint;
 pub(crate) use self::tracepoint::Tracepoint;
 pub(crate) use self::uprobe::Uprobe;
 pub(crate) use self::xdp::XDP;
-use crate::perf_event::PerfReader;
+use crate::perf_event::{PerfMapBuilder, PerfReader};
 use crate::symbol::SymbolCache;
 use crate::table::Table;
 use crate::BccError;
@@ -697,7 +697,7 @@ impl BPF {
     where
         F: Fn() -> Box<dyn FnMut(&[u8]) + Send>,
     {
-        let perf_map = crate::perf_event::init_perf_map(table, cb)?;
+        let perf_map = PerfMapBuilder::new(table, cb).build()?;
         self.perf_readers.extend(perf_map.readers);
         Ok(())
     }
