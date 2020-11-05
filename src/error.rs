@@ -37,6 +37,8 @@ pub enum BccError {
     InvalidUprobe { message: String },
     #[error("error initializing perf map")]
     InitializePerfMap,
+    #[error("error initializing ring buffer")]
+    InitializeRingBuf,
     #[error("invalid cpu range ({range})")]
     InvalidCpuRange { range: String },
     #[error("error loading bpf program ({name}): {message}")]
@@ -45,6 +47,8 @@ pub enum BccError {
     NullString(#[from] std::ffi::NulError),
     #[error("error opening perf buffer")]
     OpenPerfBuffer,
+    #[error("error opening ring buffer")]
+    OpenRingBuf { message: String },
     #[error("error opening perf event: ({event:?}), reason `{message}`")]
     OpenPerfEvent { event: Event, message: String },
     #[error("failed to delete key from table: {message}")]

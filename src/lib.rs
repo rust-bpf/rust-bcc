@@ -13,6 +13,7 @@ mod error;
 mod kprobe;
 pub mod perf_event;
 mod raw_tracepoint;
+pub mod ring_buf;
 pub mod symbol;
 pub mod table;
 mod tracepoint;
