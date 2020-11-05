@@ -136,6 +136,8 @@ elif [[ "${BCC}" == "0.15.0" ]]; then
     git checkout e41f7a3be5c8114ef6a0990e50c2fbabea0e928e
 elif [[ "${BCC}" == "0.16.0" ]]; then
     git checkout fecd934a9c0ff581890d218ff6c5101694e9b326
+elif [[ "${BCC}" == "0.17.0" ]]; then
+    git checkout ad5b82a5196b222ed2cdc738d8444e8c9546a77f
 fi
 mkdir -p _build
 cd _build

@@ -29,6 +29,7 @@ pub use v0_6_0::*;
     feature = "v0_14_0",
     feature = "v0_15_0",
     feature = "v0_16_0",
+    feature = "v0_17_0",
     not(feature = "specific"),
 ))]
 mod v0_9_0;
@@ -42,6 +43,7 @@ mod v0_9_0;
     feature = "v0_14_0",
     feature = "v0_15_0",
     feature = "v0_16_0",
+    feature = "v0_17_0",
     not(feature = "specific"),
 ))]
 pub use v0_9_0::*;
