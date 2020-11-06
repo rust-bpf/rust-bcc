@@ -18,6 +18,7 @@ pub struct Uprobe {
     handler: Option<String>,
     pid: Option<pid_t>,
     symbol: Option<String>,
+    ref_ctr_offset: u32,
 }
 
 impl Uprobe {
@@ -49,6 +50,12 @@ impl Uprobe {
     /// Specify a pid to probe. This is optional.
     pub fn pid(mut self, pid: Option<pid_t>) -> Self {
         self.pid = pid;
+        self
+    }
+
+    /// Specify reference counter offset
+    pub fn ref_ctr_offset(mut self, offset: u32) -> Self {
+        self.ref_ctr_offset = offset;
         self
     }
 
@@ -88,8 +95,36 @@ impl Uprobe {
 
         let code_fd = bpf.load(&handler, BPF_PROG_TYPE_KPROBE, 0, 0)?;
 
+        #[cfg(any(
+            feature = "v0_4_0",
+            feature = "v0_5_0",
+            feature = "v0_6_0",
+            feature = "v0_6_1",
+            feature = "v0_7_0",
+            feature = "v0_8_0",
+            feature = "v0_9_0",
+            feature = "v0_10_0",
+            feature = "v0_11_0",
+            feature = "v0_12_0",
+            feature = "v0_13_0",
+            feature = "v0_14_0",
+            feature = "v0_15_0",
+            feature = "v0_16_0",
+        ))]
         let uprobe =
             crate::core::Uprobe::new(&ev_name, BPF_PROBE_ENTRY, &path, addr, code_fd, pid)?;
+
+        #[cfg(any(feature = "v0_17_0", not(feature = "specific")))]
+        let uprobe = crate::core::Uprobe::new(
+            &ev_name,
+            BPF_PROBE_ENTRY,
+            &path,
+            addr,
+            code_fd,
+            pid,
+            self.ref_ctr_offset,
+        )?;
+
         bpf.uprobes.insert(uprobe);
         Ok(())
     }
@@ -104,6 +139,7 @@ pub struct Uretprobe {
     handler: Option<String>,
     pid: Option<pid_t>,
     symbol: Option<String>,
+    ref_ctr_offset: u32,
 }
 
 impl Uretprobe {
@@ -135,6 +171,12 @@ impl Uretprobe {
     /// Specify a pid to probe. This is optional.
     pub fn pid(mut self, pid: Option<pid_t>) -> Self {
         self.pid = pid;
+        self
+    }
+
+    /// Specify reference counter offset
+    pub fn ref_ctr_offset(mut self, offset: u32) -> Self {
+        self.ref_ctr_offset = offset;
         self
     }
 
@@ -174,8 +216,36 @@ impl Uretprobe {
 
         let code_fd = bpf.load(&handler, BPF_PROG_TYPE_KPROBE, 0, 0)?;
 
+        #[cfg(any(
+            feature = "v0_4_0",
+            feature = "v0_5_0",
+            feature = "v0_6_0",
+            feature = "v0_6_1",
+            feature = "v0_7_0",
+            feature = "v0_8_0",
+            feature = "v0_9_0",
+            feature = "v0_10_0",
+            feature = "v0_11_0",
+            feature = "v0_12_0",
+            feature = "v0_13_0",
+            feature = "v0_14_0",
+            feature = "v0_15_0",
+            feature = "v0_16_0",
+        ))]
         let uprobe =
             crate::core::Uprobe::new(&ev_name, BPF_PROBE_RETURN, &path, addr, code_fd, pid)?;
+
+        #[cfg(any(feature = "v0_17_0", not(feature = "specific")))]
+        let uprobe = crate::core::Uprobe::new(
+            &ev_name,
+            BPF_PROBE_RETURN,
+            &path,
+            addr,
+            code_fd,
+            pid,
+            self.ref_ctr_offset,
+        )?;
+
         bpf.uprobes.insert(uprobe);
         Ok(())
     }
