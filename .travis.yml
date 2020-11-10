@@ -1,0 +1,27 @@
+arch: amd64
+
+branches:
+  only: 
+    - master
+
+language: rust
+
+dist: focal
+
+os: linux
+
+services:
+  - docker
+
+job:
+  include:
+    - name: focal-bcc-0.17
+      env: BCC=0.17.0 FEATURES=v0_17_0 LLVM=9 KERNEL_VERSION=5.9 STATIC=true
+    - name: focal-bcc-0.16
+      env: BCC=0.16.0 FEATURES=v0_16_0 LLVM=9 KERNEL_VERSION=5.8 STATIC=true
+
+  fast_finish: true
+
+script:
+  - export BUILD_BCC_INSIDE_KATA=true
+  - build/run_rust_bcc_with_new_kernel.sh

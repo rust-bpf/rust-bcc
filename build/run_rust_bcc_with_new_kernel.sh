@@ -2,7 +2,7 @@
 set -eux
 
 BCC=${BCC:-"0.17.0"}
-DOCKER_RUNTIME=${DOCKER_RUNTIME:-"kata-runtime"}
+BUILD_BCC_INSIDE_KATA=${BUILD_BCC_INSIDE_KATA:-false}
 DIST=${DIST:-"bionic"}
 FEATURES=${FEATURES:-"v0_17_0"}
 KERNEL_VERSION=${KERNEL_VERSION:-"5.9.6"}
@@ -19,17 +19,31 @@ echo "deb http://download.opensuse.org/repositories/home:/katacontainers:/releas
     | sudo tee /etc/apt/sources.list.d/kata-containers.list
 curl -sL  http://download.opensuse.org/repositories/home:/katacontainers:/releases:/${ARCH}:/${KATA_BRANCH}/xUbuntu_$(lsb_release -rs)/Release.key \
     | sudo apt-key add -
+sudo apt-get update
 
-# Install Docker and Kata components
-sudo apt-get update && sudo apt-get --yes install \
-    docker.io \
+DOCKER_DAEMON_JSON=/etc/docker/daemon.json
+# Install Docker if necessary
+if ! [ -x `command -v docker` ]; then
+    sudo apt-get --yes install docker.io
+else
+    echo "docker is already installed"
+    docker version
+    if [ -f $DOCKER_DAEMON_JSON ]; then
+        cat $DOCKER_DAEMON_JSON
+    else
+        echo "$DOCKER_DAEMON_JSON not exist"
+    fi
+fi
+
+# Install Kata components
+sudo apt-get --yes install \
     kata-proxy \
     kata-runtime \
     kata-shim \
     ;
 # Config Docker to use Kata runtime
 sudo mkdir -p /etc/docker
-sudo cat >/etc/docker/daemon.json <<EOF
+sudo tee /etc/docker/daemon.json <<EOF
 {
   "runtimes": {
     "kata-runtime": {
@@ -43,14 +57,25 @@ EOF
 sudo systemctl daemon-reload
 sudo systemctl restart docker
 
-# Install tools to build kernel
+# Install dependencies to build BCC and kernel
 sudo apt-get --yes install \
     bison \
     build-essential \
+    clang \
+    cmake \
     flex \
+    git \
+    libclang-$LLVM-dev \
+    libedit-dev \
     libelf-dev \
+    libfl-dev \
     libncurses-dev \
     libssl-dev \
+    libz-dev \
+    lld \
+    llvm-$LLVM-dev \
+    llvm-$LLVM-dev \
+    python \
     ;
 
 # Clone Kata packaging code to build kernel
@@ -70,38 +95,26 @@ echo CONFIG_MEMCG_SWAP_ENABLED >> configs/fragments/whitelist.conf
 sudo -E ./build-kernel.sh -v $KERNEL_VERSION -d install
 
 # Verify the new kernel installed for kata-container
-sudo docker run \
+docker run \
         -it \
         --rm \
-        --runtime=$DOCKER_RUNTIME \
+        --runtime=kata-runtime \
         ubuntu uname -r \
     | grep $KERNEL_VERSION \
     || (echo "Failed to load new kernel $KERNEL_VERSION in Kata" && false)
 
-# Install BCC dependencies
-sudo apt-get --yes install \
-    bison \
-    build-essential \
-    cmake \
-    flex \
-    git \
-    libclang-$LLVM-dev \
-    libedit-dev \
-    libelf-dev \
-    libfl-dev \
-    libz-dev \
-    llvm-$LLVM-dev \
-    llvm-$LLVM-dev \
-    python \
-    ;
 # Build BCC
 cd $RUST_BCC_DIR
 [ ! -d $RUST_BCC_DIR/bcc ] && git clone --single-branch https://github.com/iovisor/bcc.git
-mkdir -p bcc/build
-cd bcc/build
-git checkout tags/v$BCC
-cmake ..
-make
+if [ $BUILD_BCC_INSIDE_KATA = "true" ]; then
+    echo "BCC will be built inside Kata"
+else
+    mkdir -p bcc/build
+    cd bcc/build
+    git checkout tags/v$BCC
+    cmake ..
+    make
+fi
 
 DOCKER_BUILD_DIR=/tmp/docker_build
 mkdir -p $DOCKER_BUILD_DIR
@@ -109,7 +122,7 @@ mkdir -p $DOCKER_BUILD_DIR
 cp /etc/apt/sources.list $DOCKER_BUILD_DIR
 # Build rust-bcc test environment container
 RUST_BCC_DOCKER_NAME=rust-bcc-test-env
-sudo docker build $DOCKER_BUILD_DIR \
+docker build $DOCKER_BUILD_DIR \
     --build-arg DIST=$DIST \
     --build-arg WORKDIR=$RUST_BCC_DIR \
     --file $RUST_BCC_DIR/build/Dockerfile.test_env \
@@ -117,13 +130,14 @@ sudo docker build $DOCKER_BUILD_DIR \
     ;
 
 # Test rust-bcc with new kernel in Kata
-sudo -E docker run \
+docker run \
     --privileged \
     --rm \
-    --runtime=$DOCKER_RUNTIME \
+    --runtime=kata-runtime \
     -it \
     -v $RUST_BCC_DIR:$RUST_BCC_DIR \
     -e BCC=$BCC \
+    -e BUILD_BCC_INSIDE_KATA=$BUILD_BCC_INSIDE_KATA \
     -e FEATURES=$FEATURES \
     -e LLVM=$LLVM \
     -e RUST_BCC_DIR=$RUST_BCC_DIR \
