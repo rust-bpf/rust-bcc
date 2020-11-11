@@ -1,12 +1,6 @@
 use crate::error::BccError;
-use crate::ring_buf::callback::{raw_callback, RingCallback};
+use crate::ring_buf::callback::RingCallback;
 use crate::table::Table;
-use crate::types::MutPointer;
-
-use bcc_sys::bccapi::{
-    bpf_add_ringbuf, bpf_consume_ringbuf, bpf_free_ringbuf, bpf_new_ringbuf, bpf_poll_ringbuf,
-    ring_buffer,
-};
 
 /// A builder type for producing `PerfMap`s
 pub struct RingBufBuilder {
@@ -27,6 +21,28 @@ impl RingBufBuilder {
         self
     }
 
+    #[cfg(any(
+        feature = "v0_6_0",
+        feature = "v0_6_1",
+        feature = "v0_7_0",
+        feature = "v0_8_0",
+        feature = "v0_9_0",
+        feature = "v0_10_0",
+        feature = "v0_11_0",
+        feature = "v0_12_0",
+        feature = "v0_13_0",
+        feature = "v0_14_0",
+        feature = "v0_15_0",
+    ))]
+    /// Try constructing a `RingBuf` from the builder
+    pub fn build(self) -> Result<RingBuf, BccError> {
+        Err(BccError::BccVersionTooLow {
+            cause: "ring buffer".to_owned(),
+            min_version: "0.16.0".to_owned(),
+        })
+    }
+
+    #[cfg(any(feature = "v0_16_0", feature = "v0_17_0", not(feature = "specific")))]
     /// Try constructing a `RingBuf` from the builder
     pub fn build(mut self) -> Result<RingBuf, BccError> {
         let ring_buf_manager = self
@@ -35,12 +51,16 @@ impl RingBufBuilder {
             .ok_or(BccError::InitializeRingBuf)
             .and_then(|(table, rcb)| {
                 let prcb: *mut _ = rcb;
-                let rbm =
-                    unsafe { bpf_new_ringbuf(table.fd(), Some(raw_callback), prcb as MutPointer) }
-                        as *mut ring_buffer;
+                let rbm = unsafe {
+                    bcc_sys::bccapi::bpf_new_ringbuf(
+                        table.fd(),
+                        Some(super::callback::raw_callback),
+                        prcb as crate::types::MutPointer,
+                    )
+                } as *mut bcc_sys::bccapi::ring_buffer;
                 if rbm.is_null() {
                     Err(BccError::OpenRingBuf {
-                        message: format!("failed to open ring buffer of name: {}", table.name()),
+                        message: format!("failed to open ring buffer ({})", table.name()),
                     })
                 } else {
                     Ok(rbm)
@@ -53,16 +73,16 @@ impl RingBufBuilder {
             .try_for_each(|(table, rcb)| {
                 let prcb: *mut _ = rcb;
                 let add_res = unsafe {
-                    bpf_add_ringbuf(
+                    bcc_sys::bccapi::bpf_add_ringbuf(
                         ring_buf_manager,
                         table.fd(),
-                        Some(raw_callback),
-                        prcb as MutPointer,
+                        Some(super::callback::raw_callback),
+                        prcb as crate::types::MutPointer,
                     )
                 };
                 if add_res < 0 {
                     Err(BccError::OpenRingBuf {
-                        message: format!("failed to open ring buffer of name: {}", table.name()),
+                        message: format!("failed to open ring buffer ({})", table.name()),
                     })
                 } else {
                     Ok(())
@@ -79,21 +99,32 @@ impl RingBufBuilder {
 pub struct RingBuf {
     #[allow(dead_code)]
     table_cb_pairs: Vec<(Table, RingCallback)>,
-    ring_buf_manager: *mut ring_buffer,
+
+    #[cfg(any(feature = "v0_16_0", feature = "v0_17_0", not(feature = "specific")))]
+    ring_buf_manager: *mut bcc_sys::bccapi::ring_buffer,
 }
 
 impl RingBuf {
     pub fn consume(&mut self) {
-        unsafe { bpf_consume_ringbuf(self.ring_buf_manager) };
+        #[cfg(any(feature = "v0_16_0", feature = "v0_17_0", not(feature = "specific")))]
+        unsafe {
+            bcc_sys::bccapi::bpf_consume_ringbuf(self.ring_buf_manager)
+        };
     }
 
     pub fn poll(&mut self, timeout_ms: i32) {
-        unsafe { bpf_poll_ringbuf(self.ring_buf_manager, timeout_ms) };
+        #[cfg(any(feature = "v0_16_0", feature = "v0_17_0", not(feature = "specific")))]
+        unsafe {
+            bcc_sys::bccapi::bpf_poll_ringbuf(self.ring_buf_manager, timeout_ms)
+        };
     }
 }
 
 impl Drop for RingBuf {
     fn drop(&mut self) {
-        unsafe { bpf_free_ringbuf(self.ring_buf_manager) }
+        #[cfg(any(feature = "v0_16_0", feature = "v0_17_0", not(feature = "specific")))]
+        unsafe {
+            bcc_sys::bccapi::bpf_free_ringbuf(self.ring_buf_manager)
+        }
     }
 }

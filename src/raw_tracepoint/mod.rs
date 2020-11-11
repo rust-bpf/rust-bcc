@@ -34,10 +34,10 @@ impl RawTracepoint {
     /// incomplete or invalid configuration or other error while loading or
     /// attaching the probe.
     pub fn attach(self, bpf: &mut BPF) -> Result<(), BccError> {
-        BccError::BccVersionTooLow {
+        Err(BccError::BccVersionTooLow {
             cause: "raw tracepoints".to_owned(),
             min_version: "0.6.0".to_owned(),
-        }
+        })
     }
 
     #[cfg(any(

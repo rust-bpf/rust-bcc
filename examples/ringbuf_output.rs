@@ -1,10 +1,12 @@
 use bcc::ring_buf::{RingBufBuilder, RingCallback};
 use bcc::BccError;
 use bcc::{Tracepoint, BPF};
+use clap::{App, Arg};
 
 use core::sync::atomic::{AtomicBool, Ordering};
 use std::os::raw::c_int;
 use std::sync::Arc;
+use std::time::Instant;
 
 // BPF ring buffer output example
 //
@@ -19,6 +21,21 @@ struct event_t {
 }
 
 fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
+    let matches = App::new("ringbuf output")
+        .about("Ring buffer output example")
+        .arg(
+            Arg::with_name("duration")
+                .long("duration")
+                .value_name("Seconds")
+                .help("The total duration to run")
+                .takes_value(true),
+        )
+        .get_matches();
+
+    let duration: Option<std::time::Duration> = matches
+        .value_of("duration")
+        .map(|v| std::time::Duration::new(v.parse().expect("Invalid argument for duration"), 0));
+
     let code = "
 BPF_RINGBUF_OUTPUT(buffer, 1 << 4);
 struct event {
@@ -60,8 +77,14 @@ int openat_entry(struct tracepoint__syscalls__sys_enter_openat *args) {
         "{:-16} {:10} {:10} {:10}",
         "FILENAME", "DIR_FD", "FLAGS", "MODE"
     );
+    let start = Instant::now();
     while runnable.load(Ordering::SeqCst) {
         ring_buf.poll(timeout_ms);
+        if let Some(d) = duration {
+            if Instant::now() - start >= d {
+                break;
+            }
+        }
         std::thread::sleep(std::time::Duration::from_millis(500));
     }
     Ok(())

@@ -1,5 +1,4 @@
 use crate::types::MutPointer;
-// use bcc_sys::bccapi::ring_buffer_sample_fn;
 use std::os::raw::c_int;
 
 pub struct RingCallback {
@@ -12,6 +11,7 @@ impl RingCallback {
     }
 }
 
+#[allow(dead_code)]
 pub(crate) unsafe extern "C" fn raw_callback(
     ctx: MutPointer,
     data: MutPointer,
