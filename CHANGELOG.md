@@ -1,5 +1,19 @@
 # [Unreleased]
 
+# [0.0.30] - 2020-11-23
+## Fixed
+- `biosnoop` and `opensnoop` examples now use the new builder pattern for
+  creating `PerfMap`s.
+
+## Added
+- Support for bcc 0.17.0
+- Now supporting BPF `RingBuf` data structures.
+
+## Changed
+- Default bcc version is now 0.17.0
+- Marked `init_perf_map` function as deprecated. `PerfMapBuilder` should be used
+  instead.
+
 # [0.0.29] - 2020-10-20
 ## Fixed
 - `get_syscall_fnname` now returns proper prefix.
@@ -187,7 +201,8 @@
 Initial release.
 
 [Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.29...HEAD
-[0.0.28]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.28...v0.0.29
+[0.0.30]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.29...v0.0.30
+[0.0.29]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.28...v0.0.29
 [0.0.28]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.27...v0.0.28
 [0.0.27]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.26...v0.0.27
 [0.0.26]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.25...v0.0.26
