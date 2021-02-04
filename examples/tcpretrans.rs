@@ -114,11 +114,11 @@ fn print_ipv6_event() -> Box<dyn FnMut(&[u8]) + Send> {
 }
 
 fn parse_ipv4_struct(x: &[u8]) -> ipv4_data_t {
-    unsafe { ptr::read(x.as_ptr() as *const ipv4_data_t) }
+    unsafe { ptr::read_unaligned(x.as_ptr() as *const ipv4_data_t) }
 }
 
 fn parse_ipv6_struct(x: &[u8]) -> ipv6_data_t {
-    unsafe { ptr::read(x.as_ptr() as *const ipv6_data_t) }
+    unsafe { ptr::read_unaligned(x.as_ptr() as *const ipv6_data_t) }
 }
 
 fn main() {

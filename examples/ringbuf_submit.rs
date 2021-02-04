@@ -94,7 +94,7 @@ int openat_entry(struct tracepoint__syscalls__sys_enter_openat *args) {
 }
 
 fn parse_struct(x: &[u8]) -> event_t {
-    unsafe { std::ptr::read(x.as_ptr() as *const event_t) }
+    unsafe { std::ptr::read_unaligned(x.as_ptr() as *const event_t) }
 }
 
 fn get_string(x: &[u8]) -> String {

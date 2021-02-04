@@ -100,7 +100,7 @@ fn perf_data_callback() -> Box<dyn FnMut(&[u8]) + Send> {
 }
 
 fn parse_struct(x: &[u8]) -> latency_event_t {
-    unsafe { ptr::read(x.as_ptr() as *const latency_event_t) }
+    unsafe { ptr::read_unaligned(x.as_ptr() as *const latency_event_t) }
 }
 
 fn get_string(x: &[u8]) -> String {

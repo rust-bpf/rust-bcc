@@ -160,7 +160,7 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
 }
 
 fn parse_struct(x: &[u8]) -> irq_key_t {
-    unsafe { ptr::read(x.as_ptr() as *const irq_key_t) }
+    unsafe { ptr::read_unaligned(x.as_ptr() as *const irq_key_t) }
 }
 
 fn main() {
