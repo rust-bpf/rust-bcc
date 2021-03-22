@@ -23,6 +23,10 @@ pub enum BccError {
     BccVersionTooLow { cause: String, min_version: String },
     #[error("error compiling bpf")]
     Compilation,
+    #[error("failed to create USDT context: {message}")]
+    CreateUSDTContext { message: String },
+    #[error("failed to generate USDT probe arguments")]
+    GenerateUSDTProbeArguments,
     #[error("io error")]
     IoError(#[from] std::io::Error),
     #[error("kernel probe has invalid configuration: {message}")]
@@ -35,6 +39,8 @@ pub enum BccError {
     InvalidTracepoint { message: String },
     #[error("userspace probe has invalid configuration: {message}")]
     InvalidUprobe { message: String },
+    #[error("USDT probe has invalid configuration: {message}")]
+    InvalidUSDT { message: String },
     #[error("error initializing perf map")]
     InitializePerfMap,
     #[error("error initializing ring buffer")]
@@ -61,6 +67,8 @@ pub enum BccError {
     TableInvalidSize,
     #[error("unknown symbol ({name}) in module ({module})")]
     UnknownSymbol { name: String, module: String },
+    #[error("failed to enable USDT probe '{probe}': ensure that the probe exists (i.e. using the tplist tool)")]
+    USDTEnableProbe { probe: String },
     #[error("invalid utf8")]
     Utf8Error(#[from] std::str::Utf8Error),
     #[error("XDP has invalid configuration: {message}")]

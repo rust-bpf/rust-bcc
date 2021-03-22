@@ -5,6 +5,7 @@ mod raw_tracepoint;
 mod tracepoint;
 mod uprobe;
 mod xdp;
+mod usdt;
 
 use bcc_sys::bccapi::*;
 
@@ -15,7 +16,7 @@ pub(crate) use self::raw_tracepoint::RawTracepoint;
 pub(crate) use self::tracepoint::Tracepoint;
 pub(crate) use self::uprobe::Uprobe;
 pub(crate) use self::xdp::XDP;
-use crate::perf_event::{PerfMapBuilder, PerfReader};
+use crate::{USDTContext, USDTContexts, perf_event::{PerfMapBuilder, PerfReader}};
 use crate::symbol::SymbolCache;
 use crate::table::Table;
 use crate::BccError;
@@ -105,17 +106,20 @@ pub struct BPFBuilder {
     cflags: Vec<CString>,
     device: Option<CString>,
     debug: BccDebug,
+    usdt_contexts: Vec<USDTContext>,
+    attach_usdt_ignore_pid: bool,
 }
 
 impl BPFBuilder {
     /// Create a new builder with the given code
     pub fn new(code: &str) -> Result<Self, BccError> {
-        let code = CString::new(code)?;
         Ok(Self {
-            code,
+            code: to_cstring(code)?,
             cflags: Vec::new(),
             device: None,
             debug: Default::default(),
+            usdt_contexts: Vec::new(),
+            attach_usdt_ignore_pid: false,
         })
     }
 
@@ -123,7 +127,7 @@ impl BPFBuilder {
     pub fn cflags<T: AsRef<str>>(mut self, cflags: &[T]) -> Result<Self, BccError> {
         self.cflags.clear();
         for f in cflags {
-            let cs = CString::new(f.as_ref())?;
+            let cs = to_cstring(f.as_ref())?;
             self.cflags.push(cs);
         }
         Ok(self)
@@ -140,6 +144,18 @@ impl BPFBuilder {
     pub fn debug(mut self, debug: BccDebug) -> Self {
         self.debug = debug;
         self
+    }
+
+    /// Sets whether or not to ignore 
+    pub fn attach_usdt_ignore_pid(mut self, ignore: bool) -> Result<Self, BccError> {
+        self.attach_usdt_ignore_pid = ignore;
+        Ok(self)
+    }
+
+    /// Adds a USDT context to this program.
+    pub fn add_usdt_context(mut self, context: USDTContext) -> Result<Self, BccError> {
+        self.usdt_contexts.push(context);
+        Ok(self)
     }
 
     #[cfg(any(
@@ -234,7 +250,6 @@ impl BPFBuilder {
         feature = "v0_15_0",
         feature = "v0_16_0",
         feature = "v0_17_0",
-        not(feature = "specific"),
     ))]
     /// Try constructing a BPF module from the builder
     pub fn build(self) -> Result<BPF, BccError> {
@@ -275,6 +290,71 @@ impl BPFBuilder {
             functions: HashMap::new(),
             debug: self.debug,
         })
+    }
+
+    #[cfg(any(
+        feature = "v0_18_0",
+        not(feature = "specific"),
+    ))]
+    /// Try constructing a BPF module from the builder
+    pub fn build(mut self) -> Result<BPF, BccError> {
+        let (code, contexts) = if self.usdt_contexts.is_empty() {
+            (self.code, Vec::new())
+        } else {
+            let mut contexts = USDTContexts::default();
+            contexts.add_contexts(self.usdt_contexts.drain(..));
+            let (mut code, contexts) = contexts.generate_args()?;
+
+            let base_code = self.code.clone().to_str().map(|s| s.to_owned())?;
+            code.push_str(base_code.as_str());
+            let code = to_cstring(code.as_str())?;
+
+            (code, contexts)
+        };
+
+        let ptr = unsafe {
+            bpf_module_create_c_from_string(
+                code.as_ptr(),
+                self.debug.bits(),
+                self.cflags
+                    .iter()
+                    .map(|v| v.as_ptr())
+                    .collect::<Vec<*const c_char>>()
+                    .as_mut_ptr(),
+                self.cflags.len().try_into().unwrap(),
+                true,
+                self.device
+                    .as_ref()
+                    .map(|name| name.as_ptr())
+                    .unwrap_or(ptr::null_mut()),
+            )
+        };
+
+        if ptr.is_null() {
+            return Err(BccError::Compilation);
+        }
+
+        let mut bpf = BPF {
+            p: AtomicPtr::new(ptr),
+            uprobes: HashSet::new(),
+            kprobes: HashSet::new(),
+            tracepoints: HashSet::new(),
+            raw_tracepoints: HashSet::new(),
+            perf_events: HashSet::new(),
+            perf_events_array: HashSet::new(),
+            perf_readers: Vec::new(),
+            sym_caches: HashMap::new(),
+            xdp: HashSet::new(),
+            cflags: self.cflags,
+            functions: HashMap::new(),
+            debug: self.debug,
+        };
+
+        for context in contexts {
+            let _ = context.attach(&mut bpf, self.attach_usdt_ignore_pid)?;
+        }
+
+        Ok(bpf)
     }
 }
 
