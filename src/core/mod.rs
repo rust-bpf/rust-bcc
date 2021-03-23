@@ -5,7 +5,6 @@ mod raw_tracepoint;
 mod tracepoint;
 mod uprobe;
 mod xdp;
-mod usdt;
 
 use bcc_sys::bccapi::*;
 
@@ -16,9 +15,10 @@ pub(crate) use self::raw_tracepoint::RawTracepoint;
 pub(crate) use self::tracepoint::Tracepoint;
 pub(crate) use self::uprobe::Uprobe;
 pub(crate) use self::xdp::XDP;
-use crate::{USDTContext, USDTContexts, perf_event::{PerfMapBuilder, PerfReader}};
+use crate::perf_event::{PerfMapBuilder, PerfReader};
 use crate::symbol::SymbolCache;
 use crate::table::Table;
+use crate::usdt::{USDTContext, usdt_generate_args};
 use crate::BccError;
 
 use core::ffi::c_void;
@@ -301,9 +301,7 @@ impl BPFBuilder {
         let (code, contexts) = if self.usdt_contexts.is_empty() {
             (self.code, Vec::new())
         } else {
-            let mut contexts = USDTContexts::default();
-            contexts.add_contexts(self.usdt_contexts.drain(..));
-            let (mut code, contexts) = contexts.generate_args()?;
+            let (mut code, contexts) = usdt_generate_args(self.usdt_contexts)?;
 
             let base_code = self.code.clone().to_str().map(|s| s.to_owned())?;
             code.push_str(base_code.as_str());
@@ -351,6 +349,7 @@ impl BPFBuilder {
         };
 
         for context in contexts {
+            println!("attaching context as uprobe");
             let _ = context.attach(&mut bpf, self.attach_usdt_ignore_pid)?;
         }
 

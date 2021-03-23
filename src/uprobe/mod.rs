@@ -88,11 +88,6 @@ impl Uprobe {
                 message: "binary path is invalid".to_string(),
             });
         }
-        if self.symbol.is_none() {
-            return Err(BccError::InvalidUprobe {
-                message: "symbol is required".to_string(),
-            });
-        }
         let binary = binary.unwrap();
         let symbol = self.symbol.as_ref().map(|s| s.as_str()).unwrap_or("");
         let pid = self.pid.unwrap_or(-1);

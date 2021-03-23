@@ -33,4 +33,4 @@ pub use raw_tracepoint::RawTracepoint;
 pub use tracepoint::Tracepoint;
 pub use uprobe::{Uprobe, Uretprobe};
 pub use xdp::{Mode as XDPMode, XDP};
-pub use usdt::{USDTContext, USDTContexts};
+pub use usdt::USDTContext;
