@@ -157,7 +157,7 @@ fn parse_u64(x: Vec<u8>) -> u64 {
 }
 
 fn parse_struct(x: &[u8]) -> key_t {
-    unsafe { ptr::read(x.as_ptr() as *const key_t) }
+    unsafe { ptr::read_unaligned(x.as_ptr() as *const key_t) }
 }
 
 fn main() {
