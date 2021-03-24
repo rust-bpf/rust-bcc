@@ -18,7 +18,7 @@ pub(crate) use self::xdp::XDP;
 use crate::perf_event::{PerfMapBuilder, PerfReader};
 use crate::symbol::SymbolCache;
 use crate::table::Table;
-use crate::usdt::{USDTContext, usdt_generate_args};
+use crate::usdt::{usdt_generate_args, USDTContext};
 use crate::BccError;
 
 use core::ffi::c_void;
@@ -301,10 +301,7 @@ impl BPFBuilder {
         })
     }
 
-    #[cfg(any(
-        feature = "v0_18_0",
-        not(feature = "specific"),
-    ))]
+    #[cfg(any(feature = "v0_18_0", not(feature = "specific"),))]
     /// Try constructing a BPF module from the builder
     pub fn build(self) -> Result<BPF, BccError> {
         let (code, contexts) = if self.usdt_contexts.is_empty() {

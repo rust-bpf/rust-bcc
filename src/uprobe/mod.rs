@@ -94,7 +94,8 @@ impl Uprobe {
         let handler = self.handler.unwrap();
         let addr = self.addr;
 
-        let (path, addr) = crate::symbol::resolve_symbol_path(&binary, &symbol, addr.unwrap_or(0x0), pid)?;
+        let (path, addr) =
+            crate::symbol::resolve_symbol_path(&binary, &symbol, addr.unwrap_or(0x0), pid)?;
         let alpha_path = make_alphanumeric(&path);
         let ev_name = format!("p_{}_0x{:x}", &alpha_path, addr);
 
@@ -119,11 +120,7 @@ impl Uprobe {
         let uprobe =
             crate::core::Uprobe::new(&ev_name, BPF_PROBE_ENTRY, &path, addr, code_fd, pid)?;
 
-        #[cfg(any(
-            feature = "v0_17_0",
-            feature = "v0_18_0",
-            not(feature = "specific"))
-        )]
+        #[cfg(any(feature = "v0_17_0", feature = "v0_18_0", not(feature = "specific")))]
         let uprobe = crate::core::Uprobe::new(
             &ev_name,
             BPF_PROBE_ENTRY,
