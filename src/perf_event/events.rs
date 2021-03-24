@@ -7,6 +7,14 @@ pub enum Event {
     Hardware(HardwareEvent),
     Software(SoftwareEvent),
     HardwareCache(CacheId, CacheOp, CacheResult),
+    Raw {
+        event_code: u8,
+        umask: u8,
+        counter_mask: u8,
+        invert: bool,
+        any_thread: bool,
+        edge_detect: bool,
+    },
 }
 
 #[allow(dead_code)]
@@ -93,6 +101,7 @@ impl Event {
             Event::Hardware(_) => EventType::Hardware,
             Event::Software(_) => EventType::Software,
             Event::HardwareCache(_, _, _) => EventType::HardwareCache,
+            Event::Raw { .. } => EventType::Raw,
         }) as u32
     }
 
@@ -102,6 +111,21 @@ impl Event {
             Event::Software(sw_event) => sw_event as u32,
             Event::HardwareCache(id, op, result) => {
                 ((result as u32) << 16) | ((op as u32) << 8) | (id as u32)
+            }
+            Event::Raw {
+                event_code,
+                umask,
+                counter_mask,
+                invert,
+                any_thread,
+                edge_detect,
+            } => {
+                (event_code as u32)
+                    | ((umask as u32) << 8)
+                    | ((counter_mask as u32) << 24)
+                    | ((invert as u32) << 23)
+                    | ((any_thread as u32) << 21)
+                    | ((edge_detect as u32) << 18)
             }
         }
     }
