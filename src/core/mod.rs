@@ -146,7 +146,16 @@ impl BPFBuilder {
         self
     }
 
-    /// Sets whether or not to ignore 
+    /// Sets whether or not to ignore the specified PID in a given USDT context when attaching this
+    /// BPF program.
+    ///
+    /// If set to `true`, then any running process that matched the USDT probes would be captured,
+    /// regardless of whether or not a specific PID was used to create the USDT context.  This can
+    /// be useful in some cases where a user might want to specify the PID of a parent process as
+    /// the target, but also hit the same tracepoints in the child processes they spawn i.e. daemon
+    /// worker strategies based on `fork(2)`.
+    ///
+    /// Defaults to `false`.
     pub fn attach_usdt_ignore_pid(mut self, ignore: bool) -> Result<Self, BccError> {
         self.attach_usdt_ignore_pid = ignore;
         Ok(self)
@@ -297,7 +306,7 @@ impl BPFBuilder {
         not(feature = "specific"),
     ))]
     /// Try constructing a BPF module from the builder
-    pub fn build(mut self) -> Result<BPF, BccError> {
+    pub fn build(self) -> Result<BPF, BccError> {
         let (code, contexts) = if self.usdt_contexts.is_empty() {
             (self.code, Vec::new())
         } else {
