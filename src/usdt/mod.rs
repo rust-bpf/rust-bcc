@@ -129,7 +129,7 @@ impl USDTContext {
                 )
             }
         } else {
-            let cprobe = to_cstring(probe.clone(), "probe")?;
+            let cprobe = to_cstring(probe, "probe")?;
             unsafe {
                 bcc_usdt_enable_probe(self.context, cprobe.as_ptr(), cfn_name.as_ptr())
             }
