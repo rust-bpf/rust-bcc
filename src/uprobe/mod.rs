@@ -89,7 +89,7 @@ impl Uprobe {
             });
         }
         let binary = binary.unwrap();
-        let symbol = self.symbol.as_ref().map(|s| s.as_str()).unwrap_or("");
+        let symbol = self.symbol.as_deref().unwrap_or("");
         let pid = self.pid.unwrap_or(-1);
         let handler = self.handler.unwrap();
         let addr = self.addr;
@@ -241,7 +241,7 @@ impl Uretprobe {
         let uprobe =
             crate::core::Uprobe::new(&ev_name, BPF_PROBE_RETURN, &path, addr, code_fd, pid)?;
 
-        #[cfg(any(feature = "v0_17_0", not(feature = "specific")))]
+        #[cfg(any(feature = "v0_17_0", feature = "v0_18_0", not(feature = "specific")))]
         let uprobe = crate::core::Uprobe::new(
             &ev_name,
             BPF_PROBE_RETURN,

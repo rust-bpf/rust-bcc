@@ -23,8 +23,10 @@ pub enum BccError {
     BccVersionTooLow { cause: String, min_version: String },
     #[error("error compiling bpf")]
     Compilation,
-    #[error("failed to create USDT context: {message}")]
-    CreateUSDTContext { message: String },
+    #[error("failed to create USDT context")]
+    CreateUSDTContext,
+    #[error("failed to enable USDT probe; ensure that the probe exists (i.e. using the tplist tool)")]
+    EnableUSDTProbe,
     #[error("failed to generate USDT probe arguments")]
     GenerateUSDTProbeArguments,
     #[error("io error")]
@@ -47,10 +49,10 @@ pub enum BccError {
     InitializeRingBuf,
     #[error("invalid cpu range ({range})")]
     InvalidCpuRange { range: String },
+    #[error("field '{field}' contained interior nul byte; can't convert to C string")]
+    InvalidCString { field: &'static str },
     #[error("error loading bpf program ({name}): {message}")]
     Loading { name: String, message: String },
-    #[error("null string")]
-    NullString(#[from] std::ffi::NulError),
     #[error("error opening perf buffer")]
     OpenPerfBuffer,
     #[error("error opening ring buffer")]
@@ -67,8 +69,6 @@ pub enum BccError {
     TableInvalidSize,
     #[error("unknown symbol ({name}) in module ({module})")]
     UnknownSymbol { name: String, module: String },
-    #[error("failed to enable USDT probe '{probe}': ensure that the probe exists (i.e. using the tplist tool)")]
-    USDTEnableProbe { probe: String },
     #[error("invalid utf8")]
     Utf8Error(#[from] std::str::Utf8Error),
     #[error("XDP has invalid configuration: {message}")]

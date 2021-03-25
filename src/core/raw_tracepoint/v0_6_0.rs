@@ -1,4 +1,5 @@
 use crate::BccError;
+use crate::helpers::to_cstring;
 use bcc_sys::bccapi::*;
 
 use std::ffi::CString;
@@ -15,7 +16,7 @@ pub struct RawTracepoint {
 
 impl RawTracepoint {
     pub fn new(name: &str, file: File) -> Result<Self, BccError> {
-        let cname = CString::new(name)?;
+        let cname = to_cstring(name, "name")?;
         let ptr = unsafe { bpf_attach_raw_tracepoint(file.as_raw_fd(), cname.as_ptr() as *mut _) };
         if ptr < 0 {
             Err(BccError::AttachRawTracepoint {

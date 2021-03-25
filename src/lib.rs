@@ -21,6 +21,7 @@ mod types;
 mod uprobe;
 mod usdt;
 mod xdp;
+mod helpers;
 
 #[macro_use]
 extern crate bitflags;

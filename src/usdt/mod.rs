@@ -1,17 +1,18 @@
-use std::cell::RefCell;
-use std::collections::HashSet;
-use std::ffi::{CStr, CString};
-use std::os::unix::ffi::OsStrExt;
-use std::path::{Path, PathBuf};
+use std::{cell::RefCell, os::raw::c_char};
+use std::ffi::CStr;
+use std::path::Path;
 use std::ptr;
 
 use bcc_sys::bccapi::{
     bcc_usdt_close, bcc_usdt_enable_fully_specified_probe, bcc_usdt_enable_probe,
     bcc_usdt_foreach_uprobe, bcc_usdt_genargs, bcc_usdt_new_frompath, bcc_usdt_new_frompid, pid_t,
 };
-use libc::{c_int, c_void};
+use std::os::raw::c_int;
 
-use crate::{error::BccError, Uprobe, BPF};
+use crate::{BPF, Uprobe};
+use crate::error::BccError;
+use crate::helpers::to_cstring;
+use crate::types::MutPointer;
 
 thread_local! {
     static PROBES: RefCell<Vec<USDTProbe>> = RefCell::new(Vec::new());
@@ -54,8 +55,7 @@ pub fn usdt_generate_args(
 /// when the tracepoint is hit, the given function -- a function that must be defined in the BPF
 /// program -- is called, with all of the arguments passed to the tracepoint itself.
 pub struct USDTContext {
-    context: *mut c_void,
-    probes: HashSet<(String, String, String)>,
+    context: MutPointer,
 }
 
 impl USDTContext {
@@ -66,37 +66,32 @@ impl USDTContext {
 
     /// Create a new USDT context from a path to the binary.
     pub fn from_binary_path<T: AsRef<Path>>(path: T) -> Result<Self, BccError> {
-        Self::new(None, Some(PathBuf::from(path.as_ref())))
+        Self::new(None, path.as_ref().to_str())
     }
 
     /// Create a new USDT context from a path to the binary and a specific PID.
-    pub fn from_binary_path_and_pid<T: AsRef<Path>>(path: T, pid: pid_t) -> Result<Self, BccError> {
-        Self::new(Some(pid), Some(PathBuf::from(path.as_ref())))
+    pub fn from_binary_path_and_pid<P: AsRef<Path>>(path: P, pid: pid_t) -> Result<Self, BccError> {
+        Self::new(Some(pid), path.as_ref().to_str())
     }
 
-    fn new(pid: Option<pid_t>, path: Option<PathBuf>) -> Result<Self, BccError> {
+    fn new(pid: Option<pid_t>, path: Option<&str>) -> Result<Self, BccError> {
         let context = match (pid, path) {
             (None, None) => ptr::null_mut(),
             (None, Some(path)) => {
-                let c_path = CString::new(path.as_os_str().as_bytes().to_owned())?;
-                unsafe { bcc_usdt_new_frompath(c_path.as_ptr()) }
+                let cpath = to_cstring(path, "path")?;
+                unsafe { bcc_usdt_new_frompath(cpath.as_ptr()) }
             }
             (Some(pid), None) => unsafe { bcc_usdt_new_frompid(pid, ptr::null()) },
             (Some(pid), Some(path)) => {
-                let c_path = CString::new(path.as_os_str().as_bytes().to_owned())?;
-                unsafe { bcc_usdt_new_frompid(pid, c_path.as_ptr()) }
+                let cpath = to_cstring(path, "path")?;
+                unsafe { bcc_usdt_new_frompid(pid, cpath.as_ptr()) }
             }
         };
 
         if context.is_null() {
-            Err(BccError::CreateUSDTContext {
-                message: format!("failed to create USDT context"),
-            })
+            Err(BccError::CreateUSDTContext)
         } else {
-            Ok(Self {
-                context,
-                probes: HashSet::new(),
-            })
+            Ok(Self { context })
         }
     }
 
@@ -116,40 +111,33 @@ impl USDTContext {
         let probe = probe.into();
         let fn_name = fn_name.into();
 
-        let mut probe_parts = probe.split(":").map(|s| s.to_owned()).collect::<Vec<_>>();
-        let fn_name_c = CString::new(fn_name.clone())?;
+        // The probe can be either `<symbol name>` or `<provider>:<symbol name>`.
+        let mut probe_parts = probe.split(':').map(|s| s.to_owned()).collect::<Vec<_>>();
+        let cfn_name = to_cstring(fn_name, "fn_name")?;
         let result = if probe_parts.len() == 2 {
             let provider = probe_parts.remove(0);
-            let provider_c = CString::new(provider.clone())?;
+            let cprovider = to_cstring(provider, "probe")?;
             let probe = probe_parts.remove(0);
-            let probe_c = CString::new(probe.clone())?;
+            let cprobe = to_cstring(probe, "probe")?;
 
-            let result = unsafe {
+            unsafe {
                 bcc_usdt_enable_fully_specified_probe(
                     self.context,
-                    provider_c.as_ptr(),
-                    probe_c.as_ptr(),
-                    fn_name_c.as_ptr(),
+                    cprovider.as_ptr(),
+                    cprobe.as_ptr(),
+                    cfn_name.as_ptr(),
                 )
-            };
-            if result == 0 {
-                self.probes.insert((provider, probe.clone(), fn_name));
             }
-            result
         } else {
-            let probe_c = CString::new(probe.clone())?;
-            let result = unsafe {
-                bcc_usdt_enable_probe(self.context, probe_c.as_ptr(), fn_name_c.as_ptr())
-            };
-            if result == 0 {
-                self.probes.insert((String::new(), probe.clone(), fn_name));
+            let cprobe = to_cstring(probe.clone(), "probe")?;
+            unsafe {
+                bcc_usdt_enable_probe(self.context, cprobe.as_ptr(), cfn_name.as_ptr())
             }
-            result
         };
 
         if result != 0 {
             // Possible causes here: no permissions (need sudo), nonexistent probe.
-            Err(BccError::USDTEnableProbe { probe })
+            Err(BccError::EnableUSDTProbe)
         } else {
             Ok(())
         }
@@ -180,7 +168,7 @@ impl USDTContext {
         Ok(())
     }
 
-    fn as_context_ptr(&mut self) -> *mut c_void {
+    fn as_context_ptr(&mut self) -> MutPointer {
         self.context
     }
 
@@ -209,22 +197,24 @@ impl Drop for USDTContext {
 /// option to pass user data, so to do this safely on the Rust side, we need a TLS variable this
 /// callback can statically reference and read out of after the operation.
 unsafe extern "C" fn uprobe_foreach_cb(
-    bin_path: *const ::std::os::raw::c_char,
-    fn_name: *const ::std::os::raw::c_char,
+    bin_path: *const c_char,
+    fn_name: *const c_char,
     address: u64,
-    pid: ::std::os::raw::c_int,
+    pid: c_int,
 ) {
     PROBES.with(|probes| {
         let binary = CStr::from_ptr(bin_path).to_str().map(|s| s.to_owned()).ok();
         let handler = CStr::from_ptr(fn_name).to_str().map(|s| s.to_owned()).ok();
 
-        if binary.is_some() && handler.is_some() {
-            probes.borrow_mut().push(USDTProbe {
-                binary: binary.unwrap(),
-                handler: handler.unwrap(),
-                address,
-                pid: Some(pid),
-            });
+        if let Some(binary) = binary {
+            if let Some(handler) = handler {
+                probes.borrow_mut().push(USDTProbe {
+                    binary,
+                    handler,
+                    address,
+                    pid: Some(pid),
+                });
+            }
         }
     })
 }
