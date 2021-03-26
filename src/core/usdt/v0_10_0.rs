@@ -1,6 +1,6 @@
 use std::cell::RefCell;
-use std::os::raw::{c_char, c_int};
 use std::ffi::CStr;
+use std::os::raw::{c_char, c_int};
 use std::path::Path;
 use std::ptr;
 
@@ -9,10 +9,10 @@ use bcc_sys::bccapi::{
     bcc_usdt_foreach_uprobe, bcc_usdt_genargs, bcc_usdt_new_frompath, bcc_usdt_new_frompid, pid_t,
 };
 
-use crate::{BPF, Uprobe};
 use crate::error::BccError;
 use crate::helpers::to_cstring;
 use crate::types::MutPointer;
+use crate::{Uprobe, BPF};
 
 thread_local! {
     static PROBES: RefCell<Vec<USDTProbe>> = RefCell::new(Vec::new());
@@ -30,10 +30,7 @@ pub fn usdt_generate_args(
     mut contexts: Vec<USDTContext>,
 ) -> Result<(String, Vec<USDTContext>), BccError> {
     // Build an array of pointers to each underlying USDT context.
-    let mut ptrs = contexts
-        .iter_mut()
-        .map(|c| c.context)
-        .collect::<Vec<_>>();
+    let mut ptrs = contexts.iter_mut().map(|c| c.context).collect::<Vec<_>>();
     let (ctx_array, len) = (ptrs.as_mut_ptr(), ptrs.len() as c_int);
 
     // Generate the C argument parsing code for all of the probes in all of the contexts.
@@ -131,9 +128,7 @@ impl USDTContext {
             }
         } else {
             let cprobe = to_cstring(probe, "probe")?;
-            unsafe {
-                bcc_usdt_enable_probe(self.context, cprobe.as_ptr(), cfn_name.as_ptr())
-            }
+            unsafe { bcc_usdt_enable_probe(self.context, cprobe.as_ptr(), cfn_name.as_ptr()) }
         };
 
         if result != 0 {
@@ -148,7 +143,11 @@ impl USDTContext {
     ///
     /// If `attach_usdt_ignore_pid` is true, it will attach this context to all matching processes.
     /// Otherwise, it will attach this context to the specified PID only.
-    pub(crate) fn attach(self, bpf: &mut BPF, attach_usdt_ignore_pid: bool) -> Result<(), BccError> {
+    pub(crate) fn attach(
+        self,
+        bpf: &mut BPF,
+        attach_usdt_ignore_pid: bool,
+    ) -> Result<(), BccError> {
         // Query for all of the enabled probes.  This reads them into a TLS variable which we'll
         // swap out with a new, empty container.  Long story short, no way to pass user data for the
         // callback to use, so we need a TLS variable on the Rust side.

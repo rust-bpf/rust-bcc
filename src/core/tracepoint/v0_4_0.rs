@@ -1,8 +1,8 @@
 use bcc_sys::bccapi::*;
 
-use crate::BccError;
 use crate::helpers::to_cstring;
 use crate::types::MutPointer;
+use crate::BccError;
 
 use std::ffi::CString;
 use std::fs::File;

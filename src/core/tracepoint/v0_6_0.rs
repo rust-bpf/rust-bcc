@@ -1,7 +1,7 @@
 use bcc_sys::bccapi::*;
 
-use crate::BccError;
 use crate::helpers::to_cstring;
+use crate::BccError;
 
 use std::ffi::CString;
 use std::fs::File;

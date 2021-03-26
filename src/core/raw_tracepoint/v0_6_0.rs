@@ -1,5 +1,5 @@
-use crate::BccError;
 use crate::helpers::to_cstring;
+use crate::BccError;
 use bcc_sys::bccapi::*;
 
 use std::ffi::CString;

@@ -4,8 +4,8 @@ mod perf_event_array;
 mod raw_tracepoint;
 mod tracepoint;
 mod uprobe;
-mod xdp;
 mod usdt;
+mod xdp;
 
 use bcc_sys::bccapi::*;
 
@@ -17,12 +17,12 @@ pub(crate) use self::tracepoint::Tracepoint;
 pub(crate) use self::uprobe::Uprobe;
 pub use self::usdt::{usdt_generate_args, USDTContext};
 pub(crate) use self::xdp::XDP;
-use crate::BccError;
 use crate::helpers::to_cstring;
 use crate::perf_event::{PerfMapBuilder, PerfReader};
 use crate::symbol::SymbolCache;
 use crate::table::Table;
 use crate::types::MutPointer;
+use crate::BccError;
 
 use core::sync::atomic::{AtomicPtr, Ordering};
 use std::collections::{HashMap, HashSet};
@@ -277,7 +277,7 @@ impl BPFBuilder {
         let attach_usdt_ignore_pid = self.attach_usdt_ignore_pid;
 
         let ptr = self.create_module()?;
-        
+
         let mut bpf = BPF {
             p: AtomicPtr::new(ptr),
             uprobes: HashSet::new(),

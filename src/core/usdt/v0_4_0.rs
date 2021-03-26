@@ -2,8 +2,8 @@ use std::path::Path;
 
 use bcc_sys::bccapi::pid_t;
 
-use crate::BPF;
 use crate::error::BccError;
+use crate::BPF;
 
 pub fn usdt_generate_args(
     mut _contexts: Vec<USDTContext>,
@@ -52,7 +52,11 @@ impl USDTContext {
     ///
     /// If `attach_usdt_ignore_pid` is true, it will attach this context to all matching processes.
     /// Otherwise, it will attach this context to the specified PID only.
-    pub(crate) fn attach(self, _bpf: &mut BPF, _attach_usdt_ignore_pid: bool) -> Result<(), BccError> {
+    pub(crate) fn attach(
+        self,
+        _bpf: &mut BPF,
+        _attach_usdt_ignore_pid: bool,
+    ) -> Result<(), BccError> {
         Err(BccError::BccVersionTooLow {
             cause: "USDT support is not enabled".to_owned(),
             min_version: "0.6.1".to_owned(),

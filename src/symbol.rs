@@ -1,6 +1,6 @@
-use crate::BccError;
-use crate::types::MutPointer;
 use crate::helpers::to_cstring;
+use crate::types::MutPointer;
+use crate::BccError;
 
 use bcc_sys::bccapi::*;
 use libc::free;

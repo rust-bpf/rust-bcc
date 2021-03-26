@@ -10,6 +10,7 @@
 mod core;
 pub mod cpuonline;
 mod error;
+mod helpers;
 mod kprobe;
 pub mod perf_event;
 mod raw_tracepoint;
@@ -20,12 +21,11 @@ mod tracepoint;
 mod types;
 mod uprobe;
 mod xdp;
-mod helpers;
 
 #[macro_use]
 extern crate bitflags;
 
-pub use crate::core::{BPFBuilder, BccDebug, BpfProgType, BPF, USDTContext};
+pub use crate::core::{BPFBuilder, BccDebug, BpfProgType, USDTContext, BPF};
 pub use error::BccError;
 pub use kprobe::{Kprobe, Kretprobe};
 pub use perf_event::{PerfEvent, PerfEventArray, PerfMap};

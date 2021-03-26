@@ -2,8 +2,8 @@ use bcc_sys::bccapi::bpf_probe_attach_type_BPF_PROBE_ENTRY as BPF_PROBE_ENTRY;
 use bcc_sys::bccapi::bpf_probe_attach_type_BPF_PROBE_RETURN as BPF_PROBE_RETURN;
 use bcc_sys::bccapi::*;
 
-use crate::BccError;
 use crate::helpers::to_cstring;
+use crate::BccError;
 
 use std::ffi::CString;
 use std::fs::File;

@@ -25,7 +25,9 @@ pub enum BccError {
     Compilation,
     #[error("failed to create USDT context")]
     CreateUSDTContext,
-    #[error("failed to enable USDT probe; ensure that the probe exists (i.e. using the tplist tool)")]
+    #[error(
+        "failed to enable USDT probe; ensure that the probe exists (i.e. using the tplist tool)"
+    )]
     EnableUSDTProbe,
     #[error("failed to generate USDT probe arguments")]
     GenerateUSDTProbeArguments,
