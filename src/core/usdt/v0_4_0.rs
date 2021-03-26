@@ -40,7 +40,6 @@ impl USDTContext {
         Self::new(Some(pid), path.as_ref().to_str())
     }
 
-    #[cfg(not(feature = "usdt"))]
     fn new(_pid: Option<pid_t>, _path: Option<&str>) -> Result<Self, BccError> {
         Err(BccError::BccVersionTooLow {
             cause: "USDT support is not enabled".to_owned(),
