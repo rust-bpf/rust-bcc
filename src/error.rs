@@ -51,7 +51,7 @@ pub enum BccError {
     InitializeRingBuf,
     #[error("invalid cpu range ({range})")]
     InvalidCpuRange { range: String },
-    #[error("field '{field}' contained interior nul byte; can't convert to C string")]
+    #[error("field '{field}' contained interior null byte; can't convert to C string")]
     InvalidCString { field: &'static str },
     #[error("error loading bpf program ({name}): {message}")]
     Loading { name: String, message: String },
