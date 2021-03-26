@@ -1,4 +1,5 @@
-use std::{cell::RefCell, os::raw::c_char};
+use std::cell::RefCell;
+use std::os::raw::{c_char, c_int};
 use std::ffi::CStr;
 use std::path::Path;
 use std::ptr;
@@ -7,7 +8,6 @@ use bcc_sys::bccapi::{
     bcc_usdt_close, bcc_usdt_enable_fully_specified_probe, bcc_usdt_enable_probe,
     bcc_usdt_foreach_uprobe, bcc_usdt_genargs, bcc_usdt_new_frompath, bcc_usdt_new_frompid, pid_t,
 };
-use std::os::raw::c_int;
 
 use crate::{BPF, Uprobe};
 use crate::error::BccError;
@@ -32,7 +32,7 @@ pub fn usdt_generate_args(
     // Build an array of pointers to each underlying USDT context.
     let mut ptrs = contexts
         .iter_mut()
-        .map(|c| c.as_context_ptr())
+        .map(|c| c.context)
         .collect::<Vec<_>>();
     let (ctx_array, len) = (ptrs.as_mut_ptr(), ptrs.len() as c_int);
 
@@ -102,7 +102,8 @@ impl USDTContext {
     /// `<provider>:<name>`.
     ///
     /// The `fn_name` argument is the name of the function in the BPF program to call when the given
-    /// tracepoint is hit.  This function will be called with the given arguments for the tracepoint.
+    /// tracepoint is hit.  This function will be called with the given arguments for the
+    /// tracepoint.
     pub fn enable_probe(
         &mut self,
         probe: impl Into<String>,
@@ -112,7 +113,7 @@ impl USDTContext {
         let fn_name = fn_name.into();
 
         // The probe can be either `<symbol name>` or `<provider>:<symbol name>`.
-        let mut probe_parts = probe.split(':').map(|s| s.to_owned()).collect::<Vec<_>>();
+        let mut probe_parts = probe.split(':').map(|s| s.to_string()).collect::<Vec<_>>();
         let cfn_name = to_cstring(fn_name, "fn_name")?;
         let result = if probe_parts.len() == 2 {
             let provider = probe_parts.remove(0);
@@ -147,8 +148,15 @@ impl USDTContext {
     ///
     /// If `attach_usdt_ignore_pid` is true, it will attach this context to all matching processes.
     /// Otherwise, it will attach this context to the specified PID only.
-    pub fn attach(mut self, bpf: &mut BPF, attach_usdt_ignore_pid: bool) -> Result<(), BccError> {
-        let probes = self.enumerate_active_probes();
+    pub(crate) fn attach(self, bpf: &mut BPF, attach_usdt_ignore_pid: bool) -> Result<(), BccError> {
+        // Query for all of the enabled probes.  This reads them into a TLS variable which we'll
+        // swap out with a new, empty container.  Long story short, no way to pass user data for the
+        // callback to use, so we need a TLS variable on the Rust side.
+        unsafe {
+            bcc_usdt_foreach_uprobe(self.context, Some(uprobe_foreach_cb));
+        }
+
+        let probes = PROBES.with(|probes| probes.replace(Vec::new()));
         for probe in probes {
             let pid = if attach_usdt_ignore_pid {
                 None
@@ -166,20 +174,6 @@ impl USDTContext {
         }
 
         Ok(())
-    }
-
-    fn as_context_ptr(&mut self) -> MutPointer {
-        self.context
-    }
-
-    fn enumerate_active_probes(&mut self) -> Vec<USDTProbe> {
-        // Query for all of the enabled probes.  This reads them into a TLS variable which we'll
-        // swap out with a new, empty container.  Long story short, no way to pass user data for the
-        // callback to use, so we need a TLS variable on the Rust side.
-        unsafe {
-            bcc_usdt_foreach_uprobe(self.context, Some(uprobe_foreach_cb));
-        }
-        PROBES.with(|probes| probes.replace(Vec::new()))
     }
 }
 

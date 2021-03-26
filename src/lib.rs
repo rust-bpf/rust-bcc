@@ -19,19 +19,17 @@ pub mod table;
 mod tracepoint;
 mod types;
 mod uprobe;
-mod usdt;
 mod xdp;
 mod helpers;
 
 #[macro_use]
 extern crate bitflags;
 
-pub use crate::core::{BPFBuilder, BccDebug, BpfProgType, BPF};
+pub use crate::core::{BPFBuilder, BccDebug, BpfProgType, BPF, USDTContext};
 pub use error::BccError;
 pub use kprobe::{Kprobe, Kretprobe};
 pub use perf_event::{PerfEvent, PerfEventArray, PerfMap};
 pub use raw_tracepoint::RawTracepoint;
 pub use tracepoint::Tracepoint;
 pub use uprobe::{Uprobe, Uretprobe};
-pub use usdt::USDTContext;
 pub use xdp::{Mode as XDPMode, XDP};

@@ -1,7 +1,8 @@
 use bcc_sys::bccapi::*;
 
-use crate::types::MutPointer;
 use crate::BccError;
+use crate::helpers::to_cstring;
+use crate::types::MutPointer;
 
 use std::ffi::CString;
 use std::fs::File;
@@ -19,8 +20,8 @@ pub struct Tracepoint {
 
 impl Tracepoint {
     pub fn attach_tracepoint(subsys: &str, name: &str, file: File) -> Result<Self, BccError> {
-        let cname = CString::new(name)?;
-        let csubsys = CString::new(subsys)?;
+        let cname = to_cstring(name, "name")?;
+        let csubsys = to_cstring(subsys, "subsys")?;
         // NOTE: BPF events are system-wide and do not support CPU filter
         let (pid, cpu, group_fd) = (-1, 0, -1);
         let ptr = unsafe {

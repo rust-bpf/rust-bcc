@@ -5,6 +5,7 @@ mod raw_tracepoint;
 mod tracepoint;
 mod uprobe;
 mod xdp;
+mod usdt;
 
 use bcc_sys::bccapi::*;
 
@@ -14,14 +15,14 @@ pub(crate) use self::perf_event_array::PerfEventArray;
 pub(crate) use self::raw_tracepoint::RawTracepoint;
 pub(crate) use self::tracepoint::Tracepoint;
 pub(crate) use self::uprobe::Uprobe;
+pub use self::usdt::{usdt_generate_args, USDTContext};
 pub(crate) use self::xdp::XDP;
-use crate::perf_event::{PerfMapBuilder, PerfReader};
-use crate::types::MutPointer;
-use crate::symbol::SymbolCache;
-use crate::table::Table;
-use crate::usdt::{usdt_generate_args, USDTContext};
 use crate::BccError;
 use crate::helpers::to_cstring;
+use crate::perf_event::{PerfMapBuilder, PerfReader};
+use crate::symbol::SymbolCache;
+use crate::table::Table;
+use crate::types::MutPointer;
 
 use core::sync::atomic::{AtomicPtr, Ordering};
 use std::collections::{HashMap, HashSet};
@@ -176,7 +177,7 @@ impl BPFBuilder {
         feature = "v0_7_0",
         feature = "v0_8_0",
     ))]
-    fn create_module(self) -> Result<MutPointer, BccError> {
+    fn create_module(&self) -> Result<MutPointer, BccError> {
         let ptr = unsafe {
             bpf_module_create_c_from_string(
                 self.code.as_ptr(),
@@ -198,7 +199,7 @@ impl BPFBuilder {
     }
 
     #[cfg(any(feature = "v0_9_0", feature = "v0_10_0"))]
-    fn create_module(self) -> Result<MutPointer, BccError> {
+    fn create_module(&self) -> Result<MutPointer, BccError> {
         let ptr = unsafe {
             bpf_module_create_c_from_string(
                 self.code.as_ptr(),
@@ -231,7 +232,7 @@ impl BPFBuilder {
         feature = "v0_18_0",
         not(feature = "specific")
     ))]
-    fn create_module(&mut self) -> Result<MutPointer, BccError> {
+    fn create_module(&self) -> Result<MutPointer, BccError> {
         let ptr = unsafe {
             bpf_module_create_c_from_string(
                 self.code.as_ptr(),
@@ -261,18 +262,19 @@ impl BPFBuilder {
     pub fn build(mut self) -> Result<BPF, BccError> {
         // If USDT is supported, we have to generate the argument parsing code
         // first and prepend it to our BPF program.
-        #[cfg(not(any(feature = "v0_4_0", feature = "v0_5_0", feature = "v0_6_0")))]
         let contexts = if self.usdt_contexts.is_empty() {
             Vec::new()
         } else {
             let (mut code, contexts) = usdt_generate_args(self.usdt_contexts.drain(..).collect())?;
 
-            let base_code = self.code.to_str().map(|s| s.to_owned())?;
+            let base_code = self.code.to_str().map(|s| s.to_string())?;
             code.push_str(base_code.as_str());
             self.code = to_cstring(code.as_str(), "code")?;
 
             contexts
         };
+
+        let attach_usdt_ignore_pid = self.attach_usdt_ignore_pid;
 
         let ptr = self.create_module()?;
         
@@ -293,9 +295,8 @@ impl BPFBuilder {
         };
 
         // Attach all of our USDT probes as uprobes.
-        #[cfg(not(any(feature = "v0_4_0", feature = "v0_5_0", feature = "v0_6_0")))]
         for context in contexts {
-            let _ = context.attach(&mut bpf, self.attach_usdt_ignore_pid)?;
+            let _ = context.attach(&mut bpf, attach_usdt_ignore_pid)?;
         }
 
         Ok(bpf)
@@ -481,7 +482,7 @@ impl BPF {
         _log_level: i32,
         log_size: u32,
     ) -> Result<File, BccError> {
-        let cname = to_cstring(name)?;
+        let cname = to_cstring(name, "name")?;
         unsafe {
             let start: *mut bpf_insn =
                 bpf_function_start(self.ptr(), cname.as_ptr()) as *mut bpf_insn;
@@ -532,7 +533,7 @@ impl BPF {
         log_level: i32,
         log_size: u32,
     ) -> Result<File, BccError> {
-        let cname = to_cstring(name)?;
+        let cname = to_cstring(name, "name")?;
         unsafe {
             let start: *mut bpf_insn =
                 bpf_function_start(self.ptr(), cname.as_ptr()) as *mut bpf_insn;

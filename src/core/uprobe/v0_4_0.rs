@@ -2,8 +2,9 @@ use bcc_sys::bccapi::bpf_probe_attach_type_BPF_PROBE_ENTRY as BPF_PROBE_ENTRY;
 use bcc_sys::bccapi::bpf_probe_attach_type_BPF_PROBE_RETURN as BPF_PROBE_RETURN;
 use bcc_sys::bccapi::*;
 
-use crate::types::MutPointer;
 use crate::BccError;
+use crate::helpers::to_cstring;
+use crate::types::MutPointer;
 
 use std::ffi::CString;
 use std::fs::File;
@@ -27,8 +28,8 @@ impl Uprobe {
         file: File,
         pid: pid_t,
     ) -> Result<Self, BccError> {
-        let cname = CString::new(name)?;
-        let cpath = CString::new(path)?;
+        let cname = to_cstring(name, "name")?;
+        let cpath = to_cstring(path, "path")?;
         // TODO: maybe pass in the CPU & PID instead of
         let (cpu, group_fd) = (0, -1);
         let uprobe_ptr = unsafe {

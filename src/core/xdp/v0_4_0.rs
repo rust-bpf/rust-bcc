@@ -1,6 +1,8 @@
+use bcc_sys::bccapi::bpf_attach_xdp;
+
 use crate::BccError;
 use crate::helpers::to_cstring;
-use bcc_sys::bccapi::bpf_attach_xdp;
+
 use std::ffi::CString;
 use std::fs::File;
 use std::hash::{Hash, Hasher};
