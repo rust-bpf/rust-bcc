@@ -1,5 +1,6 @@
 use bcc_sys::bccapi::*;
 
+use crate::helpers::to_cstring;
 use crate::BccError;
 
 use std::ffi::CString;
@@ -17,8 +18,8 @@ pub struct Tracepoint {
 
 impl Tracepoint {
     pub fn new(subsys: &str, name: &str, file: File) -> Result<Self, BccError> {
-        let cname = CString::new(name)?;
-        let csubsys = CString::new(subsys)?;
+        let cname = to_cstring(name, "name")?;
+        let csubsys = to_cstring(subsys, "subsys")?;
         let ptr =
             unsafe { bpf_attach_tracepoint(file.as_raw_fd(), csubsys.as_ptr(), cname.as_ptr()) };
         if ptr < 0 {

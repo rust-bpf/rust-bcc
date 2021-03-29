@@ -2,6 +2,7 @@ use bcc_sys::bccapi::bpf_probe_attach_type_BPF_PROBE_ENTRY as BPF_PROBE_ENTRY;
 use bcc_sys::bccapi::bpf_probe_attach_type_BPF_PROBE_RETURN as BPF_PROBE_RETURN;
 use bcc_sys::bccapi::*;
 
+use crate::helpers::to_cstring;
 use crate::BccError;
 
 use std::ffi::CString;
@@ -25,8 +26,8 @@ impl Uprobe {
         file: File,
         pid: pid_t,
     ) -> Result<Self, BccError> {
-        let cname = CString::new(name)?;
-        let cpath = CString::new(path)?;
+        let cname = to_cstring(name, "name")?;
+        let cpath = to_cstring(path, "path")?;
         let uprobe_ptr = unsafe {
             bpf_attach_uprobe(
                 file.as_raw_fd(),

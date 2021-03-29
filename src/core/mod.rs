@@ -4,6 +4,7 @@ mod perf_event_array;
 mod raw_tracepoint;
 mod tracepoint;
 mod uprobe;
+mod usdt;
 mod xdp;
 
 use bcc_sys::bccapi::*;
@@ -14,20 +15,22 @@ pub(crate) use self::perf_event_array::PerfEventArray;
 pub(crate) use self::raw_tracepoint::RawTracepoint;
 pub(crate) use self::tracepoint::Tracepoint;
 pub(crate) use self::uprobe::Uprobe;
+pub use self::usdt::{usdt_generate_args, USDTContext};
 pub(crate) use self::xdp::XDP;
+use crate::helpers::to_cstring;
 use crate::perf_event::{PerfMapBuilder, PerfReader};
 use crate::symbol::SymbolCache;
 use crate::table::Table;
+use crate::types::MutPointer;
 use crate::BccError;
 
-use core::ffi::c_void;
 use core::sync::atomic::{AtomicPtr, Ordering};
 use std::collections::{HashMap, HashSet};
 use std::convert::TryInto;
 use std::ffi::CString;
 use std::fs::File;
 use std::io::Error;
-use std::os::raw::c_char;
+use std::os::raw::{c_char, c_void};
 use std::os::unix::prelude::*;
 use std::ptr;
 
@@ -105,17 +108,20 @@ pub struct BPFBuilder {
     cflags: Vec<CString>,
     device: Option<CString>,
     debug: BccDebug,
+    usdt_contexts: Vec<USDTContext>,
+    attach_usdt_ignore_pid: bool,
 }
 
 impl BPFBuilder {
     /// Create a new builder with the given code
     pub fn new(code: &str) -> Result<Self, BccError> {
-        let code = CString::new(code)?;
         Ok(Self {
-            code,
+            code: to_cstring(code, "code")?,
             cflags: Vec::new(),
             device: None,
             debug: Default::default(),
+            usdt_contexts: Vec::new(),
+            attach_usdt_ignore_pid: false,
         })
     }
 
@@ -123,7 +129,7 @@ impl BPFBuilder {
     pub fn cflags<T: AsRef<str>>(mut self, cflags: &[T]) -> Result<Self, BccError> {
         self.cflags.clear();
         for f in cflags {
-            let cs = CString::new(f.as_ref())?;
+            let cs = to_cstring(f.as_ref(), "cflags")?;
             self.cflags.push(cs);
         }
         Ok(self)
@@ -132,7 +138,7 @@ impl BPFBuilder {
     /// Set the device to load the BPF program on, if applicable.
     /// For example a network device if running XDP in hardware mode.
     pub fn device<T: AsRef<str>>(mut self, device: T) -> Result<Self, BccError> {
-        self.device = Some(CString::new(device.as_ref())?);
+        self.device = Some(to_cstring(device.as_ref(), "device")?);
         Ok(self)
     }
 
@@ -140,6 +146,27 @@ impl BPFBuilder {
     pub fn debug(mut self, debug: BccDebug) -> Self {
         self.debug = debug;
         self
+    }
+
+    /// Sets whether or not to ignore the specified PID in a given USDT context when attaching this
+    /// BPF program.
+    ///
+    /// If set to `true`, then any running process that matched the USDT probes would be captured,
+    /// regardless of whether or not a specific PID was used to create the USDT context.  This can
+    /// be useful in some cases where a user might want to specify the PID of a parent process as
+    /// the target, but also hit the same tracepoints in the child processes they spawn i.e. daemon
+    /// worker strategies based on `fork(2)`.
+    ///
+    /// Defaults to `false`.
+    pub fn attach_usdt_ignore_pid(mut self, ignore: bool) -> Result<Self, BccError> {
+        self.attach_usdt_ignore_pid = ignore;
+        Ok(self)
+    }
+
+    /// Adds a USDT context to this program.
+    pub fn add_usdt_context(mut self, context: USDTContext) -> Result<Self, BccError> {
+        self.usdt_contexts.push(context);
+        Ok(self)
     }
 
     #[cfg(any(
@@ -150,8 +177,7 @@ impl BPFBuilder {
         feature = "v0_7_0",
         feature = "v0_8_0",
     ))]
-    /// Try constructing a BPF module from the builder
-    pub fn build(self) -> Result<BPF, BccError> {
+    fn create_module(&self) -> Result<MutPointer, BccError> {
         let ptr = unsafe {
             bpf_module_create_c_from_string(
                 self.code.as_ptr(),
@@ -166,30 +192,14 @@ impl BPFBuilder {
         };
 
         if ptr.is_null() {
-            return Err(BccError::Compilation);
+            Err(BccError::Compilation)
+        } else {
+            Ok(ptr)
         }
-
-        Ok(BPF {
-            p: AtomicPtr::new(ptr),
-            uprobes: HashSet::new(),
-            kprobes: HashSet::new(),
-            tracepoints: HashSet::new(),
-            raw_tracepoints: HashSet::new(),
-            perf_events: HashSet::new(),
-            perf_events_array: HashSet::new(),
-            perf_readers: Vec::new(),
-            sym_caches: HashMap::new(),
-            xdp: HashSet::new(),
-            cflags: self.cflags,
-            functions: HashMap::new(),
-            debug: self.debug,
-        })
     }
 
-    // 0.9.0 changes the API for bpf_module_create_c_from_string()
     #[cfg(any(feature = "v0_9_0", feature = "v0_10_0"))]
-    /// Try constructing a BPF module from the builder
-    pub fn build(self) -> Result<BPF, BccError> {
+    fn create_module(&self) -> Result<MutPointer, BccError> {
         let ptr = unsafe {
             bpf_module_create_c_from_string(
                 self.code.as_ptr(),
@@ -205,27 +215,12 @@ impl BPFBuilder {
         };
 
         if ptr.is_null() {
-            return Err(BccError::Compilation);
+            Err(BccError::Compilation)
+        } else {
+            Ok(ptr)
         }
-
-        Ok(BPF {
-            p: AtomicPtr::new(ptr),
-            uprobes: HashSet::new(),
-            kprobes: HashSet::new(),
-            tracepoints: HashSet::new(),
-            raw_tracepoints: HashSet::new(),
-            perf_events: HashSet::new(),
-            perf_events_array: HashSet::new(),
-            perf_readers: Vec::new(),
-            sym_caches: HashMap::new(),
-            xdp: HashSet::new(),
-            cflags: self.cflags,
-            functions: HashMap::new(),
-            debug: self.debug,
-        })
     }
 
-    // 0.11.0 changes the API for bpf_module_create_c_from_string()
     #[cfg(any(
         feature = "v0_11_0",
         feature = "v0_12_0",
@@ -234,10 +229,10 @@ impl BPFBuilder {
         feature = "v0_15_0",
         feature = "v0_16_0",
         feature = "v0_17_0",
-        not(feature = "specific"),
+        feature = "v0_18_0",
+        not(feature = "specific")
     ))]
-    /// Try constructing a BPF module from the builder
-    pub fn build(self) -> Result<BPF, BccError> {
+    fn create_module(&self) -> Result<MutPointer, BccError> {
         let ptr = unsafe {
             bpf_module_create_c_from_string(
                 self.code.as_ptr(),
@@ -257,10 +252,33 @@ impl BPFBuilder {
         };
 
         if ptr.is_null() {
-            return Err(BccError::Compilation);
+            Err(BccError::Compilation)
+        } else {
+            Ok(ptr)
         }
+    }
 
-        Ok(BPF {
+    /// Try constructing a BPF module from the builder
+    pub fn build(mut self) -> Result<BPF, BccError> {
+        // If USDT is supported, we have to generate the argument parsing code
+        // first and prepend it to our BPF program.
+        let contexts = if self.usdt_contexts.is_empty() {
+            Vec::new()
+        } else {
+            let (mut code, contexts) = usdt_generate_args(self.usdt_contexts.drain(..).collect())?;
+
+            let base_code = self.code.to_str().map(|s| s.to_string())?;
+            code.push_str(base_code.as_str());
+            self.code = to_cstring(code.as_str(), "code")?;
+
+            contexts
+        };
+
+        let attach_usdt_ignore_pid = self.attach_usdt_ignore_pid;
+
+        let ptr = self.create_module()?;
+
+        let mut bpf = BPF {
             p: AtomicPtr::new(ptr),
             uprobes: HashSet::new(),
             kprobes: HashSet::new(),
@@ -274,68 +292,31 @@ impl BPFBuilder {
             cflags: self.cflags,
             functions: HashMap::new(),
             debug: self.debug,
-        })
-    }
-}
+        };
 
-/// Get a CString from a regular string, if possible
-fn to_cstring(s: &str) -> Result<CString, BccError> {
-    match CString::new(s) {
-        Ok(name) => Ok(name),
-        Err(_) => {
-            return Err(BccError::Loading {
-                name: s.to_string(),
-                message: String::from("The probe name contains an interior null byte"),
-            })
+        // Attach all of our USDT probes as uprobes.
+        for context in contexts {
+            let _ = context.attach(&mut bpf, attach_usdt_ignore_pid)?;
         }
+
+        Ok(bpf)
     }
 }
 
 impl BPF {
-    #[cfg(any(
-        feature = "v0_4_0",
-        feature = "v0_5_0",
-        feature = "v0_6_0",
-        feature = "v0_6_1",
-        feature = "v0_7_0",
-        feature = "v0_8_0",
-    ))]
-    /// `code` is a string containing C code. See https://github.com/iovisor/bcc for examples
-    pub fn new(code: &str) -> Result<BPF, BccError> {
-        BPFBuilder::new(code)?.build()
-    }
-
-    // 0.9.0 changes the API for bpf_module_create_c_from_string()
-    #[cfg(any(feature = "v0_9_0", feature = "v0_10_0",))]
-    /// `code` is a string containing C code. See https://github.com/iovisor/bcc for examples
-    pub fn new(code: &str) -> Result<BPF, BccError> {
-        BPFBuilder::new(code)?.build()
-    }
-
-    // 0.11.0 changes the API for bpf_module_create_c_from_string()
-    #[cfg(any(
-        feature = "v0_11_0",
-        feature = "v0_12_0",
-        feature = "v0_13_0",
-        feature = "v0_14_0",
-        feature = "v0_15_0",
-        feature = "v0_16_0",
-        feature = "v0_17_0",
-        not(feature = "specific"),
-    ))]
     /// `code` is a string containing C code. See https://github.com/iovisor/bcc for examples
     pub fn new(code: &str) -> Result<BPF, BccError> {
         BPFBuilder::new(code)?.build()
     }
 
     // get access to the internal pointer for the bpf module
-    fn ptr(&self) -> *mut c_void {
+    fn ptr(&self) -> MutPointer {
         self.p.load(Ordering::SeqCst)
     }
 
     /// Get access to a named table within the running BPF program.
     pub fn table(&self, name: &str) -> Result<Table, BccError> {
-        let cname = to_cstring(name)?;
+        let cname = to_cstring(name, "name")?;
         let id = unsafe { bpf_table_id(self.ptr(), cname.as_ptr()) };
         Ok(Table::new(id, self.ptr()))
     }
@@ -377,6 +358,7 @@ impl BPF {
         feature = "v0_15_0",
         feature = "v0_16_0",
         feature = "v0_17_0",
+        feature = "v0_18_0",
         not(feature = "specific"),
     ))]
     unsafe fn load_func_impl(
@@ -432,6 +414,7 @@ impl BPF {
         feature = "v0_15_0",
         feature = "v0_16_0",
         feature = "v0_17_0",
+        feature = "v0_18_0",
         not(feature = "specific"),
     ))]
     pub fn load_func(&mut self, name: &str, bpf_prog_type: BpfProgType) -> Result<i32, BccError> {
@@ -480,7 +463,7 @@ impl BPF {
 
     // Get the table file descriptor
     pub(crate) fn table_fd(&self, name: &str) -> Result<i32, BccError> {
-        let cname = to_cstring(name)?;
+        let cname = to_cstring(name, "name")?;
         Ok(unsafe { bpf_table_fd(self.ptr(), cname.as_ptr()) })
     }
 
@@ -499,7 +482,7 @@ impl BPF {
         _log_level: i32,
         log_size: u32,
     ) -> Result<File, BccError> {
-        let cname = to_cstring(name)?;
+        let cname = to_cstring(name, "name")?;
         unsafe {
             let start: *mut bpf_insn =
                 bpf_function_start(self.ptr(), cname.as_ptr()) as *mut bpf_insn;
@@ -550,7 +533,7 @@ impl BPF {
         log_level: i32,
         log_size: u32,
     ) -> Result<File, BccError> {
-        let cname = to_cstring(name)?;
+        let cname = to_cstring(name, "name")?;
         unsafe {
             let start: *mut bpf_insn =
                 bpf_function_start(self.ptr(), cname.as_ptr()) as *mut bpf_insn;
@@ -598,6 +581,7 @@ impl BPF {
         feature = "v0_15_0",
         feature = "v0_16_0",
         feature = "v0_17_0",
+        feature = "v0_18_0",
         not(feature = "specific"),
     ))]
     /// load the named BPF program from within the compiled BPF code
@@ -608,7 +592,7 @@ impl BPF {
         log_level: i32,
         log_size: u32,
     ) -> Result<File, BccError> {
-        let cname = to_cstring(name)?;
+        let cname = to_cstring(name, "name")?;
         unsafe {
             let start: *mut bpf_insn =
                 bpf_function_start(self.ptr(), cname.as_ptr()) as *mut bpf_insn;
@@ -668,7 +652,7 @@ impl BPF {
         crate::kprobe::get_kprobe_functions(event_re)
     }
 
-    /// Resulves the name to a kernel symbol
+    /// Resolves the name to a kernel symbol
     pub fn ksymname(&mut self, name: &str) -> Result<u64, BccError> {
         self.sym_caches
             .entry(-1)
@@ -691,6 +675,7 @@ impl BPF {
         feature = "v0_15_0",
         feature = "v0_16_0",
         feature = "v0_17_0",
+        feature = "v0_18_0",
         not(feature = "specific"),
     ))]
     /// Returns true if raw tracepoints are supported by the running kernel

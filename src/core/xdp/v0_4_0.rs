@@ -1,5 +1,8 @@
-use crate::BccError;
 use bcc_sys::bccapi::bpf_attach_xdp;
+
+use crate::helpers::to_cstring;
+use crate::BccError;
+
 use std::ffi::CString;
 use std::fs::File;
 use std::hash::{Hash, Hasher};
@@ -14,7 +17,7 @@ pub struct XDP {
 
 impl XDP {
     pub fn new(name: String, code: File, device: String, flags: u32) -> Result<Self, BccError> {
-        let device = CString::new(device)?;
+        let device = to_cstring(device, "device")?;
         unsafe {
             let code = bpf_attach_xdp(device.as_ptr(), code.as_raw_fd(), flags);
             if code != 0 {

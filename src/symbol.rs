@@ -1,14 +1,14 @@
+use crate::helpers::to_cstring;
+use crate::types::MutPointer;
 use crate::BccError;
 
 use bcc_sys::bccapi::*;
 use libc::free;
 
-use core::ffi::c_void;
 use core::sync::atomic::{AtomicPtr, Ordering};
 use std::ffi::CStr;
-use std::ffi::CString;
 use std::mem;
-use std::os::raw::c_char;
+use std::os::raw::{c_char, c_void};
 use std::ptr;
 
 pub fn resolve_symbol_path(
@@ -32,8 +32,8 @@ pub fn resolve_symname(
     pid: pid_t,
 ) -> Result<(String, u64), BccError> {
     let mut symbol = unsafe { mem::zeroed::<bcc_symbol>() };
-    let cmodule = CString::new(module)?;
-    let csymname = CString::new(symname)?;
+    let cmodule = to_cstring(module, "module")?;
+    let csymname = to_cstring(symname, "symname")?;
 
     let res = unsafe {
         bcc_resolve_symname(
@@ -58,7 +58,7 @@ pub fn resolve_symname(
         };
         // symbol.module was allocated somewhere inside `bcc_resolve_symname`
         // so we need to free it manually
-        unsafe { free(symbol.module as *mut c_void) };
+        unsafe { free(symbol.module as MutPointer) };
         Ok((module, symbol.offset))
     }
 }
@@ -76,8 +76,8 @@ impl SymbolCache {
     }
 
     pub fn resolve_name(&self, module: &str, name: &str) -> Result<u64, BccError> {
-        let cmodule = CString::new(module)?;
-        let cname = CString::new(name)?;
+        let cmodule = to_cstring(module, "module")?;
+        let cname = to_cstring(name, "name")?;
         let mut addr: u64 = 0;
 
         let res = unsafe {

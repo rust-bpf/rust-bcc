@@ -18,6 +18,7 @@ pub struct Uprobe {
     handler: Option<String>,
     pid: Option<pid_t>,
     symbol: Option<String>,
+    addr: Option<u64>,
     ref_ctr_offset: u32,
 }
 
@@ -41,9 +42,17 @@ impl Uprobe {
         self
     }
 
-    /// Specify the symbol to probe. This is required.
+    /// Specify the symbol to probe. This is optional.
+    ///
+    /// Typically required when not specifying the symbol address directly via `address`.
     pub fn symbol(mut self, symbol: &str) -> Self {
         self.symbol = Some(symbol.to_owned());
+        self
+    }
+
+    /// Specify the symbol address to probe.  This is optional.
+    pub fn address(mut self, addr: u64) -> Self {
+        self.addr = Some(addr);
         self
     }
 
@@ -79,17 +88,14 @@ impl Uprobe {
                 message: "binary path is invalid".to_string(),
             });
         }
-        if self.symbol.is_none() {
-            return Err(BccError::InvalidUprobe {
-                message: "symbol is required".to_string(),
-            });
-        }
         let binary = binary.unwrap();
-        let symbol = self.symbol.unwrap();
+        let symbol = self.symbol.as_deref().unwrap_or("");
         let pid = self.pid.unwrap_or(-1);
         let handler = self.handler.unwrap();
+        let addr = self.addr;
 
-        let (path, addr) = crate::symbol::resolve_symbol_path(&binary, &symbol, 0x0, pid)?;
+        let (path, addr) =
+            crate::symbol::resolve_symbol_path(&binary, &symbol, addr.unwrap_or(0x0), pid)?;
         let alpha_path = make_alphanumeric(&path);
         let ev_name = format!("p_{}_0x{:x}", &alpha_path, addr);
 
@@ -114,7 +120,7 @@ impl Uprobe {
         let uprobe =
             crate::core::Uprobe::new(&ev_name, BPF_PROBE_ENTRY, &path, addr, code_fd, pid)?;
 
-        #[cfg(any(feature = "v0_17_0", not(feature = "specific")))]
+        #[cfg(any(feature = "v0_17_0", feature = "v0_18_0", not(feature = "specific")))]
         let uprobe = crate::core::Uprobe::new(
             &ev_name,
             BPF_PROBE_ENTRY,
@@ -235,7 +241,7 @@ impl Uretprobe {
         let uprobe =
             crate::core::Uprobe::new(&ev_name, BPF_PROBE_RETURN, &path, addr, code_fd, pid)?;
 
-        #[cfg(any(feature = "v0_17_0", not(feature = "specific")))]
+        #[cfg(any(feature = "v0_17_0", feature = "v0_18_0", not(feature = "specific")))]
         let uprobe = crate::core::Uprobe::new(
             &ev_name,
             BPF_PROBE_RETURN,

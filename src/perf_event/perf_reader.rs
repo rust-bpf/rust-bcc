@@ -1,8 +1,7 @@
-use bcc_sys::bccapi::perf_reader;
-use bcc_sys::bccapi::perf_reader_fd;
-use bcc_sys::bccapi::perf_reader_free;
-use core::ffi::c_void;
+use bcc_sys::bccapi::{perf_reader, perf_reader_fd, perf_reader_free};
 use core::sync::atomic::{AtomicPtr, Ordering};
+
+use crate::types::MutPointer;
 
 #[repr(C)]
 #[derive(Debug)]
@@ -24,6 +23,6 @@ impl PerfReader {
 
 impl Drop for PerfReader {
     fn drop(&mut self) {
-        unsafe { perf_reader_free(self.ptr() as *mut c_void) }
+        unsafe { perf_reader_free(self.ptr() as MutPointer) }
     }
 }

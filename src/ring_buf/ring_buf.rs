@@ -22,6 +22,8 @@ impl RingBufBuilder {
     }
 
     #[cfg(any(
+        feature = "v0_4_0",
+        feature = "v0_5_0",
         feature = "v0_6_0",
         feature = "v0_6_1",
         feature = "v0_7_0",
@@ -42,7 +44,12 @@ impl RingBufBuilder {
         })
     }
 
-    #[cfg(any(feature = "v0_16_0", feature = "v0_17_0", not(feature = "specific")))]
+    #[cfg(any(
+        feature = "v0_16_0",
+        feature = "v0_17_0",
+        feature = "v0_18_0",
+        not(feature = "specific")
+    ))]
     /// Try constructing a `RingBuf` from the builder
     pub fn build(mut self) -> Result<RingBuf, BccError> {
         let ring_buf_manager = self
@@ -100,20 +107,35 @@ pub struct RingBuf {
     #[allow(dead_code)]
     table_cb_pairs: Vec<(Table, RingCallback)>,
 
-    #[cfg(any(feature = "v0_16_0", feature = "v0_17_0", not(feature = "specific")))]
+    #[cfg(any(
+        feature = "v0_16_0",
+        feature = "v0_17_0",
+        feature = "v0_18_0",
+        not(feature = "specific"),
+    ))]
     ring_buf_manager: *mut bcc_sys::bccapi::ring_buffer,
 }
 
 impl RingBuf {
     pub fn consume(&mut self) {
-        #[cfg(any(feature = "v0_16_0", feature = "v0_17_0", not(feature = "specific")))]
+        #[cfg(any(
+            feature = "v0_16_0",
+            feature = "v0_17_0",
+            feature = "v0_18_0",
+            not(feature = "specific"),
+        ))]
         unsafe {
             bcc_sys::bccapi::bpf_consume_ringbuf(self.ring_buf_manager)
         };
     }
 
     pub fn poll(&mut self, timeout_ms: i32) {
-        #[cfg(any(feature = "v0_16_0", feature = "v0_17_0", not(feature = "specific")))]
+        #[cfg(any(
+            feature = "v0_16_0",
+            feature = "v0_17_0",
+            feature = "v0_18_0",
+            not(feature = "specific"),
+        ))]
         unsafe {
             bcc_sys::bccapi::bpf_poll_ringbuf(self.ring_buf_manager, timeout_ms)
         };
@@ -122,7 +144,12 @@ impl RingBuf {
 
 impl Drop for RingBuf {
     fn drop(&mut self) {
-        #[cfg(any(feature = "v0_16_0", feature = "v0_17_0", not(feature = "specific")))]
+        #[cfg(any(
+            feature = "v0_16_0",
+            feature = "v0_17_0",
+            feature = "v0_18_0",
+            not(feature = "specific"),
+        ))]
         unsafe {
             bcc_sys::bccapi::bpf_free_ringbuf(self.ring_buf_manager)
         }

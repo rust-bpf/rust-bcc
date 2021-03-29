@@ -2,6 +2,7 @@ use bcc_sys::bccapi::bpf_probe_attach_type_BPF_PROBE_ENTRY as BPF_PROBE_ENTRY;
 use bcc_sys::bccapi::bpf_probe_attach_type_BPF_PROBE_RETURN as BPF_PROBE_RETURN;
 use bcc_sys::bccapi::*;
 
+use crate::helpers::to_cstring;
 use crate::BccError;
 
 use std::ffi::CString;
@@ -18,8 +19,8 @@ pub struct Kprobe {
 
 impl Kprobe {
     pub fn new(name: &str, attach_type: u32, function: &str, code: File) -> Result<Self, BccError> {
-        let cname = CString::new(name)?;
-        let cfunction = CString::new(function)?;
+        let cname = to_cstring(name, "name")?;
+        let cfunction = to_cstring(function, "function")?;
         let ptr = unsafe {
             bpf_attach_kprobe(
                 code.as_raw_fd(),
