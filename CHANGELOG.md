@@ -1,5 +1,14 @@
 # [Unreleased]
 
+# [0.0.31] - 2021-03-29
+## Fixed
+- Fixed a few examples to use unaligned pointer reads.
+
+## Added
+- Adds support for bcc 0.18.0
+- Adds raw perf event support.
+- Adds User Statically-Defined Tracing (USDT) support.
+
 # [0.0.30] - 2020-11-23
 ## Fixed
 - `biosnoop` and `opensnoop` examples now use the new builder pattern for
@@ -200,7 +209,8 @@
 
 Initial release.
 
-[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.29...HEAD
+[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.31...HEAD
+[0.0.31]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.30...v0.0.31
 [0.0.30]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.29...v0.0.30
 [0.0.29]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.28...v0.0.29
 [0.0.28]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.27...v0.0.28
