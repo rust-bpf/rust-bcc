@@ -24,6 +24,8 @@ function test {
 sudo apt-get update
 
 ## Determine version number format for CLANG/LLVM packages
+export LLVM=${LLVM:-9}
+
 if [[ "${LLVM}" == "6" ]]; then
     export LLVM_PACKAGE="6.0";
 else
@@ -31,8 +33,8 @@ else
 fi
 
 ## Install kernel headers and dependencies
-sudo apt-get install linux-headers-"$(uname -r)"
-sudo apt-get remove *llvm* *clang* *gtk*
+sudo apt-get --yes install linux-headers-"$(uname -r)"
+sudo apt-get --yes remove *llvm* *clang* *gtk*
 sudo apt-get --yes install clang-"${LLVM_PACKAGE}" \
     libclang-"${LLVM_PACKAGE}"-dev libelf-dev libfl-dev \
     llvm-"${LLVM_PACKAGE}"-dev libz-dev llvm-"${LLVM_PACKAGE}"
@@ -52,6 +54,9 @@ popd
 if [[ $STATIC == true ]]; then
     export CPPFLAGS="-P"
     export CFLAGS="-fPIC"
+    
+    ## Installing make dependencies
+    sudo apt-get --yes install autoconf libtool pkg-config
 
     echo "build binutils"
     curl -L -O ftp://sourceware.org/pub/binutils/snapshots/binutils-2.34.90.tar.xz
@@ -90,7 +95,7 @@ if [[ $STATIC == true ]]; then
     cd ..
 
     echo "build libxml2"
-    git clone https://gitlab.gnome.org/GNOME/libxml2
+    git clone https://gitlab.gnome.org/GNOME/libxml2 || true
     cd libxml2
     git checkout 41a34e1f4ffae2ce401600dbb5fe43f8fe402641
     autoreconf -fvi
@@ -145,6 +150,10 @@ elif [[ "${BCC}" == "0.16.0" ]]; then
 elif [[ "${BCC}" == "0.17.0" ]]; then
     git checkout ad5b82a5196b222ed2cdc738d8444e8c9546a77f
 fi
+
+## Installing BCC dependencies
+sudo apt-get --yes install cmake bison
+
 mkdir -p _build
 cd _build
 cmake .. -DCMAKE_INSTALL_PREFIX=/usr
