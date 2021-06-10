@@ -184,7 +184,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: Run CI
       run: bash -e build/ci.sh
-xenial-llvm_8-bcc_v0_19_0:
+  xenial-llvm_8-bcc_v0_19_0:
     name: xenial / llvm 8 / bcc 0.19.0
     runs-on: ubuntu-16.04
     env:
