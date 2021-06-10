@@ -120,7 +120,7 @@ impl Uprobe {
         let uprobe =
             crate::core::Uprobe::new(&ev_name, BPF_PROBE_ENTRY, &path, addr, code_fd, pid)?;
 
-        #[cfg(any(feature = "v0_17_0", feature = "v0_18_0", not(feature = "specific")))]
+        #[cfg(any(feature = "v0_17_0", feature = "v0_18_0", feature = "v0_19_0", not(feature = "specific")))]
         let uprobe = crate::core::Uprobe::new(
             &ev_name,
             BPF_PROBE_ENTRY,
@@ -241,7 +241,7 @@ impl Uretprobe {
         let uprobe =
             crate::core::Uprobe::new(&ev_name, BPF_PROBE_RETURN, &path, addr, code_fd, pid)?;
 
-        #[cfg(any(feature = "v0_17_0", feature = "v0_18_0", not(feature = "specific")))]
+        #[cfg(any(feature = "v0_17_0", feature = "v0_18_0", feature = "v0_19_0", not(feature = "specific")))]
         let uprobe = crate::core::Uprobe::new(
             &ev_name,
             BPF_PROBE_RETURN,
