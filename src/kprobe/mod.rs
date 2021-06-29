@@ -5,7 +5,6 @@ use crate::error::BccError;
 use bcc_sys::bccapi::bpf_probe_attach_type_BPF_PROBE_ENTRY as BPF_PROBE_ENTRY;
 use bcc_sys::bccapi::bpf_probe_attach_type_BPF_PROBE_RETURN as BPF_PROBE_RETURN;
 use bcc_sys::bccapi::bpf_prog_type_BPF_PROG_TYPE_KPROBE as BPF_PROG_TYPE_KPROBE;
-use regex::Regex;
 
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -128,7 +127,6 @@ pub fn get_kprobe_functions(event_re: &str) -> Result<Vec<String>, BccError> {
 
     let mut in_init_section = Section::Unmatched;
     let mut in_irq_section = Section::Unmatched;
-    let re = Regex::new(r"^.*\.cold\.\d+$").unwrap();
     let avali = BufReader::new(File::open("/proc/kallsyms").unwrap());
     for line in avali.lines() {
         let line = line.unwrap();
@@ -180,8 +178,11 @@ pub fn get_kprobe_functions(event_re: &str) -> Result<Vec<String>, BccError> {
             continue;
         }
         // Exclude all gcc 8's extra .cold functions
-        if re.is_match(fname) {
-            continue;
+        // format: <name> + ".cold." + <number>
+        if let Some(idx) = fname.find(".cold.") {
+            if fname[idx + 6..].parse::<usize>().is_ok() {
+                continue;
+            }
         }
         if (t == "t" || t == "w") && fname.contains(event_re) {
             fns.push(fname.to_owned());
