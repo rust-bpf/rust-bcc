@@ -6,6 +6,7 @@ mod tracepoint;
 mod uprobe;
 mod usdt;
 mod xdp;
+mod socket;
 
 use bcc_sys::bccapi::*;
 
@@ -13,6 +14,7 @@ pub(crate) use self::kprobe::Kprobe;
 pub(crate) use self::perf_event::PerfEvent;
 pub(crate) use self::perf_event_array::PerfEventArray;
 pub(crate) use self::raw_tracepoint::RawTracepoint;
+pub(crate) use self::socket::Socket;
 pub(crate) use self::tracepoint::Tracepoint;
 pub(crate) use self::uprobe::Uprobe;
 pub use self::usdt::{usdt_generate_args, USDTContext};
@@ -77,6 +79,7 @@ pub struct BPF {
     pub(crate) perf_events: HashSet<PerfEvent>,
     pub(crate) perf_events_array: HashSet<PerfEventArray>,
     pub(crate) xdp: HashSet<XDP>,
+    pub(crate) socket: Option<Socket>,
     perf_readers: Vec<PerfReader>,
     sym_caches: HashMap<pid_t, SymbolCache>,
     cflags: Vec<CString>,
@@ -288,6 +291,7 @@ impl BPFBuilder {
             perf_events_array: HashSet::new(),
             perf_readers: Vec::new(),
             sym_caches: HashMap::new(),
+            socket: None,
             xdp: HashSet::new(),
             cflags: self.cflags,
             functions: HashMap::new(),
@@ -701,6 +705,13 @@ impl BPF {
                 timeout,
             );
         };
+    }
+
+    pub fn get_socket_fd(self) -> Option<i32> {
+        match &self.socket {
+            Some(socket) => Some(socket.sock_fd),
+            None => None
+        }
     }
 }
 

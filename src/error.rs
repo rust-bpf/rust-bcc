@@ -11,6 +11,8 @@ pub enum BccError {
     AttachPerfEvent { event: Event },
     #[error("failed to attach raw tracepoint ({name})")]
     AttachRawTracepoint { name: String },
+    #[error("failed to attach socket to interface {iface}: {os_error}")]
+    AttachSocket { iface: String, os_error: std::io::Error },
     #[error("failed to attach tracepoint ({subsys}:{name})")]
     AttachTracepoint { subsys: String, name: String },
     #[error("failed to attach uprobe ({name})")]
@@ -39,6 +41,8 @@ pub enum BccError {
     InvalidPerfEvent { message: String },
     #[error("raw tracepoint probe has invalid configuration: {message}")]
     InvalidRawTracepoint { message: String },
+    #[error("socket has invalid configuration: {message}")]
+    InvalidSocket {message: String },
     #[error("tracepoint probe has invalid configuration: {message}")]
     InvalidTracepoint { message: String },
     #[error("userspace probe has invalid configuration: {message}")]
