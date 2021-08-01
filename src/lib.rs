@@ -31,7 +31,7 @@ pub use error::BccError;
 pub use kprobe::{Kprobe, Kretprobe};
 pub use perf_event::{PerfEvent, PerfEventArray, PerfMap};
 pub use raw_tracepoint::RawTracepoint;
-pub use tracepoint::Tracepoint;
 pub use socket::Socket;
+pub use tracepoint::Tracepoint;
 pub use uprobe::{Uprobe, Uretprobe};
 pub use xdp::{Mode as XDPMode, XDP};

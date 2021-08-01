@@ -2,11 +2,11 @@ mod kprobe;
 mod perf_event;
 mod perf_event_array;
 mod raw_tracepoint;
+mod socket;
 mod tracepoint;
 mod uprobe;
 mod usdt;
 mod xdp;
-mod socket;
 
 use bcc_sys::bccapi::*;
 
@@ -710,7 +710,7 @@ impl BPF {
     pub fn get_socket_fd(self) -> Option<i32> {
         match &self.socket {
             Some(socket) => Some(socket.sock_fd),
-            None => None
+            None => None,
         }
     }
 }

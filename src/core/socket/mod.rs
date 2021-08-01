@@ -3,10 +3,9 @@ use bcc_sys::bccapi::{bpf_attach_socket, bpf_open_raw_sock};
 use crate::helpers::to_cstring;
 use crate::BccError;
 
-use std::os::unix::prelude::AsRawFd;
-use std::fs::File;
 use std::ffi::CString;
-
+use std::fs::File;
+use std::os::unix::prelude::AsRawFd;
 
 #[derive(Debug)]
 pub struct Socket {
@@ -24,8 +23,7 @@ impl Socket {
                 iface: iface.to_string(),
                 os_error: std::io::Error::last_os_error(),
             });
-        } 
-
+        }
 
         let res = unsafe { bpf_attach_socket(sock_fd, code_fd.as_raw_fd()) };
         if res < 0 {

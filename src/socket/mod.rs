@@ -6,7 +6,7 @@ use crate::error::BccError;
 #[derive(Debug, Default)]
 pub struct Socket {
     handler: Option<String>,
-    iface: Option<String>
+    iface: Option<String>,
 }
 
 impl Socket {
@@ -19,7 +19,7 @@ impl Socket {
         self
     }
 
-    pub fn iface(mut self, iface: &str) -> Self{
+    pub fn iface(mut self, iface: &str) -> Self {
         self.iface = Some(iface.to_owned());
         self
     }
@@ -31,10 +31,9 @@ impl Socket {
             });
         }
 
-
         let code_fd = bpf.load(&self.handler.unwrap(), BPF_PROG_TYPE_SOCKET_FILTER, 0, 0)?;
         let socket = crate::core::Socket::new(&self.iface.unwrap(), code_fd)?;
-    
+
         bpf.socket = Some(socket);
         Ok(())
     }
