@@ -8,7 +8,7 @@ use crate::error::BccError;
 #[derive(Debug, Default)]
 pub struct Socket {
     handler: Option<String>,
-    ifaces: Vec<String>
+    ifaces: Vec<String>,
 }
 
 impl Socket {
@@ -21,8 +21,13 @@ impl Socket {
         self
     }
 
-    pub fn iface(mut self, iface: &str) -> Self{
+    pub fn iface(mut self, iface: &str) -> Self {
         self.ifaces.push(iface.to_owned());
+        self
+    }
+
+    pub fn ifaces(mut self, ifaces: &Vec<String>) -> Self {
+        self.ifaces.append(&mut ifaces.clone());
         self
     }
 
@@ -33,22 +38,21 @@ impl Socket {
             });
         }
 
-
         let code_fd = bpf.load(&self.handler.unwrap(), BPF_PROG_TYPE_SOCKET_FILTER, 0, 0)?;
-        bpf.sockets = self.ifaces
+        bpf.sockets = self
+            .ifaces
             .iter()
-            .map(|iface: &String| -> Result<crate::core::Socket, BccError> { crate::core::Socket::new(iface, &code_fd) })
-            .try_fold(HashMap::new(), |mut acc, sock_res| {
-                match sock_res {
-                    Ok(sock) => {
-                        acc.insert(sock.iface, sock.sock_fd);
-                        Ok(acc)
-                    },
-                    Err(err) => Err(err)
+            .map(|iface: &String| -> Result<crate::core::Socket, BccError> {
+                crate::core::Socket::new(iface, &code_fd)
+            })
+            .try_fold(HashMap::new(), |mut acc, sock_res| match sock_res {
+                Ok(sock) => {
+                    acc.insert(sock.iface, sock.sock_fd);
+                    Ok(acc)
                 }
+                Err(err) => Err(err),
             })?;
 
-    
         Ok(())
     }
 }
