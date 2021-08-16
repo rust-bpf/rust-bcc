@@ -2,11 +2,11 @@ mod kprobe;
 mod perf_event;
 mod perf_event_array;
 mod raw_tracepoint;
-mod socket;
 mod tracepoint;
 mod uprobe;
 mod usdt;
 mod xdp;
+mod socket;
 
 use bcc_sys::bccapi::*;
 
@@ -79,7 +79,7 @@ pub struct BPF {
     pub(crate) perf_events: HashSet<PerfEvent>,
     pub(crate) perf_events_array: HashSet<PerfEventArray>,
     pub(crate) xdp: HashSet<XDP>,
-    pub(crate) socket: Option<Socket>,
+    pub sockets: HashMap<String, i32>,
     perf_readers: Vec<PerfReader>,
     sym_caches: HashMap<pid_t, SymbolCache>,
     cflags: Vec<CString>,
@@ -291,7 +291,7 @@ impl BPFBuilder {
             perf_events_array: HashSet::new(),
             perf_readers: Vec::new(),
             sym_caches: HashMap::new(),
-            socket: None,
+            sockets: HashMap::new(),
             xdp: HashSet::new(),
             cflags: self.cflags,
             functions: HashMap::new(),
@@ -705,13 +705,6 @@ impl BPF {
                 timeout,
             );
         };
-    }
-
-    pub fn get_socket_fd(self) -> Option<i32> {
-        match &self.socket {
-            Some(socket) => Some(socket.sock_fd),
-            None => None,
-        }
     }
 }
 
