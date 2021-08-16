@@ -18,6 +18,8 @@ function test {
     sudo $runner target/release/examples/tcpretrans --duration 5
     echo "contextswitch"
     sudo $runner target/release/examples/contextswitch --duration 5
+    echo "port_filter"
+    sudo $runner target/release/examples/port_filter --duration 5
 }
 
 ## Update apt
