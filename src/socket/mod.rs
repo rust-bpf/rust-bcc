@@ -29,7 +29,7 @@ impl Socket {
 
     /// Add an interface to listen to
     pub fn add_interface(mut self, iface: &str) -> Self {
-        self.ifaces.push(iface.to_owned());
+        self.ifaces.insert(iface.to_owned());
         self
     }
 

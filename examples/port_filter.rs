@@ -60,7 +60,7 @@ fn main() {
 
     Socket::new()
         .handler("port_filter")
-        .ifaces(&ifaces)
+        .add_interfaces(&ifaces)
         .attach(&mut bpf)
         .unwrap();
 
