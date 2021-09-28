@@ -1,40 +1,48 @@
 use bcc_sys::bccapi::bpf_prog_type_BPF_PROG_TYPE_SOCKET_FILTER as BPF_PROG_TYPE_SOCKET_FILTER;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::iter::Iterator;
 
 use crate::core::BPF;
 use crate::error::BccError;
 
+/// An object that can attach a bpf program to a socket which runs on every
+/// packet on the given interfaces
 #[derive(Debug, Default)]
 pub struct Socket {
     handler: Option<String>,
-    ifaces: Vec<String>,
+    ifaces: HashSet<String>,
 }
 
 impl Socket {
+    /// Create a new Socket with defaults. Further initialization is required
+    /// before attaching.
     pub fn new() -> Self {
         Default::default()
     }
 
+    /// Specify the name of the probe handler within the BPF code. This is a
+    /// required item.
     pub fn handler(mut self, handler: &str) -> Self {
         self.handler = Some(handler.to_owned());
         self
     }
 
-    pub fn iface(mut self, iface: &str) -> Self {
+    /// Add an interface to listen to
+    pub fn add_interface(mut self, iface: &str) -> Self {
         self.ifaces.push(iface.to_owned());
         self
     }
 
-    pub fn ifaces(mut self, ifaces: &Vec<String>) -> Self {
-        self.ifaces.append(&mut ifaces.clone());
+    /// Add multiple interfaces to listen to
+    pub fn add_interfaces(mut self, ifaces: &[String]) -> Self {
+        self.ifaces.extend(ifaces.iter().cloned());
         self
     }
 
     pub fn attach(self, bpf: &mut BPF) -> Result<(), BccError> {
         if self.ifaces.len() == 0 {
             return Err(BccError::InvalidSocket {
-                message: "iface is required".to_string(),
+                message: "interface is required".to_string(),
             });
         }
 
