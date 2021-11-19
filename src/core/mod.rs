@@ -661,6 +661,25 @@ impl BPF {
         cache.resolve_name("", name)
     }
 
+    /// dump the specified function in bytes
+    /// user can decide which way to visualize the bpf code by Instruction
+    pub fn dump_func(&self, func_name: CString) -> Result<Vec<u8>, BccError> {
+        unsafe {
+            let raw_func_name = func_name.as_ptr();
+            let start = bpf_function_start(self.ptr(), raw_func_name);
+            if start.is_null() {
+                return Err(BccError::UnknownSymbol {
+                    name: func_name.as_c_str().to_str().unwrap().to_owned(),
+                    module: "".into(),
+                });
+            }
+            let size = bpf_function_size(self.ptr(), raw_func_name);
+            let slice = std::ptr::slice_from_raw_parts(start as *const u8, size);
+            let slice = &*slice;
+            return Ok(slice.into());
+        }
+    }
+
     #[cfg(any(
         feature = "v0_6_0",
         feature = "v0_6_1",

@@ -20,6 +20,7 @@ pub mod table;
 mod tracepoint;
 mod types;
 mod uprobe;
+pub mod utils;
 mod xdp;
 
 #[macro_use]
@@ -33,3 +34,4 @@ pub use raw_tracepoint::RawTracepoint;
 pub use tracepoint::Tracepoint;
 pub use uprobe::{Uprobe, Uretprobe};
 pub use xdp::{Mode as XDPMode, XDP};
+pub use utils::*;
