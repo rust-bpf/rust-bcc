@@ -19,7 +19,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: |
-          bcc
+          deps
         key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
     - name: Run CI
       run: bash -e build/ci.sh
@@ -38,7 +38,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: |
-          bcc
+          deps
         key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
     - name: Run CI
       run: bash -e build/ci.sh
@@ -57,7 +57,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: |
-          bcc
+          deps
         key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
     - name: Run CI
       run: bash -e build/ci.sh
@@ -76,7 +76,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: |
-          bcc
+          deps
         key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
     - name: Run CI
       run: bash -e build/ci.sh
@@ -95,7 +95,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: |
-          bcc
+          deps
         key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
     - name: Run CI
       run: bash -e build/ci.sh
@@ -114,7 +114,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: |
-          bcc
+          deps
         key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
     - name: Run CI
       run: bash -e build/ci.sh
@@ -133,7 +133,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: |
-          bcc
+          deps
         key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
     - name: Run CI
       run: bash -e build/ci.sh
@@ -152,7 +152,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: |
-          bcc
+          deps
         key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
     - name: Run CI
       run: bash -e build/ci.sh

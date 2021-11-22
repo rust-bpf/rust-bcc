@@ -38,13 +38,15 @@ sudo apt-get --yes install clang-"${LLVM_PACKAGE}" \
 ## Install Valgrind and libc debugging symbols
 sudo apt-get --yes install libc6-dbg
 
-pushd /tmp
+mkdir deps
+cd deps
+
 curl -L -O https://sourceware.org/pub/valgrind/valgrind-3.16.1.tar.bz2
 tar xjf valgrind-3.16.1.tar.bz2
 cd valgrind-3.16.1
 ./configure
 sudo make -j2 install
-popd
+cd ..
 
 # For static builds, we need to compile the following
 if [[ $STATIC == true ]]; then
@@ -163,7 +165,7 @@ cmake .. -DCMAKE_INSTALL_PREFIX=/usr
 make -j2
 sudo make install
 find . -name "*.a" -exec sudo cp -v {} /usr/lib/ \;
-cd ../..
+cd ../../..
 
 ## Build and test
 if [ -n "${FEATURES}" ]; then
