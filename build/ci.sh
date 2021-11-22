@@ -12,15 +12,6 @@ function test {
     sudo $runner target/release/examples/runqlat --interval 1 --windows 5
     echo "opensnoop"
     sudo $runner target/release/examples/opensnoop --duration 5
-
-    # note: this example may not work on some newer kernel versions
-    if [[ "${DIST}" == "xenial" ]]; then
-        echo "biosnoop"
-        sudo $runner target/release/examples/biosnoop --duration 5
-    fi
-
-    echo "tcpretrans"
-    sudo $runner target/release/examples/tcpretrans --duration 5
     echo "contextswitch"
     sudo $runner target/release/examples/contextswitch --duration 5
 }
