@@ -30,10 +30,22 @@ struct latency_event_t {
 
 impl fmt::Display for latency_event_t {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let now = time::OffsetDateTime::now_utc();
+        let date = now.date();
+        let time = now.time();
+        let dt_string = format!("{:04}-{:02}-{:02}T{:02}:{:02}:{:02}.{:09}Z",
+            date.year(),
+            date.month() as u8,
+            date.day(),
+            time.hour(),
+            time.minute(),
+            time.second(),
+            time.nanosecond(),
+        );
         write!(
             f,
             "{:<9} {:<6} {:<16} {:>10.2} {}",
-            chrono::Utc::now().format("%T"),
+            dt_string,
             self.pid,
             get_string(&self.comm),
             (self.delta as f32) / 1e6,
@@ -62,7 +74,7 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     let libc_so_path = "/lib/x86_64-linux-gnu/libc.so.6";
     let code = include_str!("gethostlatency.c");
     let mut module = BPF::new(code)?;
-    for symbol in vec!["getaddrinfo", "gethostbyname", "gethostbyname2"] {
+    for symbol in &["getaddrinfo", "gethostbyname", "gethostbyname2"] {
         Uprobe::new()
             .handler("do_entry")
             .binary(libc_so_path)
