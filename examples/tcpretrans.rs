@@ -1,6 +1,5 @@
 use bcc::BccError;
 use bcc::{Kprobe, BPF};
-use chrono::Utc;
 use clap::{App, Arg};
 
 use core::sync::atomic::{AtomicBool, Ordering};
@@ -81,12 +80,28 @@ fn do_main(runnable: Arc<AtomicBool>) -> Result<(), BccError> {
     Ok(())
 }
 
+fn get_datetime() -> String {
+    let now = time::OffsetDateTime::now_utc();
+    let date = now.date();
+    let time = now.time();
+    format!(
+        "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}.{:09}Z",
+        date.year(),
+        date.month() as u8,
+        date.day(),
+        time.hour(),
+        time.minute(),
+        time.second(),
+        time.nanosecond(),
+    )
+}
+
 fn print_ipv4_event() -> Box<dyn FnMut(&[u8]) + Send> {
     Box::new(|x| {
         let event = parse_ipv4_struct(x);
         println!(
             "{:<-8} {:<-6} {:<-2} {:<-20} {:->1}> {:<-20} {:>-4}",
-            Utc::now().format("%T"),
+            get_datetime(),
             event.pid,
             event.ip,
             format!("{}:{}", Ipv4Addr::from(event.saddr), event.lport),
@@ -102,7 +117,7 @@ fn print_ipv6_event() -> Box<dyn FnMut(&[u8]) + Send> {
         let event = parse_ipv6_struct(x);
         println!(
             "{:<-8} {:<-6} {:<-2}  {:<-20} {:->1}> {:<-20} {:>-4}",
-            Utc::now().format("%T"),
+            get_datetime(),
             event.pid,
             event.ip,
             format!("{}:{}", Ipv6Addr::from(event.saddr), event.lport),
