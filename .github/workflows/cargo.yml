@@ -16,6 +16,12 @@ jobs:
       STATIC: true
     steps:
     - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/bcc
+        key: ${{ runner.os }}-${{ env.LLVM }}-${{ env.BCC }}
     - name: Run CI
       run: bash -e build/ci.sh
   focal-llvm_9-bcc_v0_13_0:
@@ -29,6 +35,12 @@ jobs:
       STATIC: true
     steps:
     - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/bcc
+        key: ${{ runner.os }}-${{ env.LLVM }}-${{ env.BCC }}
     - name: Run CI
       run: bash -e build/ci.sh
   focal-llvm_9-bcc_v0_14_0:
@@ -42,6 +54,12 @@ jobs:
       STATIC: true
     steps:
     - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/bcc
+        key: ${{ runner.os }}-${{ env.LLVM }}-${{ env.BCC }}
     - name: Run CI
       run: bash -e build/ci.sh
   focal-llvm_9-bcc_v0_15_0:
@@ -55,6 +73,12 @@ jobs:
       STATIC: true
     steps:
     - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/bcc
+        key: ${{ runner.os }}-${{ env.LLVM }}-${{ env.BCC }}
     - name: Run CI
       run: bash -e build/ci.sh
   focal-llvm_9-bcc_v0_16_0:
@@ -68,6 +92,12 @@ jobs:
       STATIC: true
     steps:
     - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/bcc
+        key: ${{ runner.os }}-${{ env.LLVM }}-${{ env.BCC }}
     - name: Run CI
       run: bash -e build/ci.sh
   focal-llvm_9-bcc_v0_17_0:
@@ -81,6 +111,12 @@ jobs:
       STATIC: true
     steps:
     - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/bcc
+        key: ${{ runner.os }}-${{ env.LLVM }}-${{ env.BCC }}
     - name: Run CI
       run: bash -e build/ci.sh
   focal-llvm_9-bcc_v0_18_0:
@@ -94,6 +130,12 @@ jobs:
       STATIC: true
     steps:
     - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/bcc
+        key: ${{ runner.os }}-${{ env.LLVM }}-${{ env.BCC }}
     - name: Run CI
       run: bash -e build/ci.sh
   focal-llvm_9-bcc_v0_19_0:
@@ -107,6 +149,12 @@ jobs:
       STATIC: true
     steps:
     - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/bcc
+        key: ${{ runner.os }}-${{ env.LLVM }}-${{ env.BCC }}
     - name: Run CI
       run: bash -e build/ci.sh
   rustfmt:
