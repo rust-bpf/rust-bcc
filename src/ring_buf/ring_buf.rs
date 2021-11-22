@@ -48,6 +48,7 @@ impl RingBufBuilder {
         feature = "v0_16_0",
         feature = "v0_17_0",
         feature = "v0_18_0",
+        feature = "v0_19_0",
         not(feature = "specific")
     ))]
     /// Try constructing a `RingBuf` from the builder
@@ -111,6 +112,7 @@ pub struct RingBuf {
         feature = "v0_16_0",
         feature = "v0_17_0",
         feature = "v0_18_0",
+        feature = "v0_19_0",
         not(feature = "specific"),
     ))]
     ring_buf_manager: *mut bcc_sys::bccapi::ring_buffer,
@@ -122,6 +124,7 @@ impl RingBuf {
             feature = "v0_16_0",
             feature = "v0_17_0",
             feature = "v0_18_0",
+            feature = "v0_19_0",
             not(feature = "specific"),
         ))]
         unsafe {
@@ -134,6 +137,7 @@ impl RingBuf {
             feature = "v0_16_0",
             feature = "v0_17_0",
             feature = "v0_18_0",
+            feature = "v0_19_0",
             not(feature = "specific"),
         ))]
         unsafe {
@@ -148,6 +152,7 @@ impl Drop for RingBuf {
             feature = "v0_16_0",
             feature = "v0_17_0",
             feature = "v0_18_0",
+            feature = "v0_19_0",
             not(feature = "specific"),
         ))]
         unsafe {

@@ -12,10 +12,6 @@ function test {
     sudo $runner target/release/examples/runqlat --interval 1 --windows 5
     echo "opensnoop"
     sudo $runner target/release/examples/opensnoop --duration 5
-    echo "biosnoop"
-    sudo $runner target/release/examples/biosnoop --duration 5
-    echo "tcpretrans"
-    sudo $runner target/release/examples/tcpretrans --duration 5
     echo "contextswitch"
     sudo $runner target/release/examples/contextswitch --duration 5
 }
@@ -153,8 +149,11 @@ elif [[ "${BCC}" == "0.16.0" ]]; then
     git checkout fecd934a9c0ff581890d218ff6c5101694e9b326
 elif [[ "${BCC}" == "0.17.0" ]]; then
     git checkout ad5b82a5196b222ed2cdc738d8444e8c9546a77f
+elif [[ "${BCC}" == "0.18.0" ]]; then
+    git checkout b1ab869032611d9fcdaea56851cd6126cca2eba8
+elif [[ "${BCC}" == "0.19.0" ]]; then
+    git checkout 4c561d037e2798563c2e87edcc5a406b020a458c
 fi
-
 ## Installing BCC dependencies
 sudo apt-get --yes install cmake bison
 

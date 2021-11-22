@@ -2,175 +2,8 @@ on: [push, pull_request]
 
 env:
   CARGO_TERM_COLOR: always
-  cache: 0
 
 jobs:
-  xenial-llvm_6-bcc_v0_6_0:
-    name: xenial / llvm 6.0 / bcc 0.6.0
-    runs-on: ubuntu-16.04
-    env:
-      BCC: "0.6.0"
-      DIST: xenial
-      FEATURES: v0_6_0
-      LLVM: "6"
-    steps:
-    - uses: actions/checkout@v2
-    - name: Run CI
-      run: bash -e build/ci.sh
-  xenial-llvm_6-bcc_v0_6_1:
-    name: xenial / llvm 6.0 / bcc 0.6.1
-    runs-on: ubuntu-16.04
-    env:
-      BCC: "0.6.1"
-      DIST: xenial
-      FEATURES: v0_6_1
-      LLVM: "6"
-    steps:
-    - uses: actions/checkout@v2
-    - name: Run CI
-      run: bash -e build/ci.sh
-  xenial-llvm_6-bcc_v0_7_0:
-    name: xenial / llvm 6.0 / bcc 0.7.0
-    runs-on: ubuntu-16.04
-    env:
-      BCC: "0.7.0"
-      DIST: xenial
-      FEATURES: v0_7_0
-      LLVM: "6"
-    steps:
-    - uses: actions/checkout@v2
-    - name: Run CI
-      run: bash -e build/ci.sh
-  xenial-llvm_8-bcc_v0_8_0:
-    name: xenial / llvm 8 / bcc 0.8.0
-    runs-on: ubuntu-16.04
-    env:
-      BCC: "0.8.0"
-      DIST: xenial
-      FEATURES: v0_8_0
-      LLVM: "8"
-      STATIC: true
-    steps:
-    - uses: actions/checkout@v2
-    - name: Run CI
-      run: bash -e build/ci.sh
-  xenial-llvm_8-bcc_v0_9_0:
-    name: xenial / llvm 8 / bcc 0.9.0
-    runs-on: ubuntu-16.04
-    env:
-      BCC: "0.9.0"
-      DIST: xenial
-      FEATURES: v0_9_0
-      LLVM: "8"
-      STATIC: true
-    steps:
-    - uses: actions/checkout@v2
-    - name: Run CI
-      run: bash -e build/ci.sh
-  xenial-llvm_8-bcc_v0_10_0:
-    name: xenial / llvm 8 / bcc 0.10.0
-    runs-on: ubuntu-16.04
-    env:
-      BCC: "0.10.0"
-      DIST: xenial
-      FEATURES: v0_10_0
-      LLVM: "8"
-      STATIC: true
-    steps:
-    - uses: actions/checkout@v2
-    - name: Run CI
-      run: bash -e build/ci.sh
-  xenial-llvm_8-bcc_v0_11_0:
-    name: xenial / llvm 8 / bcc 0.11.0
-    runs-on: ubuntu-16.04
-    env:
-      BCC: "0.11.0"
-      DIST: xenial
-      FEATURES: v0_11_0
-      LLVM: "8"
-      STATIC: true
-    steps:
-    - uses: actions/checkout@v2
-    - name: Run CI
-      run: bash -e build/ci.sh
-  xenial-llvm_8-bcc_v0_12_0:
-    name: xenial / llvm 8 / bcc 0.12.0
-    runs-on: ubuntu-16.04
-    env:
-      BCC: "0.12.0"
-      DIST: xenial
-      FEATURES: v0_12_0
-      LLVM: "8"
-      STATIC: true
-    steps:
-    - uses: actions/checkout@v2
-    - name: Run CI
-      run: bash -e build/ci.sh
-  xenial-llvm_8-bcc_v0_13_0:
-    name: xenial / llvm 8 / bcc 0.13.0
-    runs-on: ubuntu-16.04
-    env:
-      BCC: "0.13.0"
-      DIST: xenial
-      FEATURES: v0_13_0
-      LLVM: "8"
-      STATIC: true
-    steps:
-    - uses: actions/checkout@v2
-    - name: Run CI
-      run: bash -e build/ci.sh
-  xenial-llvm_8-bcc_v0_14_0:
-    name: xenial / llvm 8 / bcc 0.14.0
-    runs-on: ubuntu-16.04
-    env:
-      BCC: "0.14.0"
-      DIST: xenial
-      FEATURES: v0_14_0
-      LLVM: "8"
-      STATIC: true
-    steps:
-    - uses: actions/checkout@v2
-    - name: Run CI
-      run: bash -e build/ci.sh
-  xenial-llvm_8-bcc_v0_15_0:
-    name: xenial / llvm 8 / bcc 0.15.0
-    runs-on: ubuntu-16.04
-    env:
-      BCC: "0.15.0"
-      DIST: xenial
-      FEATURES: v0_15_0
-      LLVM: "8"
-      STATIC: true
-    steps:
-    - uses: actions/checkout@v2
-    - name: Run CI
-      run: bash -e build/ci.sh
-  xenial-llvm_8-bcc_v0_16_0:
-    name: xenial / llvm 8 / bcc 0.16.0
-    runs-on: ubuntu-16.04
-    env:
-      BCC: "0.16.0"
-      DIST: xenial
-      FEATURES: v0_16_0
-      LLVM: "8"
-      STATIC: true
-    steps:
-    - uses: actions/checkout@v2
-    - name: Run CI
-      run: bash -e build/ci.sh
-  xenial-llvm_8-bcc_v0_17_0:
-    name: xenial / llvm 8 / bcc 0.17.0
-    runs-on: ubuntu-16.04
-    env:
-      BCC: "0.17.0"
-      DIST: xenial
-      FEATURES: v0_17_0
-      LLVM: "8"
-      STATIC: true
-    steps:
-    - uses: actions/checkout@v2
-    - name: Run CI
-      run: bash -e build/ci.sh
   focal-llvm_9-bcc_v0_12_0:
     name: focal / llvm 9 / bcc 0.12.0
     runs-on: ubuntu-20.04
@@ -182,6 +15,12 @@ jobs:
       STATIC: true
     steps:
     - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          bcc
+        key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
     - name: Run CI
       run: bash -e build/ci.sh
   focal-llvm_9-bcc_v0_13_0:
@@ -195,6 +34,12 @@ jobs:
       STATIC: true
     steps:
     - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          bcc
+        key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
     - name: Run CI
       run: bash -e build/ci.sh
   focal-llvm_9-bcc_v0_14_0:
@@ -208,6 +53,12 @@ jobs:
       STATIC: true
     steps:
     - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          bcc
+        key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
     - name: Run CI
       run: bash -e build/ci.sh
   focal-llvm_9-bcc_v0_15_0:
@@ -221,6 +72,12 @@ jobs:
       STATIC: true
     steps:
     - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          bcc
+        key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
     - name: Run CI
       run: bash -e build/ci.sh
   focal-llvm_9-bcc_v0_16_0:
@@ -234,6 +91,12 @@ jobs:
       STATIC: true
     steps:
     - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          bcc
+        key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
     - name: Run CI
       run: bash -e build/ci.sh
   focal-llvm_9-bcc_v0_17_0:
@@ -247,6 +110,50 @@ jobs:
       STATIC: true
     steps:
     - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          bcc
+        key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
+    - name: Run CI
+      run: bash -e build/ci.sh
+  focal-llvm_9-bcc_v0_18_0:
+    name: focal / llvm 9 / bcc 0.18.0
+    runs-on: ubuntu-20.04
+    env:
+      BCC: "0.18.0"
+      DIST: focal
+      FEATURES: v0_18_0
+      LLVM: "9"
+      STATIC: true
+    steps:
+    - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          bcc
+        key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
+    - name: Run CI
+      run: bash -e build/ci.sh
+  focal-llvm_9-bcc_v0_19_0:
+    name: focal / llvm 9 / bcc 0.19.0
+    runs-on: ubuntu-20.04
+    env:
+      BCC: "0.19.0"
+      DIST: focal
+      FEATURES: v0_19_0
+      LLVM: "9"
+      STATIC: true
+    steps:
+    - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          bcc
+        key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
     - name: Run CI
       run: bash -e build/ci.sh
   rustfmt:
