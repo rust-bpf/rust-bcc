@@ -33,7 +33,8 @@ impl fmt::Display for latency_event_t {
         let now = time::OffsetDateTime::now_utc();
         let date = now.date();
         let time = now.time();
-        let dt_string = format!("{:04}-{:02}-{:02}T{:02}:{:02}:{:02}.{:09}Z",
+        let dt_string = format!(
+            "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}.{:09}Z",
             date.year(),
             date.month() as u8,
             date.day(),
