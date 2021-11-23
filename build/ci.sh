@@ -208,6 +208,8 @@ elif [[ "${BCC}" == "0.21.0" ]]; then
     git checkout 321c9c979889abce48d0844b3d539ec9a01e6f3c
 elif [[ "${BCC}" == "0.22.0" ]]; then
     git checkout 44fc17fc8ca0a53f37e82aa82a6a000ec28384c4
+elif [[ "${BCC}" == "0.23.0" ]]; then
+    git checkout 67f59ee80fcf5deedaacba1436d9fa09d32a16a0
 else
     echo "unsupported bcc version: ${BCC}"
     exit 1

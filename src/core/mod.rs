@@ -234,6 +234,7 @@ impl BPFBuilder {
         feature = "v0_20_0",
         feature = "v0_21_0",
         feature = "v0_22_0",
+        feature = "v0_23_0",
         not(feature = "specific")
     ))]
     fn create_module(&self) -> Result<MutPointer, BccError> {
@@ -367,6 +368,7 @@ impl BPF {
         feature = "v0_20_0",
         feature = "v0_21_0",
         feature = "v0_22_0",
+        feature = "v0_23_0",
         not(feature = "specific"),
     ))]
     unsafe fn load_func_impl(
@@ -427,6 +429,7 @@ impl BPF {
         feature = "v0_20_0",
         feature = "v0_21_0",
         feature = "v0_22_0",
+        feature = "v0_23_0",
         not(feature = "specific"),
     ))]
     pub fn load_func(&mut self, name: &str, bpf_prog_type: BpfProgType) -> Result<i32, BccError> {
@@ -598,6 +601,7 @@ impl BPF {
         feature = "v0_20_0",
         feature = "v0_21_0",
         feature = "v0_22_0",
+        feature = "v0_23_0",
         not(feature = "specific"),
     ))]
     /// load the named BPF program from within the compiled BPF code
@@ -696,6 +700,7 @@ impl BPF {
         feature = "v0_20_0",
         feature = "v0_21_0",
         feature = "v0_22_0",
+        feature = "v0_23_0",
         not(feature = "specific"),
     ))]
     /// Returns true if raw tracepoints are supported by the running kernel
