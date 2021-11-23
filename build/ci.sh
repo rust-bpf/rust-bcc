@@ -88,9 +88,7 @@ if [[ $STATIC == true ]]; then
         tar xzf zlib-${ZLIB_VERSION}.tar.gz
     fi
     cd zlib-${ZLIB_VERSION}
-    if [ ! -f Makefile ]; then
-        ./configure --prefix=/usr
-    fi
+    ./configure --prefix=/usr
     make -j2
     sudo make install
     cd ..
