@@ -31,6 +31,7 @@ pub use self::v0_4_0::{usdt_generate_args, USDTContext};
     feature = "v0_17_0",
     feature = "v0_18_0",
     feature = "v0_19_0",
+    feature = "v0_20_0",
     not(feature = "specific"),
 ))]
 mod v0_10_0;
@@ -46,6 +47,7 @@ mod v0_10_0;
     feature = "v0_17_0",
     feature = "v0_18_0",
     feature = "v0_19_0",
+    feature = "v0_20_0",
     not(feature = "specific"),
 ))]
 pub use self::v0_10_0::{usdt_generate_args, USDTContext};
