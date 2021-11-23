@@ -12,7 +12,7 @@ homepage = "https://github.com/rust-bpf/rust-bcc"
 edition = '2018'
 
 [dependencies]
-bcc-sys = "0.21.0"
+bcc-sys = "0.23.0"
 byteorder = "1.4.3"
 libc = "0.2.108"
 thiserror = "1.0.30"
@@ -48,3 +48,5 @@ v0_18_0 = ["bcc-sys/v0_18_0", "specific"]
 v0_19_0 = ["bcc-sys/v0_19_0", "specific"]
 v0_20_0 = ["bcc-sys/v0_20_0", "specific"]
 v0_21_0 = ["bcc-sys/v0_21_0", "specific"]
+v0_22_0 = ["bcc-sys/v0_22_0", "specific"]
+v0_23_0 = ["bcc-sys/v0_23_0", "specific"]
