@@ -29,14 +29,14 @@ else
 fi
 
 ## Install kernel headers and dependencies
-sudo apt-get --yes install linux-headers-"$(uname -r)"
-sudo apt-get --yes remove *llvm* *clang* *gtk*
+sudo apt-get --yes install linux-headers-"$(uname -r)" >/dev/null 2>&1
+sudo apt-get --yes remove *llvm* *clang* *gtk* >/dev/null 2>&1
 sudo apt-get --yes install clang-"${LLVM_PACKAGE}" \
     libclang-"${LLVM_PACKAGE}"-dev libelf-dev libfl-dev \
-    llvm-"${LLVM_PACKAGE}"-dev libz-dev llvm-"${LLVM_PACKAGE}"
+    llvm-"${LLVM_PACKAGE}"-dev libz-dev llvm-"${LLVM_PACKAGE}" >/dev/null 2>&1
 
 ## Install Valgrind and libc debugging symbols
-sudo apt-get --yes install libc6-dbg
+sudo apt-get --yes install libc6-dbg >/dev/null 2>&1
 
 mkdir -p deps
 cd deps
@@ -59,7 +59,7 @@ cd ..
 # For static builds, we need to compile the following
 if [[ $STATIC == true ]]; then
     ## Installing make dependencies
-    sudo apt-get --yes install autoconf libtool pkg-config
+    sudo apt-get --yes install autoconf libtool pkg-config >/dev/null 2>&1
 
     export CPPFLAGS="-P"
     export CFLAGS="-fPIC"
@@ -157,7 +157,7 @@ fi
 
 
 ## Installing BCC dependencies
-sudo apt-get --yes install cmake bison
+sudo apt-get --yes install cmake bison >/dev/null 2>&1
 
 ## build/install BCC
 echo "build bcc"
