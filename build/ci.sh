@@ -122,7 +122,9 @@ if [[ $STATIC == true ]]; then
     cd ..
 
     echo "build libxml2"
-    git clone https://gitlab.gnome.org/GNOME/libxml2
+    if [ ! -d libxml2 ]; then
+        git clone https://gitlab.gnome.org/GNOME/libxml2
+    fi
     cd libxml2
     git checkout ${LIBXML2_SHA}
     if [ ! -f Makefile ]; then
