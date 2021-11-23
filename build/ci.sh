@@ -157,6 +157,8 @@ elif [[ "${BCC}" == "0.19.0" ]]; then
     git checkout 4c561d037e2798563c2e87edcc5a406b020a458c
 elif [[ "${BCC}" == "0.20.0" ]]; then
     git checkout 14278bf1a52dd76ff66eed02cc9db7c7ec240da6
+elif [[ "${BCC}" == "0.20.0" ]]; then
+    git checkout 321c9c979889abce48d0844b3d539ec9a01e6f3c
 fi
 ## Installing BCC dependencies
 sudo apt-get --yes install cmake bison
