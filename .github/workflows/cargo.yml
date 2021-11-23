@@ -156,13 +156,32 @@ jobs:
         key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
     - name: Run CI
       run: bash -e build/ci.sh
-    focal-llvm_9-bcc_v0_20_0:
+  focal-llvm_9-bcc_v0_20_0:
     name: focal / llvm 9 / bcc 0.20.0
     runs-on: ubuntu-20.04
     env:
       BCC: "0.20.0"
       DIST: focal
       FEATURES: v0_20_0
+      LLVM: "9"
+      STATIC: true
+    steps:
+    - uses: actions/checkout@v2
+    - name: BCC Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          deps
+        key: ${{ env.DIST }}-${{ env.LLVM }}-${{ env.BCC }}
+    - name: Run CI
+      run: bash -e build/ci.sh
+  focal-llvm_9-bcc_v0_21_0:
+    name: focal / llvm 9 / bcc 0.21.0
+    runs-on: ubuntu-20.04
+    env:
+      BCC: "0.21.0"
+      DIST: focal
+      FEATURES: v0_21_0
       LLVM: "9"
       STATIC: true
     steps:

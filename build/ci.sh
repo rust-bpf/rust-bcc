@@ -29,92 +29,139 @@ else
 fi
 
 ## Install kernel headers and dependencies
-sudo apt-get --yes install linux-headers-"$(uname -r)"
-sudo apt-get --yes remove *llvm* *clang* *gtk*
+sudo apt-get --yes install linux-headers-"$(uname -r)" >/dev/null 2>&1
+sudo apt-get --yes remove *llvm* *clang* *gtk* >/dev/null 2>&1
 sudo apt-get --yes install clang-"${LLVM_PACKAGE}" \
     libclang-"${LLVM_PACKAGE}"-dev libelf-dev libfl-dev \
-    llvm-"${LLVM_PACKAGE}"-dev libz-dev llvm-"${LLVM_PACKAGE}"
+    llvm-"${LLVM_PACKAGE}"-dev libz-dev llvm-"${LLVM_PACKAGE}" >/dev/null 2>&1
 
 ## Install Valgrind and libc debugging symbols
-sudo apt-get --yes install libc6-dbg
+sudo apt-get --yes install libc6-dbg >/dev/null 2>&1
 
-mkdir deps
+mkdir -p deps
 cd deps
 
-curl -L -O https://sourceware.org/pub/valgrind/valgrind-3.16.1.tar.bz2
-tar xjf valgrind-3.16.1.tar.bz2
-cd valgrind-3.16.1
-./configure
-sudo make -j2 install
+VALGRIND_VERSION="3.16.1"
+
+echo "build valgrind"
+date -u
+if [ ! -d valgrind-${VALGRIND_VERSION} ]; then
+    curl -L -O https://sourceware.org/pub/valgrind/valgrind-${VALGRIND_VERSION}.tar.bz2
+    tar xjf valgrind-${VALGRIND_VERSION}.tar.bz2
+fi
+cd valgrind-${VALGRIND_VERSION}
+if [ ! -f Makefile ]; then
+    ./configure >/dev/null 2>&1
+fi
+sudo make -j2 install >/dev/null 2>&1
 cd ..
 
 # For static builds, we need to compile the following
 if [[ $STATIC == true ]]; then
+    ## Installing make dependencies
+    sudo apt-get --yes install autoconf libtool pkg-config >/dev/null 2>&1
+
     export CPPFLAGS="-P"
     export CFLAGS="-fPIC"
 
-    ## Installing make dependencies
-    sudo apt-get --yes install autoconf libtool pkg-config
+    BINUTILS_VERSION="2.34.90"
+    ZLIB_VERSION="1.2.11"
+    XZ_VERSION="5.2.5"
+    NCURSES_VERSION="6.2"
+    LIBXML2_SHA="41a34e1f4ffae2ce401600dbb5fe43f8fe402641"
+    ELFUTILS_VERSION="0.180"
 
     echo "build binutils"
-    curl -L -O ftp://sourceware.org/pub/binutils/snapshots/binutils-2.34.90.tar.xz
-    tar xf binutils-2.34.90.tar.xz
-    cd binutils-2.34.90
-    ./configure --prefix=/usr
-    make -j2
-    sudo make install
+    date -u
+    if [ ! -d binutils-${BINUTILS_VERSION} ]; then
+        curl -L -O ftp://sourceware.org/pub/binutils/snapshots/binutils-${BINUTILS_VERSION}.tar.xz
+        tar xf binutils-${BINUTILS_VERSION}.tar.xz
+    fi
+    cd binutils-${BINUTILS_VERSION}
+    if [ ! -f Makefile ]; then
+        ./configure --prefix=/usr >/dev/null 2>&1
+    fi
+    make -j2 >/dev/null 2>&1
+    sudo make install >/dev/null 2>&1
     cd ..
 
     echo "build zlib"
-    curl -L -O https://zlib.net/zlib-1.2.11.tar.gz
-    tar xzf zlib-1.2.11.tar.gz
-    cd zlib-1.2.11
-    ./configure --prefix=/usr
-    make -j2
-    sudo make install
+    date -u
+    if [ ! -d zlib-${ZLIB_VERSION} ]; then
+        curl -L -O https://zlib.net/zlib-${ZLIB_VERSION}.tar.gz
+        tar xzf zlib-${ZLIB_VERSION}.tar.gz
+    fi
+    cd zlib-${ZLIB_VERSION}
+    ./configure --prefix=/usr >/dev/null 2>&1
+    make -j2 >/dev/null 2>&1
+    sudo make install >/dev/null 2>&1
     cd ..
 
     echo "build xz"
-    curl -L -O https://tukaani.org/xz/xz-5.2.5.tar.gz
-    tar xzf xz-5.2.5.tar.gz
-    cd xz-5.2.5
-    ./configure --prefix=/usr
-    make -j2
-    sudo make install
+    date -u
+    if [ ! -d xz-${XZ_VERSION} ]; then
+        curl -L -O https://tukaani.org/xz/xz-${XZ_VERSION}.tar.gz
+        tar xzf xz-${XZ_VERSION}.tar.gz
+    fi
+    cd xz-${XZ_VERSION}
+    if [ ! -f Makefile ]; then
+        ./configure --prefix=/usr >/dev/null 2>&1
+    fi
+    make -j2 >/dev/null 2>&1
+    sudo make install >/dev/null 2>&1
     cd ..
 
     echo "build ncurses"
-    curl -L -O ftp://ftp.invisible-island.net/ncurses/ncurses-6.2.tar.gz
-    tar xzf ncurses-6.2.tar.gz
-    cd ncurses-6.2
-    ./configure --prefix=/usr --with-termlib
-    make -j2
-    sudo make install
+    date -u
+    if [ ! -d ncurses-${NCURSES_VERSION} ]; then
+        curl -L -O ftp://ftp.invisible-island.net/ncurses/ncurses-${NCURSES_VERSION}.tar.gz
+        tar xzf ncurses-${NCURSES_VERSION}.tar.gz
+    fi
+    cd ncurses-${NCURSES_VERSION}
+    if [ ! -f Makefile ]; then
+        ./configure --prefix=/usr --with-termlib >/dev/null 2>&1
+    fi
+    make -j2 >/dev/null 2>&1
+    sudo make install >/dev/null 2>&1
     cd ..
 
     echo "build libxml2"
-    if [[ ! -d libxml2 ]]; then
+    date -u
+    if [ ! -d libxml2 ]; then
         git clone https://gitlab.gnome.org/GNOME/libxml2
     fi
     cd libxml2
-    git checkout 41a34e1f4ffae2ce401600dbb5fe43f8fe402641
-    autoreconf -fvi
-    ./configure --prefix=/usr --without-python
-    make -j2
-    sudo make install
+    git checkout ${LIBXML2_SHA}
+    if [ ! -f Makefile ]; then
+        autoreconf -fvi >/dev/null 2>&1
+        ./configure --prefix=/usr --without-python >/dev/null 2>&1
+    fi
+    make -j2 >/dev/null 2>&1
+    sudo make install >/dev/null 2>&1
     cd ..
 
     echo "build elfutils"
-    curl -L -O ftp://sourceware.org/pub/elfutils/0.180/elfutils-0.180.tar.bz2
-    tar xjf elfutils-0.180.tar.bz2
-    cd elfutils-0.180
-    ./configure --prefix=/usr --disable-debuginfod
-    make -j2
-    sudo make install
+    date -u
+    if [ ! -d elfutils-${ELFUTILS_VERSION} ]; then
+        curl -L -O ftp://sourceware.org/pub/elfutils/0.180/elfutils-${ELFUTILS_VERSION}.tar.bz2
+        tar xjf elfutils-${ELFUTILS_VERSION}.tar.bz2
+    fi
+    cd elfutils-${ELFUTILS_VERSION}
+    if [ ! -f Makefile ]; then
+        ./configure --prefix=/usr --disable-debuginfod >/dev/null 2>&1
+    fi
+    make -j2 >/dev/null 2>&1
+    sudo make install >/dev/null 2>&1
     cd ..
 fi
 
+
+## Installing BCC dependencies
+sudo apt-get --yes install cmake bison >/dev/null 2>&1
+
 ## build/install BCC
+echo "build bcc"
+date -u
 if [[ ! -d bcc ]]; then
     git clone https://github.com/iovisor/bcc
 fi
@@ -157,17 +204,24 @@ elif [[ "${BCC}" == "0.19.0" ]]; then
     git checkout 4c561d037e2798563c2e87edcc5a406b020a458c
 elif [[ "${BCC}" == "0.20.0" ]]; then
     git checkout 14278bf1a52dd76ff66eed02cc9db7c7ec240da6
+elif [[ "${BCC}" == "0.21.0" ]]; then
+    git checkout 321c9c979889abce48d0844b3d539ec9a01e6f3c
+else
+    echo "unsupported bcc version: ${BCC}"
+    exit 1
 fi
-## Installing BCC dependencies
-sudo apt-get --yes install cmake bison
-
 mkdir -p _build
 cd _build
-cmake .. -DCMAKE_INSTALL_PREFIX=/usr
-make -j2
-sudo make install
+if [ ! -f Makefile ]; then
+    cmake .. -DCMAKE_INSTALL_PREFIX=/usr >/dev/null 2>&1
+fi
+make -j2 >/dev/null 2>&1
+sudo make install >/dev/null 2>&1
 find . -name "*.a" -exec sudo cp -v {} /usr/lib/ \;
 cd ../../..
+
+echo "prerequisite build complete"
+date -u
 
 ## Build and test
 if [ -n "${FEATURES}" ]; then
