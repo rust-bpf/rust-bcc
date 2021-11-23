@@ -38,7 +38,7 @@ sudo apt-get --yes install clang-"${LLVM_PACKAGE}" \
 ## Install Valgrind and libc debugging symbols
 sudo apt-get --yes install libc6-dbg
 
-mkdir deps
+mkdir -p deps
 cd deps
 
 curl -L -O https://sourceware.org/pub/valgrind/valgrind-3.16.1.tar.bz2
