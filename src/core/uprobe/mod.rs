@@ -36,8 +36,26 @@ mod v0_6_0;
 ))]
 pub use v0_6_0::*;
 
-#[cfg(any(feature = "v0_17_0", feature = "v0_18_0", not(feature = "specific"),))]
+#[cfg(any(
+    feature = "v0_17_0",
+    feature = "v0_18_0",
+    feature = "v0_19_0",
+    feature = "v0_20_0",
+    feature = "v0_21_0",
+    feature = "v0_22_0",
+    feature = "v0_23_0",
+    not(feature = "specific"),
+))]
 mod v0_17_0;
 
-#[cfg(any(feature = "v0_17_0", feature = "v0_18_0", not(feature = "specific"),))]
+#[cfg(any(
+    feature = "v0_17_0",
+    feature = "v0_18_0",
+    feature = "v0_19_0",
+    feature = "v0_20_0",
+    feature = "v0_21_0",
+    feature = "v0_22_0",
+    feature = "v0_23_0",
+    not(feature = "specific"),
+))]
 pub use v0_17_0::*;

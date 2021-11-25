@@ -133,6 +133,12 @@ fn run_tail_calls() {
     feature = "v0_15_0",
     feature = "v0_16_0",
     feature = "v0_17_0",
+    feature = "v0_18_0",
+    feature = "v0_19_0",
+    feature = "v0_20_0",
+    feature = "v0_21_0",
+    feature = "v0_22_0",
+    feature = "v0_23_0",
     not(feature = "specific"),
 ))]
 fn run_tail_calls() {

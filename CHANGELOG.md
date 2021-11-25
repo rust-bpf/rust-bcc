@@ -1,5 +1,16 @@
 # [Unreleased]
 
+# [0.0.32] - 2021-11-23
+## Added
+- Adds support for bcc 0.19.0
+- Adds support for bcc 0.20.0
+- Adds support for bcc 0.21.0
+- Adds support for bcc 0.22.0
+- Adds support for bcc 0.23.0
+
+## Changed
+- Default bcc version is now 0.23.0
+
 # [0.0.31] - 2021-03-29
 ## Fixed
 - Fixed a few examples to use unaligned pointer reads.
@@ -209,7 +220,8 @@
 
 Initial release.
 
-[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.31...HEAD
+[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.32...HEAD
+[0.0.32]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.31...v0.0.32
 [0.0.31]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.30...v0.0.31
 [0.0.30]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.29...v0.0.30
 [0.0.29]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.28...v0.0.29
