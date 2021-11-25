@@ -18,7 +18,7 @@ pub fn trace_read() -> Result<String> {
     let path = Path::new(&p);
     let f = File::open(path).unwrap();
     let mut reader = BufReader::new(f);
-    // bpf's output is restrainted by it's stack size 
+    // bpf's output is restrainted by it's stack size
     let mut buf = String::with_capacity(128);
     reader.read_line(&mut buf)?;
     Ok(buf)
@@ -59,14 +59,14 @@ fn bytes_to_string(bytes: &[u8]) -> String {
     String::from_utf8(bytes.to_owned()).unwrap()
 }
 
-pub fn clear_screen(){
+pub fn clear_screen() {
     print!("\x1B[2J\x1B[1;1H");
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     /// test the parser with single line in /sys/kernel/debug/tracing/trace_pipe
     #[test]
     fn t1() {
