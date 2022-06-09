@@ -22,6 +22,7 @@ mod types;
 mod uprobe;
 pub mod utils;
 mod xdp;
+mod socket;
 
 #[macro_use]
 extern crate bitflags;
@@ -35,3 +36,4 @@ pub use tracepoint::Tracepoint;
 pub use uprobe::{Uprobe, Uretprobe};
 pub use utils::*;
 pub use xdp::{Mode as XDPMode, XDP};
+pub use socket::{SocketWrapper, SocketBuilder};
