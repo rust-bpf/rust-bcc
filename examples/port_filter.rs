@@ -46,7 +46,6 @@ fn main() {
         )
         .get_matches();
 
-
     if cfg!(any(
         feature = "v0_4_0",
         feature = "v0_5_0",
