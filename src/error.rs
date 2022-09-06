@@ -19,6 +19,8 @@ pub enum BccError {
     AttachUretprobe { name: String },
     #[error("failed to attach XDP ({name}): code {code}")]
     AttachXDP { name: String, code: i32 },
+    #[error("failed to attach socket to {iface}: {error}")]
+    AttachSocket { iface: String, error: std::io::Error },
     #[error("{cause} requires bcc >= ({min_version})")]
     BccVersionTooLow { cause: String, min_version: String },
     #[error("error compiling bpf")]
@@ -53,6 +55,8 @@ pub enum BccError {
     InvalidCpuRange { range: String },
     #[error("field '{field}' contained interior null byte; can't convert to C string")]
     InvalidCString { field: &'static str },
+    #[error("socket has invalid configuration: {message}")]
+    InvalidSocket { message: String },
     #[error("error loading bpf program ({name}): {message}")]
     Loading { name: String, message: String },
     #[error("error opening perf buffer")]
