@@ -2,8 +2,8 @@ use bcc_sys::bccapi::bpf_prog_type_BPF_PROG_TYPE_SOCKET_FILTER as BPF_PROG_TYPE_
 use std::collections::HashSet;
 use std::iter::Iterator;
 
-use std::os::unix::io::FromRawFd;
 use socket2;
+use std::os::unix::io::FromRawFd;
 
 use crate::core::BPF;
 use crate::error::BccError;
@@ -19,10 +19,9 @@ pub struct SocketWrapper {
 impl SocketWrapper {
     // create a new Socket from an interface name and a socket file descriptor
     pub fn new(iface: String, socket_fd: i32) -> Self {
-        let socket = unsafe {socket2::Socket::from_raw_fd(socket_fd)};
+        let socket = unsafe { socket2::Socket::from_raw_fd(socket_fd) };
         Self { iface, socket }
     }
-
 }
 
 /// An object that can attach a bpf program to a socket which runs on every
@@ -70,7 +69,7 @@ impl SocketBuilder {
         if self.handler.is_none() {
             return Err(BccError::InvalidSocket {
                 message: "handler is required".to_string(),
-            })
+            });
         }
 
         let code_fd = bpf.load(&self.handler.unwrap(), BPF_PROG_TYPE_SOCKET_FILTER, 0, 0)?;

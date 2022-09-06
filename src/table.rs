@@ -14,7 +14,7 @@ pub struct Table {
 }
 
 impl Table {
-    pub fn new(id: usize, p: MutPointer) -> Table {
+    pub(crate) fn new(id: usize, p: MutPointer) -> Table {
         Table { id, p }
     }
 

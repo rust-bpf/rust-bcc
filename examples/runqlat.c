@@ -41,7 +41,7 @@ int trace_run(struct pt_regs *ctx, struct task_struct *prev)
 {
     u32 pid, tgid;
     // ivcsw: treat like an enqueue event and store timestamp
-    if (prev->state == TASK_RUNNING) {
+    if (prev->__state == TASK_RUNNING) {
         tgid = prev->tgid;
         pid = prev->pid;
         if (pid != 0) {
@@ -91,7 +91,7 @@ int raw_tp__sched_switch(struct bpf_raw_tracepoint_args *ctx)
     u32 pid, tgid;
 
     // ivcsw: treat like an enqueue event and store timestamp
-    if (prev->state == TASK_RUNNING) {
+    if (prev->__state == TASK_RUNNING) {
         tgid = prev->tgid;
         pid = prev->pid;
         if (pid != 0) {

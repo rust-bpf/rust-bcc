@@ -19,7 +19,7 @@ impl RawSocket {
                 error: std::io::Error::last_os_error(),
             });
         }
-        
+
         let res = unsafe { bpf_attach_socket(sock_fd, code_fd.as_raw_fd()) };
         if res < 0 {
             return Err(BccError::AttachSocket {
@@ -29,7 +29,7 @@ impl RawSocket {
         }
 
         // set O_NONBLOCK to false
-        // otherwise read/send will result in a "Resource temporarily unavailable" error 
+        // otherwise read/send will result in a "Resource temporarily unavailable" error
         let mut flags = unsafe { libc::fcntl(sock_fd, libc::F_GETFL) };
         flags = flags & !libc::O_NONBLOCK;
         unsafe {
