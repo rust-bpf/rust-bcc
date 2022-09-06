@@ -67,7 +67,7 @@ fn main() {
         feature = "v0_20_0",
     )) {
         println!("not supported for bcc < 0.21.0");
-        std::process::exit(2);
+        std::process::exit(0);
     }
 
     let ifaces = matches
