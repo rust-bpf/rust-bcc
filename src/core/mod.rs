@@ -2,11 +2,11 @@ mod kprobe;
 mod perf_event;
 mod perf_event_array;
 mod raw_tracepoint;
+mod socket;
 mod tracepoint;
 mod uprobe;
 mod usdt;
 mod xdp;
-mod socket;
 
 use bcc_sys::bccapi::*;
 
@@ -14,9 +14,9 @@ pub(crate) use self::kprobe::Kprobe;
 pub(crate) use self::perf_event::PerfEvent;
 pub(crate) use self::perf_event_array::PerfEventArray;
 pub(crate) use self::raw_tracepoint::RawTracepoint;
+pub(crate) use self::socket::RawSocket;
 pub(crate) use self::tracepoint::Tracepoint;
 pub(crate) use self::uprobe::Uprobe;
-pub(crate) use self::socket::RawSocket;
 pub use self::usdt::{usdt_generate_args, USDTContext};
 pub(crate) use self::xdp::XDP;
 use crate::helpers::to_cstring;

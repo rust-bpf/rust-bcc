@@ -15,6 +15,7 @@ mod kprobe;
 pub mod perf_event;
 mod raw_tracepoint;
 pub mod ring_buf;
+mod socket;
 pub mod symbol;
 pub mod table;
 mod tracepoint;
@@ -22,7 +23,6 @@ mod types;
 mod uprobe;
 pub mod utils;
 mod xdp;
-mod socket;
 
 #[macro_use]
 extern crate bitflags;
@@ -32,8 +32,8 @@ pub use error::BccError;
 pub use kprobe::{Kprobe, Kretprobe};
 pub use perf_event::{PerfEvent, PerfEventArray, PerfMap};
 pub use raw_tracepoint::RawTracepoint;
+pub use socket::{SocketBuilder, SocketWrapper};
 pub use tracepoint::Tracepoint;
 pub use uprobe::{Uprobe, Uretprobe};
 pub use utils::*;
 pub use xdp::{Mode as XDPMode, XDP};
-pub use socket::{SocketWrapper, SocketBuilder};

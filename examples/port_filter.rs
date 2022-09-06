@@ -1,8 +1,8 @@
 use bcc::SocketBuilder;
 use bcc::BPF;
 use clap::{App, Arg};
-use std::{thread, time};
 use std::io::Read;
+use std::{thread, time};
 
 const DEFAULT_DURATION: u64 = 120; // Seconds
 
@@ -10,8 +10,11 @@ pub fn recv_loop(mut socket_wrapper: bcc::SocketWrapper) {
     loop {
         let mut buf: [u8; 2048] = [0; 2048];
         match socket_wrapper.socket.read(&mut buf) {
-            Ok(bytes) => println!("read {} bytes on interface {}", bytes, &socket_wrapper.iface),
-            Err(err) => panic!("error whild reading from socket: {}", err)
+            Ok(bytes) => println!(
+                "read {} bytes on interface {}",
+                bytes, &socket_wrapper.iface
+            ),
+            Err(err) => panic!("error whild reading from socket: {}", err),
         }
     }
 }
@@ -39,7 +42,7 @@ fn main() {
                 .short("p")
                 .help("The port to filter")
                 .takes_value(true)
-                .default_value("8080")
+                .default_value("8080"),
         )
         .get_matches();
 
@@ -60,7 +63,7 @@ fn main() {
 
     let code = include_str!("port_filter.c").replace("{dst_port}", port);
 
-    let mut bpf= BPF::new(&code).unwrap();
+    let mut bpf = BPF::new(&code).unwrap();
 
     let sockets = SocketBuilder::new()
         .handler("port_filter")
@@ -71,12 +74,13 @@ fn main() {
     sockets
         .into_iter()
         .for_each(|socket_wrapper: bcc::SocketWrapper| {
-            thread::spawn(|| {
-                recv_loop(socket_wrapper)
-            });
+            thread::spawn(|| recv_loop(socket_wrapper));
         });
 
-    println!("Attached sockets to interfaces {:?} and looking for tcp packets to port {}", &ifaces, port);
+    println!(
+        "Attached sockets to interfaces {:?} and looking for tcp packets to port {}",
+        &ifaces, port
+    );
 
     let mut elapsed = 0;
     while elapsed < duration {

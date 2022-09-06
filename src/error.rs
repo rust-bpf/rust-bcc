@@ -20,7 +20,10 @@ pub enum BccError {
     #[error("failed to attach XDP ({name}): code {code}")]
     AttachXDP { name: String, code: i32 },
     #[error("failed to attach socket to {iface}: {error}")]
-    AttachSocket { iface: String, error: std::io::Error },
+    AttachSocket {
+        iface: String,
+        error: std::io::Error,
+    },
     #[error("{cause} requires bcc >= ({min_version})")]
     BccVersionTooLow { cause: String, min_version: String },
     #[error("error compiling bpf")]
