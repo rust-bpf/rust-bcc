@@ -1,5 +1,15 @@
 # [Unreleased]
 
+# [0.0.33] - 2022-09-09
+## Added
+- Support to dump BPF program instructions. (#181)
+- Support for attaching BPF programs to sockets. (#191)
+
+## Fixed
+- Removes potential segfault in safe code by making `Table::new()` inaccessible
+  outside of this crate. (#192)
+- Various fixes to support running in CI environment. (#194)
+
 # [0.0.32] - 2021-11-23
 ## Added
 - Adds support for bcc 0.19.0
@@ -220,7 +230,8 @@
 
 Initial release.
 
-[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.32...HEAD
+[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.33...HEAD
+[0.0.33]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.32...v0.0.33
 [0.0.32]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.31...v0.0.32
 [0.0.31]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.30...v0.0.31
 [0.0.30]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.29...v0.0.30
