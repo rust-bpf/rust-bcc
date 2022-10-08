@@ -104,9 +104,9 @@ fn print_ipv4_event() -> Box<dyn FnMut(&[u8]) + Send> {
             get_datetime(),
             event.pid,
             event.ip,
-            format!("{}:{}", Ipv4Addr::from(event.saddr), event.lport),
+            format!("{}:{}", Ipv4Addr::from(u32::from_be(event.saddr)), event.lport),
             event.type_,
-            format!("{}:{}", Ipv4Addr::from(event.daddr), event.dport),
+            format!("{}:{}", Ipv4Addr::from(u32::from_be(event.daddr)), event.dport),
             event.state,
         );
     })
@@ -120,9 +120,9 @@ fn print_ipv6_event() -> Box<dyn FnMut(&[u8]) + Send> {
             get_datetime(),
             event.pid,
             event.ip,
-            format!("{}:{}", Ipv6Addr::from(event.saddr), event.lport),
+            format!("{}:{}", Ipv6Addr::from(u128::from_be(event.saddr)), event.lport),
             event.type_,
-            format!("{}:{}", Ipv6Addr::from(event.daddr), event.dport),
+            format!("{}:{}", Ipv6Addr::from(u128::from_be(event.daddr)), event.dport),
             event.state,
         );
     })
