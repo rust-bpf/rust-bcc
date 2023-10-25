@@ -1,5 +1,13 @@
 # [Unreleased]
 
+# [0.0.34] - 2023-10-25
+## Changed
+- Update readme to indicate that crate is not actively maintained and that users
+  should consider libbpf-rs instead
+
+## Fixed
+- Bugfix (byte ordering) in the tcpretrans example
+
 # [0.0.33] - 2022-09-09
 ## Added
 - Support to dump BPF program instructions. (#181)
@@ -230,7 +238,8 @@
 
 Initial release.
 
-[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.33...HEAD
+[Unreleased]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.34...HEAD
+[0.0.34]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.33...v0.0.34
 [0.0.33]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.32...v0.0.33
 [0.0.32]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.31...v0.0.32
 [0.0.31]: https://github.com/rust-bpf/rust-bcc/compare/v0.0.30...v0.0.31
