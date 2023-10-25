@@ -1,5 +1,12 @@
 # rust-bcc
 
+**Warning! Unmaintained!**
+
+With the advances in other BPF crates in the Rust ecosystem, this crate is no
+longer actively maintained. We recommend adopting [libbpf-rs](https://crates.io/crates/libbpf-rs)
+
+## About
+
 Idiomatic Rust bindings for the BPF compiler collection. The goal is to mimic the
 Python BCC bindings in https://github.com/iovisor/bcc in a Rusty way.
 
